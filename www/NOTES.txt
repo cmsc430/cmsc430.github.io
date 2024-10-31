@@ -128,3 +128,6 @@ DVH ideas based on Fall 2024
 * Hide current-objs from students, notes, etc.  Use run.rkt instead.
   Maybe only have run do asm-interp with run-time linked in,
   i.e. don't also do bits->value.
+
+* Need to have a better story for syntax checking starting with Fraud.
+  In things like Iniquity need to deal with the implict 2 namespaces.
