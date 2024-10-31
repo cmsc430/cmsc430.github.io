@@ -68,3 +68,63 @@ DVH ideas based on Fall 2021
   run DrRacket it complains that the nasm command cannot be found.
   Need to run `drracket` from the command line.
 
+DVH ideas based on Fall 2024
+
+* Looking over past notes: the CMOVcc stuff has happened.  The early
+  tooling assignment has happened.  Non-x86 machines seem to be
+  resolved.
+
+* Exams are now 24 hours, which seems right.  Miss 1 lecture.
+
+* Before semester starts, get autograders for all assignments out; set
+  them to be released on appropriate dates.  Set up "playground"
+  autograders to be released at same time with no deadline.  Set up
+  autograders for "practice" midterms too.
+
+* Remove GRACE stuff from notes.  Nobody uses it.
+
+* Move string interning to Hoax, cover static data there.
+
+* Create a new assignment 5 that is (1) adding immutable versions
+  existing mutable data structures.  This will require some rethinking
+  of the encoding scheme.  Vectors could be done now by using a bit in
+  the length field, but boxes are trickier.  Probably want that info
+  in the pointer.  (2) adding compound literals: pairs, vectors,
+  boxes.  This is essentially implementing Mug minus symbols, so maybe
+  that language goes away or becomes only about symbols?
+
+* After Hustle, go to Iniquity.  Come back later to Hoax.  It's less
+  essential and better to get into functions and calls earlier.  Would
+  be great to get through lambda before Midterm 2.
+
+* Stay on top of assignment release dates so that you can do 6 regular
+  assignments and the final project.  The trickiest part comes around
+  Midterm 2 where you're up against Thanksgiving and the end of the
+  semester soon after.
+
+* Fix Offset to take arbitrary memory expressions (you can do this in
+  a backward compatible way by overloading the Offset constructor:
+  - (Offset e) takes a memory expression (new)
+  - (Offset e1 e2) => (Offset (Plus e1 e2)) backwards compatible
+  This let's you write much better, e.g., vector code and you can write
+  (Offset 'rax) instead of (Offset 'rax 0), etc.
+
+* Take past exam questions and make them stand-alone exercises that
+  have autograders on Gradescope.
+
+* More quizes in the second half of the class.
+
+* Keep developing the slides with more visual presentations later in
+  the semester.
+
+* Potentially rethink pointer tagging scheme to take advantage of
+  unused upper bits.
+
+* Hoax and Hustle were a slow slog.  Gotta figure out how to get
+  through that quicker in the future.
+
+* Have a86 provide bindings for all register names.
+
+* Hide current-objs from students, notes, etc.  Use run.rkt instead.
+  Maybe only have run do asm-interp with run-time linked in,
+  i.e. don't also do bits->value.
