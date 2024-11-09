@@ -951,14 +951,12 @@ Each register plays the same role as in x86, so for example
 @defstruct*[Label ([x label?])]{
 
  Creates a label from the given symbol. Each label in a
- program must be unique.  Register names cannot be used
- as label names and names must follow the NASM restrictions
+ program must be unique.  Labels must follow the NASM restrictions
  on valid label names (see @racket[label?] for details).
 
  @ex[
  (Label 'fred)
  (eval:error (Label "fred"))
- (eval:error (Label 'rax))
  (eval:error (Label 'fred-wilma))
  ]
 
