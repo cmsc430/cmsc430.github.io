@@ -5,12 +5,8 @@
 @(require "../notes/ev.rkt"
           "../notes/utils.rkt")
 
-@(ev `(current-directory ,(path->string (build-path notes "iniquity-plus"))))
-@(for-each (λ (f) (ev `(require (file ,f))))
-	   '("ast.rkt" "parse.rkt" "interp.rkt"))
 
-
-@bold{Due: Monday, May 6, 11:59PM EST}
+@bold{Due: Tuesday November 26, 11:59PM EST}
 
 The goal of this assignment is to extend a compiler with new pattern
 matching forms for matching lists, vectors, and predicates.
@@ -62,6 +58,8 @@ same, but constructs a vector.
 (vector 1 2 3)
 (vector 1 #t #\c)]
 
+These are not directly useful in implementing the patterns above, but
+do make it easier to write examples and tests.
 
 @section[#:tag-prefix "a5-" #:style 'unnumbered #:tag "list"]{List patterns}
 
