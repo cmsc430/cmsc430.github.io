@@ -40,7 +40,7 @@ implement several related languages.
 	        #;(list prof2 prof2-email)
 		staff)]
 
-@bold{Office hours:} @office-hour-location, Schedule TBD
+@bold{Office hours:} @office-hour-location
 
 @tabular[#:style 'boxed
          #:row-properties '(bottom-border ())
