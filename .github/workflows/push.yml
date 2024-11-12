@@ -63,7 +63,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/cmsc430/assignments/actions/runs/${{ env.RUN_ID }}/artifacts)
           echo "Run response: $response"
-          download_url=$(echo "$response" | jq -r '.artifacts[0].archive_download_url)
+          download_url=$(echo "$response" | jq -r '.artifacts[0].archive_download_url')
           echo "Download URL: $download_url"
           curl -L \
             -H "Accept: application/vnd.github+json" \
@@ -77,7 +77,7 @@ jobs:
         # tar -xvf artifact.tar
         # mv knock-plus.zip www/main/
     - name: Archive www
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         name: github-pages
         path: www/main
