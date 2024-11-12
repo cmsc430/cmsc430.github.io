@@ -68,7 +68,7 @@ jobs:
           curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: token $GITHUB_TOKEN" \
-            $download_url
+            $download_url \
             -o artifacts.zip
     - name: Extract assignment zips
       if: success()
