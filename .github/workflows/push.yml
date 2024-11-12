@@ -36,12 +36,12 @@ jobs:
     - name: Generate assignment zips
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            https://api.github.com/repos/cmsc430/assignments/actions/workflows/push.yml/dispatches \
-            -d '{"ref":"main"}'
+      run: |
+        curl -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          https://api.github.com/repos/cmsc430/assignments/actions/workflows/push.yml/dispatches \
+          -d '{"ref":"main"}'
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
