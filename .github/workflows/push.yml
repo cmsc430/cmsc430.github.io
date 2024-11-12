@@ -24,7 +24,7 @@ jobs:
     - name: Install a86 and langs
       run: |
         git clone https://github.com/cmsc430/a86.git
-        git clone https://github.com/cmsc430/langs.git	
+        git clone https://github.com/cmsc430/langs.git  
         raco pkg install --auto a86/
         raco pkg install --auto langs/
     - name: Build and test
@@ -42,48 +42,33 @@ jobs:
           -H "Authorization: Bearer $GITHUB_TOKEN" \
           https://api.github.com/repos/cmsc430/assignments/actions/workflows/push.yml/dispatches \
           -d '{"ref":"main"}'
-    - name: Poll for zips
-      id: poll_workflow
+    - name: Get zips run ID
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
       run: |
-          MAX_ATTEMPTS=5  # Maximum polling attempts (2 minutes each = 10 minutes)
-          ATTEMPT=0
-          STATUS="in_progress"
-
-          sleep 10 # give request a chance to trigger
-          while [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" && "$STATUS" != "completed" ]]; do
-            echo "Polling attempt #$((ATTEMPT + 1))"
-            ATTEMPT=$((ATTEMPT + 1))
-
-            response=$(curl -s \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GITHUB_TOKEN" \
-              "https://api.github.com/repos/cmsc430/assignments/actions/runs?branch=main&status=success&per_page=1")
-
-            if [[ "$(echo "$response" | jq '.total_count')" -gt 0 ]]; then
-              STATUS="completed"
-              run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
-              echo "RUN_ID=$run_id" >> $GITHUB_ENV
-            else
-              echo "Workflow not completed yet. Waiting for 2 minutes before next attempt."
-              sleep 120  # Wait for 2 minutes before polling again
-            fi
-          done
-
-          if [[ "$STATUS" != "completed" ]]; then
-            echo "Workflow did not complete in time. Exiting with failure."
-            exit 1
-          fi
+          sleep 60 # give chance to finish
+          response=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/cmsc430/assignments/actions/runs?branch=main&status=success&per_page=1")
+          echo "Run response: $response"
+          run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
+          echo "RUN_ID=$run_id" >> $GITHUB_ENV
     - name: Download assignment zips
-      if: success()
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
       run: |
+          response=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/cmsc430/assignments/actions/runs/${{ env.RUN_ID }}/artifacts)
+          echo "Run response: $response"
+          download_url=$(echo "$response" | jq -r '.artifacts[0].archive_download_url)
+          echo "Download URL: $download_url"
           curl -L \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            https://api.github.com/repos/cmsc430/assignments/actions/runs/${{ env.RUN_ID }}/artifacts \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            $download_url
             -o artifacts.zip
     - name: Extract assignment zips
       if: success()
