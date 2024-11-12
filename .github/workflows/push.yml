@@ -50,7 +50,8 @@ jobs:
           MAX_ATTEMPTS=5  # Maximum polling attempts (2 minutes each = 10 minutes)
           ATTEMPT=0
           STATUS="in_progress"
-          
+
+          sleep 10 # give request a chance to trigger
           while [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" && "$STATUS" != "completed" ]]; do
             echo "Polling attempt #$((ATTEMPT + 1))"
             ATTEMPT=$((ATTEMPT + 1))
@@ -87,9 +88,9 @@ jobs:
     - name: Extract assignment zips
       if: success()
       run: |
-        unzip artifacts.zip
-        tar -xvf artifact.tar
-        mv knock-plus.zip www/main/
+        unzip -l artifacts.zip
+        # tar -xvf artifact.tar
+        # mv knock-plus.zip www/main/
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
