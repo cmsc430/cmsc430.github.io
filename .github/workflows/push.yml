@@ -72,7 +72,7 @@ jobs:
             -o artifacts.zip
     - name: Extract assignment zips
       run: |
-        unzip -l artifacts.zip
+        unzip artifacts.zip
         tar -xvf artifact.tar
         mv knock-plus.zip www/main/code/
     - name: Archive www
