@@ -71,11 +71,10 @@ jobs:
             $download_url \
             -o artifacts.zip
     - name: Extract assignment zips
-      if: success()
       run: |
         unzip -l artifacts.zip
-        # tar -xvf artifact.tar
-        # mv knock-plus.zip www/main/
+        tar -xvf artifact.tar
+        mv knock-plus.zip www/main/code/
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
