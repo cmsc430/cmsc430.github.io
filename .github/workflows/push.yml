@@ -33,48 +33,15 @@ jobs:
         # raco pkg install --auto www/
         raco make www/main.scrbl
         make -C www main
-    - name: Generate assignment zips
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-      run: |
-        curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          https://api.github.com/repos/cmsc430/assignments/actions/workflows/push.yml/dispatches \
-          -d '{"ref":"main"}'
-    - name: Get zips run ID
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-      run: |
-          sleep 60 # give chance to finish
-          response=$(curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/cmsc430/assignments/actions/runs?branch=main&status=success&per_page=1")
-          echo "Run response: $response"
-          run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
-          echo "RUN_ID=$run_id" >> $GITHUB_ENV
     - name: Download assignment zips
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-      run: |
-          response=$(curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/cmsc430/assignments/actions/runs/${{ env.RUN_ID }}/artifacts)
-          echo "Run response: $response"
-          download_url=$(echo "$response" | jq -r '.artifacts[0].archive_download_url')
-          echo "Download URL: $download_url"
-          curl -L \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            $download_url \
-            -o artifacts.zip
-    - name: Extract assignment zips
-      run: |
-        unzip artifacts.zip
-        tar -xvf artifact.tar
-        mv knock-plus.zip www/main/code/
+      uses: Legit-Labs/action-download-artifact@v2
+      with:
+        github_token: ${{ secrets.PAT_ZIPS_WORKFLOW }}
+	workflow: push.yml
+	workflow_conclusion: success
+	branch: main
+	name: zips
+	path: www/main/code
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
