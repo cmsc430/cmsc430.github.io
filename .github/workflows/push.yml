@@ -34,7 +34,7 @@ jobs:
         raco make www/main.scrbl
         make -C www main
     - name: Download assignment zips
-      uses: Legit-Labs/action-download-artifact@v2
+      uses: dawidd6/action-download-artifact@v6
       with:
         github_token: ${{ secrets.PAT_ZIPS_WORKFLOW }}
         repo: cmsc430/assignments
