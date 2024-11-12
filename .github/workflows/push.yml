@@ -37,7 +37,7 @@ jobs:
       uses: Legit-Labs/action-download-artifact@v2
       with:
         github_token: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-	repo: cmsc430/assignments
+        repo: cmsc430/assignments
         workflow: push.yml
         workflow_conclusion: success
         branch: main
