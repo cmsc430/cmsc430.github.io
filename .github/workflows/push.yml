@@ -77,7 +77,7 @@ jobs:
         # tar -xvf artifact.tar
         # mv knock-plus.zip www/main/
     - name: Archive www
-      uses: actions/upload-pages-artifact@v4
+      uses: actions/upload-pages-artifact@v3
       with:
         name: github-pages
         path: www/main
