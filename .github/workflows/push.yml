@@ -89,7 +89,7 @@ jobs:
       run: |
         unzip artifacts.zip
         tar -xvf artifact.tar
-	mv knock-plus.zip www/main/
+        mv knock-plus.zip www/main/
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
