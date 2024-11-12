@@ -37,11 +37,11 @@ jobs:
       uses: Legit-Labs/action-download-artifact@v2
       with:
         github_token: ${{ secrets.PAT_ZIPS_WORKFLOW }}
-	workflow: push.yml
-	workflow_conclusion: success
-	branch: main
-	name: zips
-	path: www/main/code
+        workflow: push.yml
+        workflow_conclusion: success
+        branch: main
+        name: zips
+        path: www/main/code
     - name: Archive www
       uses: actions/upload-pages-artifact@v3
       with:
