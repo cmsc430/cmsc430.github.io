@@ -13,7 +13,7 @@
 The final assessment for this course consists of an individually
 completed project.
 
-@bold{Due: Tuesday, May 14, 3:30PM EST}
+@bold{Due: @final-date, @final-end-time}
 
 @section[#:style 'unnumbered]{Arity Checking, Rest Arguments, Case Functions, and Apply}
 
