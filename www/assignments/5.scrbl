@@ -1,4 +1,5 @@
 #lang scribble/manual
+@(require "../defns.rkt")
 @title[#:tag "Assignment 5" #:style 'unnumbered]{Assignment 5: Patterns}
 
 @(require (for-label (except-in racket ...)))
@@ -6,7 +7,7 @@
           "../notes/utils.rkt")
 
 
-@bold{Due: Tuesday November 26, 11:59PM EST}
+@bold{Due: @assign-deadline[5]}
 
 The goal of this assignment is to extend a compiler with new pattern
 matching forms for matching lists, vectors, and predicates.

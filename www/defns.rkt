@@ -63,3 +63,11 @@
 (define gradescope "https://www.gradescope.com/courses/818295")
 
 (define feedback "https://forms.gle/A6U3CCR2KyA86UTh6")
+
+(define (assign-deadline i)
+  (list-ref '("Tuesday, September 10, 11:59PM"
+              "Thursday, September 12, 11:59PM"
+              "Thursday, October 3, 11:59PM"
+              "Thursday, October 31, 11:59PM"
+              "Tuesday, November 26, 11:59PM")            
+            (sub1 i)))

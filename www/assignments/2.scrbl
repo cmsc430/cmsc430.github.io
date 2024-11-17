@@ -1,7 +1,8 @@
 #lang scribble/manual
+@(require "../defns.rkt")
 @title[#:tag "Assignment 2" #:style 'unnumbered]{Assignment 2: a86 Primer}
 
-@bold{Due: Thursday, September 12, 11:59PM}
+@bold{Due: @assign-deadline[2]}
 
 The goal of this assignment is to gain practice programming in a86.
 

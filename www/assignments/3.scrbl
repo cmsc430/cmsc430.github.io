@@ -1,9 +1,10 @@
 #lang scribble/manual
+@(require "../defns.rkt")
 @title[#:tag "Assignment 3" #:style 'unnumbered]{Assignment 3: Primitives, Conditionals, and Dispatch}
 
 @(require (for-label a86 (except-in racket ...)))
 
-@bold{Due: Thursday, October 3, 11:59PM}
+@bold{Due: @assign-deadline[3]}
 
 The goal of this assignment is to extend the language developed in
 @secref{Dupe} with some simple unary numeric and boolean operations

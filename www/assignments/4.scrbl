@@ -1,8 +1,8 @@
 #lang scribble/manual
-
+@(require "../defns.rkt")
 @title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Let There Be (Many) Variables}
 
-@bold{Due: Thursday, October 31, 11:59PM EST}
+@bold{Due: @assign-deadline[4]}
 
 The goal of this assignment is to extend a compiler with binding forms and
 primitives that can take any number of arguments.
