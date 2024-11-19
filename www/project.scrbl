@@ -90,7 +90,7 @@ The function should check this number against the expected number and
 signal an error when they don't match.
 
 
-You should modify @racket[compile-app] and @racket[compile-define] to
+You should modify @racket[compile-app] and @racket[compile-fun] to
 implement this part of the assignment.
 
 @section[#:tag-prefix "proj-" #:style 'unnumbered #:tag "rest"]{Rest
