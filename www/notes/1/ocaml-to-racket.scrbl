@@ -532,8 +532,8 @@ When given pairs that are also lists, they behave just like
 
 @section{Pattern matching}
 
-OCaml has a very nice pattern matching for letting you express case
-analysis and decomposition in a concise way.
+OCaml has a very nice pattern matching mechanism for letting you
+express case analysis and decomposition in a concise way.
 
 Each pattern maching expression has a sub-expression that produce a
 value to be matched against and a number of clauses.  Each clause has
