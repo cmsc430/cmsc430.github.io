@@ -13,7 +13,7 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "blackmail" f))))))
-	   '("interp.rkt" "compile.rkt" "random.rkt" "ast.rkt"))
+	   '("main.rkt" "random.rkt" "correct.rkt"))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "blackmail")])
@@ -41,9 +41,9 @@
 
 @section{Refinement, take one}
 
-We've seen all the essential pieces (a grammar, an AST data type
-definition, an operational semantics, an interpreter, a compiler,
-etc.) for implementing a programming language, albeit for an amazingly
+We've seen all the essential pieces---a grammar, an AST data type
+definition, a semantic specification (the interpreter), a compiler,
+etc.---for implementing a programming language, albeit for an amazingly
 simple language.
 
 We will now, through a process of @bold{iterative refinement}, grow
@@ -73,23 +73,26 @@ An example concrete program:
 
 @section{Abstract syntax for Blackmail}
 
-The grammar of abstract Backmail expressions is:
+The datatype for abstractly representing expressions can be defined
+as:
 
-@centered{@render-language[B]}
+@codeblock-include["blackmail/ast.rkt"]
 
 So, @racket[(Lit 0)], @racket[(Lit 120)], and
 @racket[(Lit -42)] are Blackmail AST expressions, but so are
 @racket[(Prim1 'add1 (Lit 0))], @racket[(Sub1 (Lit 120))],
 @racket[(Prim1 'add1 (Prim1 'add1 (Prim1 'add1 (Lit -42))))].
 
-A datatype for representing expressions can be defined as:
-
-@codeblock-include["blackmail/ast.rkt"]
 
 The parser is more involved than Abscond, but still
 straightforward:
 
 @codeblock-include["blackmail/parse.rkt"]
+
+@ex[
+(parse '42)
+(parse '(add1 42))
+(parse '(add1 (sub1 (add1 42))))]
 
 
 @section{Meaning of Blackmail programs}
@@ -101,6 +104,7 @@ The meaning of a Blackmail program depends on the form of the expression:
 @item{the meaning of an increment expression is one more than the meaning of its subexpression, and}
 @item{the meaning of a decrement expression is one less than the meaning of its subexpression.}]
 
+@;{
 The operational semantics reflects this dependence on the form of the
 expression by having three rules, one for each kind of expression:
 
@@ -150,13 +154,27 @@ This may seem a bit strange at the moment, but it helps to view the
 semantics through its correspondence with an interpreter, which given
 an expression @math{e}, computes an integer @math{i}, such that
 @math{(e,i)} is in @render-term[B 𝑩].
+}
 
-Just as there are three rules, there will be three cases to the
-interpreter, one for each form of expression:
+To compute the meaning of an expression, the @racket[interp]
+function does a case analysis of the expression:
 
 @codeblock-include["blackmail/interp.rkt"]
 
-@examples[#:eval ev
+In the case of a @racket[(Prim1 p e)] expression, the interpreter
+first recursively computes the meaning of the subexpression @racket[e]
+and then defers to a helper function @racket[interp-prim1] which
+interprets the meaning of a given unary operation and value:
+
+@codeblock-include["blackmail/interp-prim.rkt"]
+
+If the given operation is @racket['add1], the function adds 1;
+if it's @racket['sub1], it subtracts 1.
+
+We can write examples of the @racket[interp] function, writing inputs
+in abstract syntax:
+
+@ex[
 (interp (Lit 42))
 (interp (Lit -7))
 (interp (Prim1 'add1 (Lit 42)))
@@ -164,6 +182,20 @@ interpreter, one for each form of expression:
 (interp (Prim1 'add1 (Prim1 'add1 (Prim1 'add1 (Lit 8)))))
 ]
 
+We could also write examples using concrete syntax, using the parser
+to construct the appropriate abstract syntax for us:
+
+@ex[
+(interp (parse '42))
+(interp (parse '-7))
+(interp (parse '(add1 42)))
+(interp (parse '(sub1 8)))
+(interp (parse '(add1 (add1 (add1 8)))))
+]
+
+
+
+@;{
 Here's how to connect the dots between the semantics and interpreter:
 the interpreter is computing, for a given expression @math{e}, the
 integer @math{i}, such that @math{(e,i)} is in @render-term[B 𝑩].  The
@@ -195,56 +227,95 @@ induction of the interpreter's correctness:
 @render-term[B 𝑩], then @racket[(interp e)] equals
 @racket[i].}
 
+}
+
 @section{An Example of Blackmail compilation}
 
 Just as we did with Abscond, let's approach writing the compiler by
 first writing an example.
 
-Suppose we want to compile @racket[(add1 (add1 40))].  We already
-know how to compile the @racket[40]: @racket[(Mov 'rax 40)].  To do
-the increment (and decrement) we need to know a bit more x86-64.  In
-particular, the @tt{add} (and @tt{sub}) instruction is relevant.  It
-increments the contents of a register by some given amount.
+Suppose we want to compile @racket[(add1 (add1 40))].  We already know
+how to compile the @racket[40]: @racket[(Mov 'rax 40)].  To do the
+increment (and decrement) we need to know a bit more a86.  In
+particular, the @racket[Add] instruction is relevant.  It increments
+the contents of a register by some given amount.
 
-Concretely, the program that adds 1 twice to 40 looks like:
+So, a program that adds 1 twice to 40 looks like:
 
-@filebox-include[fancy-nasm blackmail "add1-add1-40.s"]
 
-The runtime stays exactly the same as before.
+@ex[
+(asm-interp
+  (prog (Global 'entry)
+        (Label 'entry)
+        (Mov 'rax 40)
+        (Add 'rax 1)
+        (Add 'rax 1)
+        (Ret)))]
+      
 
-@shellbox["make add1-add1-40.run" "./add1-add1-40.run"]
+@;{filebox-include[fancy-nasm blackmail "add1-add1-40.s"]}
+
 
 @section{A Compiler for Blackmail}
 
-To compile Blackmail, we make use of two more a86
-instructions, @racket[Add] and @racket[Sub]:
-
-@ex[
-(asm-display
- (list (Label 'entry)
-       (Mov 'rax 40)
-       (Add 'rax 1)
-       (Add 'rax 1)
-       (Ret)))
-]
-
-The compiler consists of two functions: the first, which is given a
-program, emits the entry point and return instructions, invoking
-another function to compile the expression:
+To compile Blackmail, we make use of two more a86 instructions,
+@racket[Add] and @racket[Sub].  The compiler consists of two
+functions: the first, which is given a program, emits the entry point
+and return instructions, invoking another function to compile the
+expression:
 
 @codeblock-include["blackmail/compile.rkt"]
 
 Notice that @racket[compile-e] is defined by structural
 recursion, much like the interpreter.
 
+In the case of a unary primitive @racket[(Prim1 p e)], the compiler
+first compiles the subexpression @racket[e] obtaining a list of
+instructions that, when executed, will place @racket[e]'s value in the
+@racket['rax] register.  After that sequence of instructions, the
+compiler emits instructions for carrying out the operation @racket[p],
+defering to a helper function @racket[compile-op1]:
+
+@codeblock-include["blackmail/compile-ops.rkt"]
+
+This function either emits an @racket[Add] or @racket[Sub]
+instruction, depending upon @racket[p].
 
 We can now try out a few examples:
 
 @ex[
-(compile (Prim1 'add1 (Prim1 'add1 (Lit 40))))
-(compile (Prim1 'sub1 (Lit 8)))
-(compile (Prim1 'add1 (Prim1 'add1 (Prim1 'sub1 (Prim1 'add1 (Lit -8))))))
-]
+(compile-e (parse '(add1 (add1 40))))
+(compile-e (parse '(sub1 8)))
+(compile-e (parse '(add1 (add1 (sub1 (add1 -8))))))]
+
+To see the complete code for these examples, we can use the
+@racket[compile] function:
+
+@ex[
+(compile (parse '(add1 (add1 40))))
+(compile (parse '(sub1 8)))
+(compile (parse '(add1 (add1 (sub1 (add1 -8))))))]
+
+We can also run the code produced in these examples in order to see
+what they each produce:
+
+@ex[
+(asm-interp (compile (parse '(add1 (add1 40)))))
+(asm-interp (compile (parse '(sub1 8))))
+(asm-interp (compile (parse '(add1 (add1 (sub1 (add1 -8)))))))]
+
+Based on this, it's useful to define an @racket[exec] function that
+(should) behave like @racket[interp], just as we did for Abscond:
+
+@codeblock-include["blackmail/exec.rkt"]
+
+@ex[
+(exec (parse '(add1 (add1 40))))
+(exec (parse '(sub1 8)))
+(exec (parse '(add1 (add1 (sub1 (add1 -8))))))]
+
+This function will be the basis of our compiler correctness statement
+and a primary tool for testing the compiler.
 
 And give a command line wrapper for parsing, checking, and compiling
 in @link["code/blackmail/compile-stdin.rkt"]{@tt{compile-stdin.rkt}},
@@ -259,34 +330,26 @@ single command:
 @void[(shellbox "touch add1-add1-40.rkt")]
 @shellbox["make add1-add1-40.run" "./add1-add1-40.run"]
 
-Likewise, to test the compiler from within Racket, we use
-the same @racket[asm-interp] function to encapsulate running
-assembly code:
-
-@ex[
-(asm-interp (compile (Prim1 'add1 (Prim1 'add1 (Lit 40)))))
-(asm-interp (compile (Prim1 'sub1 (Lit 8))))
-(asm-interp (compile (Prim1 'add1 (Prim1 'add1 (Prim1 'add1 (Prim1 'add1 (Lit -8)))))))
-]
 
 @section{Correctness and random testing}
 
 We can state correctness similarly to how it was stated for Abscond:
 
-@bold{Compiler Correctness}: @emph{For all expressions @racket[e] and
-integers @racket[i], if (@racket[e],@racket[i]) in @render-term[B
-𝑩], then @racket[(asm-interp (compile e))] equals
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{Expr} and @racket[i] @math{∈} @tt{Integer}, if @racket[(interp e)]
+equals @racket[i], then @racket[(exec e)] equals
 @racket[i].}
 
+(This statement is actually identical to the statement of correctness
+for Abscond, however, it should be noted that the meaning of
+@tt{Expr}, @racket[interp], @racket[exec] refer to their Blackmail
+definitions.)
 
 And we can test this claim by comparing the results of running
 compiled and interpreted programs, leading to the following property,
 which hopefully holds:
 
-@ex[
-(define (check-compiler e)
-  (check-eqv? (interp e)
-              (asm-interp (compile e))))]
+@codeblock-include["blackmail/correct.rkt"]
 
 The problem, however, is that generating random Blackmail programs is
 less obvious compared to generating random Abscond programs
@@ -311,6 +374,8 @@ e
   (check-compiler (random-expr)))
 ]
 
+@section[#:tag "broken"]{A Broken Compiler}
+
 It's now probably time to acknowledge a short-coming in our
 compiler. Although it's great that random testing is
 confirming the correctness of the compiler on
@@ -332,10 +397,10 @@ x86 does.  Let's see:
 @ex[
 (define max-int (sub1 (expt 2 63)))
 (define min-int (- (expt 2 63)))
-(asm-interp (compile (Lit max-int)))
-(asm-interp (compile (Prim1 'add1 (Lit max-int))))
-(asm-interp (compile (Lit min-int)))
-(asm-interp (compile (Prim1 'sub1 (Lit min-int))))]
+(exec (Lit max-int))
+(exec (Prim1 'add1 (Lit max-int)))
+(exec (Lit min-int))
+(exec (Prim1 'sub1 (Lit min-int)))]
 
 Now there's a fact you didn't learn in grade school: in the
 first example, adding 1 to a number made it smaller; in the
@@ -358,6 +423,29 @@ correctness:
 (check-compiler (Prim1 'sub1 (Lit min-int)))
 ]
 
+The problem also exists in Abscond in that we can write literals that
+exceed these bounds.  The interpreter has no problem with such
+literals:
+
+@ex[
+(interp (Lit (add1 max-int)))]
+
+But the compiler will produce the wrong result:
+
+@ex[
+(exec (Lit (add1 max-int)))]
+
+It's also possible to exceed the bounds so thoroughly, that the
+program can't even be compiled:
+
+@ex[
+(interp (Lit (expt 2 64)))
+(eval:error (exec (Lit (expt 2 64))))]
+
+The issue here being that a @racket[Mov] instruction can only take an
+argument that can be represented in 64-bits.
+
+
 What can we do? This is the basic problem of a program not
 satisfying its specification.  We have two choices:
 
@@ -366,17 +454,16 @@ satisfying its specification.  We have two choices:
  @item{change the program (i.e. the compiler)}
 ]
 
-We could change the spec to make it match the behaviour of
-the compiler. This would involve writing out definitions
-that match the ``wrapping'' behavior we see in the compiled
-code. Of course if the specification is meant to capture
-what Racket actually does, taking this route would be a
-mistake. Even independent of Racket, this seems like a
-questionable design choice. Wouldn't it be nice to reason
-about programs using the usual laws of mathematics (or at
-least something as close as possible to what we think of as
-math)? For example, wouldn't you like know that
-@racket[(< i (add1 i))] for all integers @racket[i]?
+We could change the spec to make it match the behaviour of the
+compiler.  This would involve writing out definitions that match the
+``wrapping'' behavior we see in the compiled code. Of course if the
+specification is meant to capture what Racket actually does, taking
+this route would be a mistake. Even independent of Racket, this seems
+like a questionable design choice. Wouldn't it be nice to reason about
+programs using the usual laws of mathematics (or at least something as
+close as possible to what we think of as math)? For example, wouldn't
+you like know that @racket[(< i (add1 i))] for all integers
+@racket[i]?
 
 Unforunately, the other choice seems to paint us in to a
 corner. How can we ever hope to represent all possible
@@ -402,15 +489,13 @@ these pieces in the two compilers we've written:
 
 @itemlist[@item{we use @racket[parse] to convert an s-expression into an AST}]}
 
-@item{@bold{Checked} to make sure code is well-formed (and well-typed)}
+@item{@bold{Checked} to make sure code is well-formed
 
-@item{@bold{Simplified} into some convenient @bold{Intermediate Representation}
-
-@itemlist[@item{we don't do any; the AST is the IR}]}
+@itemlist[@item{we don't current do any, but more checking will come with more sophisticated langauges.}]}
 
 @item{@bold{Optimized} into (equivalent) but faster program
 
-@itemlist[@item{we don't do any}]}
+@itemlist[@item{we don't do any yet}]}
 
 @item{@bold{Generated} into assembly x86
 
@@ -428,7 +513,8 @@ Our recipe for building compiler involves:
 @itemlist[#:style 'ordered
 @item{Build intuition with @bold{examples},}
 @item{Model problem with @bold{data types},}
-@item{Implement compiler via @bold{type-transforming-functions},}
+@item{Implement compiler via @bold{type-guided-functions},}
+
 @item{Validate compiler via @bold{tests}.}
 ]
 

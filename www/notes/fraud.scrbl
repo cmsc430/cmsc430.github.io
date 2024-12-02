@@ -16,7 +16,7 @@
 @(ev `(current-directory ,(path->string (build-path langs "fraud"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt" "translate.rkt"))
+	   '("main.rkt" "translate.rkt"))
 
 
 @(define this-lang "Fraud")
@@ -133,6 +133,83 @@ We can model it as a datatype as usual:
 }
 
 
+
+@section{Syntax matters}
+
+With the introduction of variables comes the issue of expressions that
+have @bold{free} and @bold{bound variables}.  A bound variable is a
+variable that occurs within the scope of some binder for that
+variable.  A free variable is one that occurs within an expression
+that does not bind that variable.  So for example, in @racket[(let ((x
+5)) (add1 x))], the occurrence of @racket[x] is bound because it
+occurs within the body of a @racket[let] expression that binds
+@racket[x].  Although, if the expression were just @racket[(add1 x)],
+then the occurrence of @racket[x] is free (or unbound).  Note that an
+expression might include both free and bound occurrences of a
+variable, e.g. in @racket[(+ (let ((x 5)) x) x)] there are two
+occurrences of @racket[x]: one is bound and one is free.
+
+An important set of expressions are those that contain no free
+variables.
+
+@#reader scribble/comment-reader
+(racketblock
+;; type ClosedExpr = { e ∈ Expr | e contains no free variables }
+)
+
+This set is important because only closed expressions should be
+interpreted (or compiled).  We will consider free variables to be a
+syntax error.  To this end, we provide two versions of the parser.
+The @racket[parse-closed] parser raises an error when it encounters an
+unbound variable and therefore guarantees to always produce an element
+of @tt{ClosedExpr}.  The @racket[parse] parser on the other hand
+produces elements of @tt{Expr} and parse unbound variables as
+variables:
+
+@ex[
+(parse 'x)
+(parse '(add1 x))
+(parse '(let ((x 5)) (add1 x)))
+(eval:error (parse-closed 'x))
+(eval:error (parse-closed '(add1 x)))
+(parse-closed '(let ((x 5)) (add1 x)))]
+
+Another issue that comes up now is the potential to bind variables
+that conflict with other keywords used in the language such as
+@racket[add1], @racket[sub1], @racket[if], etc.  Racket, following
+Scheme, adopts a flexible approach that allows variables bindings to
+shadow @emph{any} keyword in the language.  We can do the same.
+
+This means that parsing an expression depends on the binding structure
+parsed so far.  For example @racket[add1] might be a variable
+occurrence if it appears in a context that binds the variable
+@racket[add1].  The parser has been updated to take this in to account.
+Consider the following examples:
+
+@ex[
+(parse '(let ((add1 1)) (sub1 add1)))
+(eval:error (parse '(let ((add1 1)) (add1 add1))))
+(parse '(let ((let 1)) let))
+(parse 'let)]
+
+
+The heart of this revised parsing strategy is the function
+@racket[parse/acc] with takes an s-expression to be parsed into an
+expression as well as a list of bound and free variables.  It computes
+both the parsed expression and a list of variables that occur free in
+it.
+
+When encountering a keyword like @racket[if], @racket[let], etc., we
+check that it is not in the set of bound variables before parsing the
+input as that particular form of expression.  When we encounter a
+variable occurrence, if it is not in the set of bound variables, we
+add it to the set of free variables in the result.  When binding a
+variable, we add it to the set of bound variables before parsing the
+relevant part of the input where the variable is bound:
+
+@codeblock-include["fraud/parse.rkt"]
+
+
 @section{Meaning of @this-lang programs}
 
 The meaning of @this-lang programs depends on the form of the expression and
@@ -226,77 +303,22 @@ expressions, we will need to keep track of some number of
 pairs of variables and their meaning. We will refer to this
 contextual information as an @bold{environment}.
 
-@margin-note{To keep things simple, we omit the treatment of
- IO in the semantics, but it's easy enough to incorporate
- back in if desired following the template of @secref{
-  Evildoer}.}
-
 The meaning of a variable is resolved by looking up its
 meaning in the environment. The meaning of a @racket[let]
 will depend on the meaning of its body with an extended
 environment that associates its variable binding to the
 value of the right hand side.
 
-The heart of the semantics is an auxiliary relation, @render-term[F
-𝑭-𝒆𝒏𝒗], which relates an expression and an environement to the integer
-the expression evaluates to (in the given environment):
 
-@(define ((rewrite s) lws)
-   (define lhs (list-ref lws 2))
-   (define rhs (list-ref lws 3))
-   (list "" lhs (string-append " " (symbol->string s) " ") rhs ""))
 
-@(require (only-in racket add-between))
-@(define-syntax-rule (show-judgment name cases)
-   (with-unquote-rewriter
-      (lambda (lw)
-        (build-lw (lw-e lw) (lw-line lw) (lw-line-span lw) (lw-column lw) (lw-column-span lw)))
-      (with-compound-rewriters (['+ (rewrite '+)]
-                                ['- (rewrite '–)]
-				['< (rewrite '<)]
-				['= (rewrite '=)])
-        (apply centered
-	   (add-between 
-             (map (λ (c) (parameterize ([judgment-form-cases (list c)]
-	                                [judgment-form-show-rule-names #f])
-	                   (render-judgment-form name)))
-	          cases)
-             (hspace 4))))))
-
-The rules for dealing with the new forms (variables and lets) are:
-@(show-judgment 𝑭-𝒆𝒏𝒗 '("var" "let"))
+The heart of the semantics is a function @racket[interp-env] the
+provides the meaning of an expression under a given environment.  The
+top-level @racket[interp] function simply calls @racket[interp-env]
+with an empty enivornment.
 
 These rely on two functions: one for extending an environment with a
 variable binding and one for lookup up a variable binding in an
-environment:
-
-@centered{
-@render-metafunction[sem:ext #:contract? #t]
-
-@(with-atomic-rewriter
-  'undefined
-  "⊥"
-  (render-metafunction sem:lookup #:contract? #t))}
-
-
-The remaining rules are just an adaptation of the existing rules from
-Extort to thread the environment through.  For example, here are just
-a couple:
-@(show-judgment 𝑭-𝒆𝒏𝒗 '("prim"))
-@(show-judgment 𝑭-𝒆𝒏𝒗 '("if-true" "if-false"))
-
-And rules for propagating errors through let:
-@(show-judgment 𝑭-𝒆𝒏𝒗 '("let-err"))
-
-
-
-The operational semantics for @this-lang is then defined as a binary relation
-@render-term[F 𝑭], which says that @math{(e,i)} in @render-term[F 𝑭],
-only when @math{e} evaluates to @math{i} in the empty environment
-according to @render-term[F 𝑭-𝒆𝒏𝒗]:
-
-@(show-judgment 𝑭 '("mt-env"))
-
+environment.
 
 
 With the semantics of @racket[let] and variables out of the
@@ -307,37 +329,10 @@ of @racket[_e0] and @racket[_e1], when they mean integers,
 otherwise the meaning is an error.
 
 
-The handling of primitives occurs in the following rule:
 
-@(show-judgment 𝑮-𝒆𝒏𝒗 '("prim"))
-
-It makes use of an auxiliary judgment for interpreting primitives:
-
-@centered[
-
- (with-compound-rewriters (['+ (rewrite '+)]
-                           ['- (rewrite '–)]
-			   ['< (rewrite '<)]
-			   ['= (rewrite '=)]
-                           ['= (rewrite '=)]
-                           ['!= (rewrite '≠)])
-   (render-metafunction 𝑭-𝒑𝒓𝒊𝒎 #:contract? #t))
- 
-   #;(with-unquote-rewriter
-      (lambda (lw)
-        (build-lw (lw-e lw) (lw-line lw) (lw-line-span lw) (lw-column lw) (lw-column-span lw)))
-      (render-metafunction 𝑮-𝒑𝒓𝒊𝒎 #:contract? #t))]
-
-
-
-
-The interpreter closely mirrors the semantics.  The top-level
-@racket[interp] function relies on a helper function
-@racket[interp-env] that takes an expression and environment and
-computes the result.  It is defined by structural recursion on the
-expression.  Environments are represented as lists of associations
-between variables and values.  There are two helper functions for
-@racket[ext] and @racket[lookup]:
+It is defined by structural recursion on the expression.  Environments
+are represented as lists of associations between variables and values.
+There are two helper functions for @racket[ext] and @racket[lookup]:
 
 @codeblock-include["fraud/interp.rkt"]
 
@@ -352,21 +347,11 @@ examples given earlier:
 (interp (parse '(let ((x 7)) (let ((y 2)) x))))
 (interp (parse '(let ((x 7)) (let ((x 2)) x))))
 (interp (parse '(let ((x 7)) (let ((x (add1 x))) x))))
-]
-
-We can see that it works as expected:
-
-@ex[
 (interp (parse '(+ 3 4)))
 (interp (parse '(+ 3 (+ 2 2))))
 (interp (parse '(+ #f 8)))
 ]
 
-
-@bold{Interpreter Correctness}: @emph{For all @this-lang expressions
-@racket[e] and values @racket[v], if (@racket[e],@racket[v]) in
-@render-term[F 𝑭], then @racket[(interp e)] equals
-@racket[v].}
 
 @section{Lexical Addressing}
 
@@ -443,10 +428,8 @@ variables, but just lexical addresses:
 @#reader scribble/comment-reader
 (racketblock
 ;; type IExpr =
+;; | (Lit Datum)
 ;; | (Eof)
-;; | (Int Integer)
-;; | (Bool Boolean)
-;; | (Char Character)
 ;; | (Prim0 Op0)
 ;; | (Prim1 Op1 IExpr)
 ;; | (Prim2 Op2 IExpr IExpr)
@@ -840,10 +823,7 @@ stack-alignment issues, but is otherwise the same as before:
 We can now take a look at the main compiler for expressions.  Notice
 the compile-time environment which is weaved through out the
 @racket[compile-e] function and its subsidiaries, which is critical in
-@racket[compile-variable] and extended in @racket[compile-let].  It is
-passed to the @racket[compile-op0], @racket[compile-op1] and
-@racket[compile-op2] functions for the purposes of stack alignment
-before calls into the runtime system.
+@racket[compile-variable] and extended in @racket[compile-let]. 
 
 @filebox-include[codeblock fraud "compile.rkt"]
 
@@ -872,18 +852,13 @@ Let's take a look at some examples of @racket[let]s and variables:
 
 And running the examples:
 @ex[
-(current-objs '("runtime.o"))
-(define (tell e)
-  (match (asm-interp (compile (parse e)))
-    ['err 'err]
-    [b (bits->value b)]))
-(tell '(let ((x 7)) x))
-(tell '(let ((x 7)) 2))
-(tell '(let ((x 7)) (add1 x)))
-(tell '(let ((x (add1 7))) x))
-(tell '(let ((x 7)) (let ((y 2)) x)))
-(tell '(let ((x 7)) (let ((x 2)) x)))
-(tell '(let ((x 7)) (let ((x (add1 x))) x)))
+(exec (parse '(let ((x 7)) x)))
+(exec (parse '(let ((x 7)) 2)))
+(exec (parse '(let ((x 7)) (add1 x))))
+(exec (parse '(let ((x (add1 7))) x)))
+(exec (parse '(let ((x 7)) (let ((y 2)) x))))
+(exec (parse '(let ((x 7)) (let ((x 2)) x))))
+(exec (parse '(let ((x 7)) (let ((x (add1 x))) x))))
 ]
 
 Here are some examples of binary operations:
@@ -896,9 +871,9 @@ Here are some examples of binary operations:
 
 And running the examples:
 @ex[
-(tell '(+ 1 2))
-(tell '(+ (+ 3 4) (+ 1 2)))
-(tell '(let ((y 3)) (let ((x 2)) (+ x y))))
+(exec (parse '(+ 1 2)))
+(exec (parse '(+ (+ 3 4) (+ 1 2))))
+(exec (parse '(let ((y 3)) (let ((x 2)) (+ x y)))))
 ]
 
 Finally, we can see the stack alignment issues in action:
@@ -909,3 +884,21 @@ Finally, we can see the stack alignment issues in action:
 (show '(add1 #f) '())
 (show '(add1 #f) '(x))
 ]
+
+@section{Correctness}
+
+For the statement of compiler correctness, we must now restrict the
+domain of expressions to be just @bold{closed expressions}, i.e. those
+that have no unbound variables.
+
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[v]
+@math{∈} @tt{Value}, if @racket[(interp/io e i)] equals @racket[(cons
+v o)], then @racket[(exec/io e i)] equals
+@racket[(cons v o)].}
+
+The check for correctness is the same as before, although the check should only be applied
+to elements of @tt{ClosedExpr}:
+
+@filebox-include[codeblock fraud "correct.rkt"]
+

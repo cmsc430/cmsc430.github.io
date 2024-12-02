@@ -15,7 +15,7 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "abscond" f))))))
-	   '("interp.rkt" "ast.rkt" "compile.rkt"))
+	   '("main.rkt" "correct.rkt"))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "abscond")])
@@ -80,7 +80,15 @@ implementation artifacts.  Formal definitions balance precision while
 allowing for under-specification, but require detailed definitions and
 training to understand.
 
-We will use a combination of each.
+For the purposes of this course, we will use interpreters to specify
+the meaning of programs.  The interpreters provide a specification for
+the compilers we write and make precise what means for a compiler to
+be @emph{correct}.  Any time the compiler produces code that, when
+run, produces a different result that the interpreter produces for the
+same program, the compiler is broken (or the specification is wrong).
+Interpreters are useful for specifying what the compiler should do and
+sometimes writing interpreters is also useful for informing @emph{how}
+it should do it.
 
 
 To begin, let's start with a dead simple programming language called
@@ -151,13 +159,6 @@ While not terribly useful for a language as overly simplistic as Abscond, we use
 an AST datatype for representing expressions and another syntactic categories.
 For each category, we will have an appropriate constructor.  In the case of Abscond
 all expressions are integers, so we have a single constructor, @racket[Lit].
-
-@(define-language A-concrete
-  (e ::= (Lit i))
-  (i ::= integer))
-
-@centered{@render-language[A-concrete]}
-
 A datatype for representing expressions can be defined as:
 
 @codeblock-include["abscond/ast.rkt"]
@@ -167,6 +168,12 @@ The parser for Abscond checks that a given s-expression is
 an integer and constructs an instance of the AST datatype if
 it is, otherwise it signals an error:
 @codeblock-include["abscond/parse.rkt"]
+
+@ex[
+(parse 5)
+(parse 42)
+(eval:error (parse #t))]
+
 
 @section{Meaning of Abscond programs}
 
@@ -184,6 +191,14 @@ produces it's meaning:
 (interp (Lit -8))
 )
 
+The @racket[interp] function specifies the meaning of expressions,
+i.e. elements of the type @tt{Expr}.  This language is so simple, the
+@racket[interp] function really doesn't @emph{do} much of anything,
+but this will change as the langauge grows.
+
+
+
+
 We can add a command line wrapper program for interpreting Abscond
 programs from stdin:
 
@@ -198,6 +213,7 @@ the result.
 For example, interpreting the program @tt{42.rkt} shown above:
 @shellbox["cat 42.rkt | racket -t interp-stdin.rkt -m"]
 
+@;{
 Even though the semantics is obvious, we can provide a formal
 definition of Abscond using @bold{operational semantics}.
 
@@ -249,6 +265,7 @@ and integers @racket[i], if (@racket[e],@racket[i]) in @render-term[A
 We now have a complete (if overly simple) programming language with an
 operational semantics and an interpreter, which is (obviously)
 correct.  Now let's write a compiler.
+}
 
 @section{Toward a Compiler for Abscond}
 
@@ -283,7 +300,7 @@ computer; it's interpreter is implemented in hardware on your
 computer's CPU,}
 
 @item{it is one of the two dominant computing architectures (the other
-being ARM), and}
+being ARM) in use today, and}
 
 @item{it is a mature technology with good tools and materials.}
 ]
@@ -303,7 +320,7 @@ as follows:
 
 Separating out @tt{print_result}, which at this point is just a simple
 @tt{printf} statement, seems like overkill, but it will be useful in
-the future as the language gets more complicated.
+the future as the language and its set of values gets more complicated.
 
 The runtime must be linked against an object file that provides the
 definition of @tt{entry}; this is the code our compiler will emit.
@@ -496,75 +513,69 @@ Moreover, we can compare our compiled code to code compiled by Racket:
 @section{But is it @emph{Correct}?}
 
 At this point, we have a compiler for Abscond.  But is it correct?
+What does that even mean, to be correct?
 
-Here is a statement of compiler correctness:
+First, let's formulate an alternative implementation of
+@racket[interp] that composes our compiler and a86 interpreter to define
+a (hopefully!) equivalent function to @racket[interp]:
 
-@bold{Compiler Correctness}: @emph{For all expressions @racket[e] and
-integers @racket[i], if (@racket[e],@racket[i]) in @render-term[A
-𝑨], then @racket[(asm-interp (compile e))] equals
+@codeblock-include["abscond/exec.rkt"]
+
+This function can be used as a drop-in replacement to @racket[interp]:
+
+@ex[
+(exec (Lit 42))
+(exec (Lit 19))]
+
+It captures the idea of a phase-distinction in that you can first
+compile a program into a program in another language---in this case
+a86---and can then interpret @emph{that} program to get the result.
+If the compiler is correct, the result should be the same:
+
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{Expr} and @racket[i] @math{∈} @tt{Integer}, if @racket[(interp e)]
+equals @racket[i], then @racket[(exec e)] equals
 @racket[i].}
 
-Ultimately, we want the compiler to capture the operational semantics
-of our language (the ground truth of what programs mean).  However,
-from a practical stand-point, relating the compiler to the intepreter
-may be more straightforward.  What's nice about the interpreter is we
-can run it, so we can @emph{test} the compiler against the
-interpreter.  Moreover, since we claimed the interpreter is correct
-(w.r.t. to the semantics), testing the compiler against the interpreter
-is a way of testing it against the semantics, indirectly.  If the
-compiler and interpreter agree on all possible inputs, then the
-compiler is correct with respect to the semantics since it is
-equivalent to the interpreter, and the interpreter is correct.
+One thing that is nice about specifying our language with an
+interpreter is that we can run it. So we can @emph{test} the compiler
+against the interpreter.  If the compiler and interpreter agree on all
+possible inputs, then the compiler is correct.
 
-So, in this setting, means we have the following equivaluence:
-
-@verbatim{
-(interp e) @emph{equals} (asm-interp (compile e))
-}
-
-But we don't actually have @racket[asm-interp], a function that
-interprets the Asm code we generate.  Instead we printed the code and
-had @tt{gcc} assembly and link it into an executable, which the OS
-could run.  But this is a minor distinction.  We can use
-@racket[asm-interp] to interact with the OS to do all of these steps.
 
 This is actually a handy tool to have for experimenting with
 compilation within Racket:
 
 
-@examples[#:eval ev
-(asm-interp (compile (Lit 42)))
-(asm-interp (compile (Lit 37)))
-(asm-interp (compile (Lit -8)))
-]
+@ex[
+(exec (Lit 42))
+(exec (Lit 37))
+(exec (Lit -8))]
 
 This of course agrees with what we will get from the interpreter:
 
-@examples[#:eval ev
+@ex[
 (interp (Lit 42))
 (interp (Lit 37))
-(interp (Lit -8))
-]
+(interp (Lit -8))]
 
 We can turn this in a @bold{property-based test}, i.e. a function that
 computes a test expressing a single instance of our compiler
 correctness claim:
-@examples[#:eval ev
-(define (check-compiler e)
-  (check-eqv? (interp e)
-              (asm-interp (compile e))))
 
+@codeblock-include["abscond/correct.rkt"]
+
+@ex[
 (check-compiler (Lit 42))
 (check-compiler (Lit 37))
-(check-compiler (Lit -8))
-]
+(check-compiler (Lit -8))]
 
 This is a powerful testing technique when combined with random
 generation.  Since our correctness claim should hold for @emph{all}
 Abscond programs, we can randomly generate @emph{any} Abscond program
 and check that it holds.
 
-@examples[#:eval ev
+@ex[
 (check-compiler (Lit (random 100)))
 
 ; test 10 random programs
