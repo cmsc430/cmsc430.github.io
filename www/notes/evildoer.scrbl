@@ -736,7 +736,7 @@ stream:
 (check-compiler (parse '(write-byte 97)) "")]
 
 The @racket[random-expr] function generates random expressions and
-@racket[random-good-expr] generates random expressions that are
+@racket[random-well-defined-expr] generates random expressions that are
 guaranteed to be well-defined, as usual.  Additionally, the
 @racket[random-input] function produces a random string that can be
 used as the input.
@@ -744,7 +744,7 @@ used as the input.
 @ex[
 (require "random.rkt")
 (random-expr)
-(random-good-expr)
+(random-well-defined-expr)
 (random-input)]
 
 Together, these can be used to randomly test the correctness of the
@@ -754,5 +754,5 @@ compiler:
 (for ((i 100))
   (check-compiler (random-expr) (random-input)))
 (for ((i 100))
-  (check-compiler (random-good-expr) (random-input)))]
+  (check-compiler (random-well-defined-expr) (random-input)))]
   
