@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) a86))
+@(require (for-label (except-in racket ... compile) (except-in a86 exp)))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -13,7 +13,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
+@(ev '(require rackunit (except-in a86 exp)))
 @(ev `(current-directory ,(path->string (build-path langs "hustle"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @(for-each (λ (f) (ev `(require (file ,f))))
@@ -70,10 +70,6 @@ The new operations include constructors @racket[(box _e)] and
 predicates for identifying boxes and pairs: @racket[(box? _e)] and
 @racket[(cons? _e)].
 
-@margin-note{Usually boxes are @emph{mutable} data structures, like
-OCaml's @tt{ref} type, but we will examine this aspect later.  For now,
-we treat boxes as immutable data structures.}
-
 These features will operate like their Racket counterparts:
 @ex[
 (unbox (box 7))
@@ -83,6 +79,24 @@ These features will operate like their Racket counterparts:
 (cons? (cons 3 4))
 (box? (cons 3 4))
 (cons? (box 7))
+]
+
+@margin-note{Usually boxes are @emph{mutable} data structures, like
+OCaml's @tt{ref} type, but we will examine this aspect later.  For now,
+we treat boxes as immutable data structures.}
+
+We will also add support for writing pair and box @emph{literals}
+using the same @racket[quote] notation that Racket uses.
+
+These features will operate like their Racket counterparts:
+@ex[
+(unbox '#&7)
+(car '(3 . 4))
+(cdr '(3 . 4))
+(box? '#&7)
+(cons? '(3 . 4))
+(box? '(3 . 4))
+(cons? '#&7)
 ]
 
 @section{Empty lists can be all and end all}
@@ -105,31 +119,188 @@ We use the following AST data type for @|this-lang|:
 @filebox-include-fake[codeblock "hustle/ast.rkt"]{
 #lang racket
 ;; type Expr = ... | (Lit Datum)
-;; type Datum = ... | '()
+;; type Datum = ... | (cons Datum Datum) | (box Datum) | '()
 ;; type Op1 = ... | 'box | 'car | 'cdr | 'unbox | 'box? | 'cons?
 ;; type Op2 = ... | 'cons
 }
 
+@section{Parsing}
+
+Mostly the parser updates for @|this-lang| are uninteresting.  The
+only slight twist is the addition of compound literal datums.
+
+It's worth observing a few things about how @racket[quote] works in
+Racket.  First, some datums are @emph{self-quoting}, i.e. we can
+write them with or without quoting and they mean the same thing:
+@ex[
+5
+'5]
+
+All of the datums consider prior to @|this-lang| have been self-quoting:
+booleans, integers, and characters.
+
+Of the new datums, boxes are self-quoting, but pairs and the empty
+list are not.
+@ex[
+#&7
+'#&7
+(eval:error ())
+'()
+(eval:error (1 . 2))
+'(1 . 2)]
+
+The reason for this is that unquoted list datums would be confused
+with expression forms without the @racket[quote], so its required,
+however for the other datums, there's no possible confusion and the
+@racket[quote] is inferred.  Note also that once inside a self-quoting
+datum, it's unambiguous that we're talking about literal data and not
+expressions that need to be evaluated, so you can have empty lists and
+pairs:
+@ex[
+#&()
+#&(1 . 2)]
+
+This gives rise to two notions of datums that our parser uses,
+with (mutually defined) predicates for each:
+
+@filebox-include-fake[codeblock "hustle/parse.rkt"]{
+;; Any -> Boolean
+(define (self-quoting-datum? x)
+  (or (exact-integer? x)
+      (boolean? x)
+      (char? x)
+      (and (box? x) (datum? (unbox x)))))
+
+;; Any -> Boolean
+(define (datum? x)
+  (or (self-quoting-datum? x)
+      (empty? x)
+      (and (cons? x) (datum? (car x)) (datum? (cdr x)))))
+}
+
+Now when the parser encounters something that is a self-quoting datum,
+it can parse it as a @racket[Lit].  But for datums that are quoted, it
+will need to recognize the @racket[quote] form, so anything that has
+the s-expression shape @racket[(quote d)] will also get parsed as a
+@racket[Lit].
+
+Things can get a little confusing here so let's look at some examples:
+@ex[
+(parse 5)
+(parse '5)
+]
+
+Here, both examples are really the same.  When we write @racket['5],
+that @racket[read]s it as @racket[5], so this is really the same
+example and corresponds to an input program that just contains the
+number @racket[5] and we are calling @racket[parse] with an argument
+of @racket[5].
+
+If the input program contained a quoted @racket[5], then it would be
+@racket['5], which we would represent as an s-expression as
+@racket[''5].  Note that this reads as @racket['(quote 5)], i.e. a
+two-element list with the symbol @racket['quote] as the first element
+and the number @racket[5] as the second. So when writing examples
+where the input program itself uses @racket[quote] we will see this
+kind of double quotation, and we are calling @racket[parse] with
+a two-element list as the argument:
+
+@ex[
+(parse ''5)]
+
+This is saying that the input program was @racket['5].  Notice that it
+gets parsed the same as @racket[5] by our parser.
+
+If we were to parse the empty list, this should be considered a parse
+error because it's like writing @racket[()] in Racket; it's not a valid
+expression form:
+
+@ex[
+(eval:error (parse '()))]
+
+However, if the empty list is quoted, i.e. @racket[''()], then we are
+talking about the expression @racket['()], so this gets parsed as
+@racket[(Lit '())]:
+
+@ex[
+(parse ''())]
+
+It works similarly for pairs:
+
+@ex[
+(eval:error (parse '(1 . 2)))
+(parse ''(1 . 2))]
+
+While these examples can be a bit confusing at first, implementing
+this behavior is pretty simple.  If the input is a
+@racket[self-quoting-datum?], then we parse it as a @racket[Lit]
+containing that datum.  If the the input is a two-element list of the
+form @racket[(list 'quote _d)] and @racket[_d] is a @racket[datum?],
+the we parse it as a @racket[Lit] containing @racket[_d].
+
+Note that @emph{if} the examples are confusing, the parser actually
+explains what's going on in Racket. Somewhere down in the code that
+implements @racket[read] is something equivalent to what we've done
+here in @racket[parse] for handling self-quoting and explicitly quoted
+datums.  Also note that after the parsing phase, self-quoting and
+quoted datums are unified as @racket[Lit]s and we no longer need to be
+concerned with any distinctions that existed in the concrete syntax.
+
+The only other changes to the parser are that we've added some new
+unary and binary primitive names that the parser now recognizes for
+things like @racket[cons], @racket[car], @racket[cons?], etc.
+
+@codeblock-include["hustle/parse.rkt"]
+
+
+
+
 @section{Meaning of @this-lang programs, implicitly}
 
-The interpreter has an update to the @racket[interp-prim]
-module:
+To extend our interpreter, we can follow the same pattern we've been
+following so far.  We have new kinds of values such as pairs, boxes,
+and the empty list, so we have to think about how to represent them,
+but the natural thing to do is to represent them with the
+corresponding kind of value from Racket.  Just as we represent Hustle
+booleans with Racket booleans, Hustle integers with Racket integers,
+and so on, we can also represent Hustle pairs with Racket pairs.  We
+can represent Hustle boxes with Racket boxes.  We can represent
+Hustle's empty list with Racket's empty list.
+
+Under this choice of representation, there's very little to do in
+the interpreter.  We only need to update the interpretation of
+primitives to account for our new primitives such as @racket[cons],
+@racket[car], etc.  And how should these primitives be interpreted?
+Using their Racket counterparts of course!
 
 @codeblock-include["hustle/interp-prim.rkt"]
 
-The interpreter doesn't really shed light on how constructing
-inductive data works because it simply uses the mechanism of the
-defining language to construct it.  Inductively defined data is easy
-to model in this interpreter because we can rely on the mechanisms
-provided for constructing inductively defined data at the meta-level
-of Racket.
+We can try it out:
+
+@ex[
+(interp (parse '(cons 1 2)))
+(interp (parse '(car (cons 1 2))))
+(interp (parse '(cdr (cons 1 2))))
+(interp (parse '(car '(1 . 2))))
+(interp (parse '(cdr '(1 . 2))))
+(interp (parse '(let ((x (cons 1 2)))
+                  (+ (car x) (cdr x)))))
+]
+
+
+Now while this is a perfectly good specification, this interpreter
+doesn't really shed light on how constructing inductive data works
+because it simply uses the mechanism of the defining language to
+construct it.  Inductively defined data is easy to model in this
+interpreter because we can rely on the mechanisms provided for
+constructing inductively defined data at the meta-level of Racket.
 
 The real trickiness comes when we want to model such data in an
 impoverished setting that doesn't have such things, which of course is
 the case in assembly.
 
-The problem is that a value such as @racket[(box _v)] has a value
-inside it.  Pairs are even worse: @racket[(cons _v0 _v1)] has
+The main challenge is that a value such as @racket[(box _v)] has a
+value inside it.  Pairs are even worse: @racket[(cons _v0 _v1)] has
 @emph{two} values inside it.  If each value is represented with 64
 bits, it would seem a pair takes @emph{at a minimum} 128-bits to
 represent (plus we need some bits to indicate this value is a pair).
