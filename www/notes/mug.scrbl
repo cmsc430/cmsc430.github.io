@@ -124,7 +124,7 @@ For example, here is a data section:
 ]
 
 These psuedo-instructions will add to the data segment of our program
-56-bytes of data.  The first 8-bytes consist of the number 6.  The
+32-bytes of data.  The first 8-bytes consist of the number 6.  The
 next 4-bytes consist of the number @racket[72], i.e. the codepoint for
 @racket[#\H].  The next 4-bytes consist of the codepoint for
 @racket[#\e] and so on.  The names of these psuedo-instructions
