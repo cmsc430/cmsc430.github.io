@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) (except-in a86 exp)))
+@(require (for-label (except-in racket ... compile) a86))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -13,7 +13,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit (except-in a86 exp)))
+@(ev '(require rackunit a86))
 @(ev `(current-directory ,(path->string (build-path langs "hustle"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @(for-each (λ (f) (ev `(require (file ,f))))
