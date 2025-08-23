@@ -205,8 +205,10 @@ where the input program itself uses @racket[quote] we will see this
 kind of double quotation, and we are calling @racket[parse] with
 a two-element list as the argument:
 
+@margin-note{FIXME: langs needs to be update to parse this correctly.}
+
 @ex[
-(parse ''5)]
+(eval:error (parse ''5))]
 
 This is saying that the input program was @racket['5].  Notice that it
 gets parsed the same as @racket[5] by our parser.
@@ -227,9 +229,11 @@ talking about the expression @racket['()], so this gets parsed as
 
 It works similarly for pairs:
 
+@margin-note{FIXME: langs needs to be update to parse second example correctly.}
+
 @ex[
 (eval:error (parse '(1 . 2)))
-(parse ''(1 . 2))]
+(eval:error (parse ''(1 . 2)))]
 
 While these examples can be a bit confusing at first, implementing
 this behavior is pretty simple.  If the input is a
@@ -275,14 +279,16 @@ Using their Racket counterparts of course!
 
 @codeblock-include["hustle/interp-prim.rkt"]
 
+@margin-note{FIXME}
+
 We can try it out:
 
 @ex[
 (interp (parse '(cons 1 2)))
 (interp (parse '(car (cons 1 2))))
 (interp (parse '(cdr (cons 1 2))))
-(interp (parse '(car '(1 . 2))))
-(interp (parse '(cdr '(1 . 2))))
+(eval:error (interp (parse '(car '(1 . 2)))))
+(eval:error (interp (parse '(cdr '(1 . 2)))))
 (interp (parse '(let ((x (cons 1 2)))
                   (+ (car x) (cdr x)))))
 ]
