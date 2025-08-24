@@ -45,16 +45,16 @@ implement several related languages.
 @tabular[#:style 'boxed
          #:row-properties '(bottom-border ())
 	 (list (list @bold{Time}  @bold{Monday} @bold{Tuesday} @bold{Wednesday} @bold{Thursday}  @bold{Friday})
-               (list      "8 AM"  'cont        'cont           "Kalyan"         "Kalyan"         'cont)
-	       (list      "9 AM"  "Deena"       "Deena"        "Kalyan"         "Kalyan"         "Caspar")
-	       (list     "10 AM"  "Deena"       "Deena"        "Kalyan"         "Kalyan"         "Caspar")
-	       (list     "11 AM"  "Deena"       'cont          "Emma"           'cont            "Caspar")
-	       (list     "12 PM"  "Deena"       'cont          "Emma"           'cont            "Emma")
-	       (list      "1 PM"  'cont         'cont          "Emma"           "Kazi"           "Emma")
-	       (list      "2 PM"  'cont         'cont          'cont            'cont            "Emma")
-	       (list      "3 PM"  'cont         "Kazi"         "Caspar"         'cont            'cont)
-	       (list      "4 PM"  'cont         "Kazi"         "Caspar"         'cont            'cont)
-	       (list      "5 PM"  'cont         "Kazi"         "Caspar"         'cont            'cont))]
+               (list      "8 AM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "9 AM"  'cont        'cont           'cont            'cont         'cont)
+	       (list     "10 AM"  'cont        'cont           'cont            'cont         'cont)
+	       (list     "11 AM"  'cont        'cont           'cont            'cont         'cont)
+	       (list     "12 PM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "1 PM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "2 PM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "3 PM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "4 PM"  'cont        'cont           'cont            'cont         'cont)
+	       (list      "5 PM"  'cont        'cont           'cont            'cont         'cont))]
 
 @bold{Communications:} @link[@elms-url]{ELMS}, @link[@piazza]{Piazza}
 

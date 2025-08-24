@@ -58,7 +58,7 @@ in-person lectures, which will be recorded and available on ELMS
 immediately after each lecture.  There are two midterms, a final
 project, which counts as the final assessment for the class, several
 assignments, and several quizes and surveys.  Midterms are take-home
-exams and completed online over a @midterm-hours period.
+exams and completed online over a @|midterm-hours|-hour period.
 
 @bold{Contents:}
 
@@ -179,7 +179,7 @@ of the course:
 
 @itemlist[
   @item{Overview of compilation}
-  @item{Operational semantics}
+  @;item{Operational semantics}
   @item{Interpreters}
   @item{Intermediate representations and bytecode}
   @item{Code generation}

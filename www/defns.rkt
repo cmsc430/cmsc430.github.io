@@ -13,7 +13,7 @@
 (define prof1-initials "DVH")
 
 (define semester "fall")
-(define year "2024")
+(define year "2025")
 (define courseno "CMSC 430")
 
 (define lecture-dates "" #;"May 30 -- July 7, 2023")
@@ -25,45 +25,31 @@
 (define office-hour-location (elem AVW " " "4122"))
 
 
-(define m1-date "October 10")
-(define m2-date "November 7")
+(define m1-date "October 9")
+(define m2-date "November 6")
 (define midterm-hours "24")
-(define final-date "Saturday, December 14")
-(define final-end-time "12:30PM")
-(define elms-url "https://umd.instructure.com/courses/1368381")
+(define final-date "TBD")
+(define final-end-time "TBD")
+(define elms-url "https://umd.instructure.com/courses/1388468")
 
 
-(define racket-version "8.13")
+(define racket-version "8.18")
 
 (define staff
   (list (list "Pierce Darragh" "pdarragh@umd.edu")
-        (list "Kalyan Bhetwal" "kbhetwal@umd.edu")
-        ;(list "Justin Frank" "jpfrank@umd.edu")
-	(list "Deena Postol" "dpostol@umd.edu")
-        (list "Caspar Popova" "caspar@umd.edu")
-        (list "Emma Shroyer" "eshroyer@umd.edu")
-	(list "Kazi Tasnim Zinat" "kzintas@umd.edu")
-	#;(list "Fuxiao Liu" "fl3es@umd.edu")
-	#;(list "Vivian Chen" "vchen8@terpmail.umd.edu")
-	#;(list "Ian Morrill" "imorrill@terpmail.umd.edu")
-	#;(list "Matthew Schneider" "mgl@umd.edu")
-	#;(list "Rhea Jajodia" "rjajodia@terpmail.umd.edu")
-	#;(list "Syed Zaidi" "szaidi@umd.edu")
-	#;(list "William Wegand" "wfweg@verizon.net")
-	#;(list "Wilson Smith" "smith@umd.edu")
-	#;(list "Yuhwan Lee" "ylee9251@terpmail.umd.edu")
-        ))
-
+        (list "Benjamin Quiring" "bquiring@umd.edu")
+        (list "Kalyan Bhetwal" "bhetwal@umd.edu")
+        (list "Zhongqi Wang" "zqwang@umd.edu")))
 
 (define lecture-schedule1 "TTh, 2:00-3:15pm")
 
 (define classroom1 "LEF 2205")
 
 ;(define discord "TBD")
-(define piazza "https://piazza.com/umd/fall2024/cmsc430/home")
-(define gradescope "https://www.gradescope.com/courses/818295")
+(define piazza "https://piazza.com/umd/fall2025/cmsc430/home")
+(define gradescope "https://www.gradescope.com/courses/1098215/")
 
-(define feedback "https://forms.gle/A6U3CCR2KyA86UTh6")
+(define feedback "https://forms.gle/99yTz7HVfopCaDMz9")
 
 (define (assign-deadline i)
   (list-ref '("Tuesday, September 10, 11:59PM"
