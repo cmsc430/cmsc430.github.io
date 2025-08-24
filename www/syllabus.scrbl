@@ -255,7 +255,7 @@ right to reject survey responses that are not considered thoughtful.
 @section[#:tag "syllabus-midterms"]{Midterms}
 
 There will be two @secref{Midterms}, which will be @bold{take-home}
-exams.  Exams will be distributed at least 48 hours before the due
+exams.  Exams will be distributed at least @|midterm-hours|-hours before the due
 date of the midterm.
 
 @itemlist[
