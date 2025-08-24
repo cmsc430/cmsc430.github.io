@@ -28,8 +28,8 @@
 (define m1-date "October 9")
 (define m2-date "November 6")
 (define midterm-hours "24")
-(define final-date "TBD")
-(define final-end-time "TBD")
+(define final-date "December 18")
+(define final-end-time "12:30pm")
 (define elms-url "https://umd.instructure.com/courses/1388468")
 
 
