@@ -12,11 +12,13 @@ its due date.
 
 @section{Practice}
 
-There is a practice midterm from Summer 2023 available on ELMS as
-@tt{m1-summer-2023.zip}.  You may submit to the Practice Midterm 1 -
-Summer 2023 assignment on Gradescope to get feedback on your solution.
-However during the real midterm, you will not get this level of
-feedback from the autograder.
+There is a practice midterm available on ELMS as @tt{m1-PRACTICE.zip}.
+You may submit to the Practice Midterm 1 assignment on Gradescope to
+get feedback on your solution.  However during the real midterm, you
+will not get this level of feedback from the autograder.  @bold{Make
+sure you do not submit your practice midterm solution for the real
+midterm!  We will not allow late submissions if you submit the wrong
+work.}
 
 @section{Instructions}
 
@@ -30,12 +32,12 @@ midterm.
 @section{Communications}
 
 If you have questions about the exam, send a @bold{private} message on
-Piazza.
+@link[piazza]{Piazza}.
 
 Answers to common clarifying questions will be posted to
 Piazza.
 
-If you have trouble reaching the course staff via Discord, email
+If you have trouble reaching the course staff via Piazza, email
 @tt{@prof1-email}.
 
 You may not communicate with anyone outside of the course staff about
