@@ -24,7 +24,7 @@
 
 (define office-hour-location (elem AVW " " "4122"))
 
-
+(define start-date "September 2")
 (define m1-date "October 9")
 (define m2-date "November 6")
 (define midterm-hours "24")
@@ -39,7 +39,8 @@
   (list (list "Pierce Darragh" "pdarragh@umd.edu")
         (list "Benjamin Quiring" "bquiring@umd.edu")
         (list "Kalyan Bhetwal" "bhetwal@umd.edu")
-        (list "Zhongqi Wang" "zqwang@umd.edu")))
+        (list "Zhongqi Wang" "zqwang@umd.edu")
+        (list "Kazi Tasnim Zinat" "kzintas@umd.edu")))
 
 (define lecture-schedule1 "TTh, 2:00-3:15pm")
 
