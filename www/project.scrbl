@@ -15,6 +15,10 @@ completed project.
 
 @bold{Due: @final-date, @final-end-time}
 
+Project details will be released later in the semester.
+
+@;{
+
 @section[#:style 'unnumbered]{Arity Checking, Rest Arguments, Case Functions, and Apply}
 
 @(define-runtime-path iniquity-plus "iniquity-plus/")
@@ -505,3 +509,4 @@ submit.zip} from within the @tt{iniquity-plus} directory to create a zip
 file with the proper structure.
 
 
+}
