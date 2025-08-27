@@ -25,8 +25,8 @@
 (define office-hour-location (elem AVW " " "4122"))
 
 (define start-date "September 2")
-(define m1-date "October 9")
-(define m2-date "November 6")
+(define m1-date "October 16")
+(define m2-date "November 13")
 (define midterm-hours "24")
 (define final-date "December 18")
 (define final-end-time "12:30pm")
