@@ -7,6 +7,7 @@
           "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"
+	  extort/types
 	  extort/semantics
 	  "../utils.rkt")
 
@@ -16,10 +17,14 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "extort" f))))))
-	   '("interp.rkt" "ast.rkt" "parse.rkt" "compile.rkt" "types.rkt"))
+	   '("main.rkt" "correct.rkt" "compile-ops.rkt"))
 
 @(ev `(current-directory ,(path->string (build-path langs "extort"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
+@;{Hack to get un-provided functions from compile-ops}
+@(ev '(require (only-in rackunit require/expose)))
+@(ev '(require/expose extort/compile-ops [assert-integer assert-char assert-byte assert-codepoint]))
+
 
 @(define this-lang "Extort")
 
@@ -67,7 +72,11 @@ does and signal an error.
 
 
 The meaning of @this-lang programs that have type errors will now be
-defined as @racket['err]:
+defined as @racket['err].  (You shouldn't make too much out of how we
+choose to represent the ``this program caused an error'' answer; all
+that really matters at this point is that it is disjoint from values.
+Since the langauge doesn't yet include symbols, using a symbol is a
+fine choice.):
 
 @itemlist[
 
@@ -79,6 +88,7 @@ defined as @racket['err]:
 
 ]
 
+@;{
 @(define ((rewrite s) lws)
    (define lhs (list-ref lws 2))
    (define rhs (list-ref lws 3))
@@ -110,34 +120,246 @@ And there are four rules for propagating errors from subexpressions:
 
 Now what does the semantics say about @racket[(add1 #f)]?  What about
 @racket[(if 7 #t -2)]?
+}
 
 
-The signature of the interpreter is extended to produce answers.  Each
-use of a Racket primitive is guarded by checking the type of the
-arguments and an error is produced if the check fails.  Errors are
-also propagated when a subexpression produces an error:
+In order to define the semantics, we first introduce the type of
+results that may be given by the interpretation function:
+
+@#reader scribble/comment-reader
+(ex
+;; type Answer = Value | 'err
+)
+
+Type mismatches can arise as the result of primitive operations being
+applied to arguments for which the primitive is undefined, so we
+revise @racket[interp-prim1] to check all necessary preconditions
+before carrying out an operation, and producing an error in case
+those conditions are not met:
+
+@codeblock-include["extort/interp-prim.rkt"]
+
+Within the interpreter, we update the type signature to reflect the
+fact that interpreting an expression produces an answer, no longer
+just an expression.  We must also take care to observe that evaluating
+a subexpression may produce an error and as such it should prevent
+further evaluation.  To do this, the interpreter is written to check
+for an error result of any subexpression it evaluates before
+proceeding to evaluate another subexpression:
 
 @codeblock-include["extort/interp.rkt"]
-@codeblock-include["extort/interp-prim.rkt"]
 
 We can confirm the interpreter computes the right result for the
 examples given earlier:
 
 @ex[
-(interp (Prim1 'add1 (Lit #f)))
-(interp (Prim1 'zero? (Lit #t)))
-(interp (If (Prim1 'zero? (Lit #f)) (Lit 1) (Lit 2)))
+(interp (parse '(add1 #f)))
+(interp (parse '(zero? #t)))
+(interp (parse '(if (zero? #f) 1 2)))
 ]
 
-The statement of correctness stays the same, but now observe that
-there is no way to crash the interpreter with any @tt{Expr} value.
+This interpreter implicitly relies on the state of the input and
+output port, but we can define a pure interpreter like before,
+which we take as the specification of our language:
+
+@codeblock-include["extort/interp-io.rkt"]
+
+An important property of this semantics is that it provides a meaning
+for all possible expressions; in other words, @racket[interp/io] is a
+total function, and our language has no undefined behaviors.
+
+@bold{Total Semantics}: @emph{For all @racket[e] @math{∈} @tt{Expr},
+there exists @racket[a] @math{∈} @tt{Answer}, @racket[o] @math{∈}
+@tt{String}, such that @racket[(interp/io e i)] equals @racket[(cons
+a o)].}
+
+The statement of correctness, which is revised to use the answer type
+in place of values, reads:
+
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{Expr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[a]
+@math{∈} @tt{Answer}, if @racket[(interp/io e i)] equals @racket[(cons
+a o)], then @racket[(exec/io e i)] equals
+@racket[(cons a o)].}
+
+By virtue of the semantics being total, we have a complete
+specification for the compiler.  There are no longer programs for
+which it is free to do arbitrary things; it is always obligated to
+produce the same answer as the interpreter.
 
 
-@section{A Compiler for @this-lang}
+@section{Checking and signalling errors at run-time}
 
 Suppose we want to compile @racket[(add1 #f)], what needs to happen?
 Just as in the interpreter, we need to check the integerness of the
 argument's value before doing the addition operation.
+
+This checking needs to be emitted as part of the compilation of the
+@racket[add1] primitive.  It no longer suffices to simply do an
+@racket[Add] instruction on whatever is in the @racket[rax] register;
+the compiled code should first check that the value in @racket[rax]
+encodes an integer, and if it doesn't, it should somehow stop the
+computation and signal that an error has occurred.
+
+The checking part is fairly easy.  Our encoding of values, first
+discussed in @secref["dupe"], devotes some number of bits within a
+value to indicate the type.  Checking whether something is an integer
+involves inspecting just those parts of the value.
+
+Suppose we have an arbitrary value in @racket[rax].  If it's an
+integer, the least significant bit has to be @racket[0].  We could
+mask out just that bit by @racket[And]ing the value with the bit
+@racket[#,mask-int] and compare the result to type tag for integers
+(i.e. @racket[#,type-int]).  Let's write a little function to play
+around with this idea:
+
+@#reader scribble/comment-reader
+(ex
+;; Produces 0 if v is an integer value
+(define (is-int? v) ;; Value -> 0 | 1
+  (asm-interp
+    (prog (Global 'entry)
+          (Label 'entry)
+          (Mov 'rax (value->bits v))
+          (And 'rax mask-int)
+          (Ret))))
+
+(is-int? 0)
+(is-int? 1)
+(is-int? 2)
+(is-int? #t)
+(is-int? #f))
+
+Unfortunately, the use of @racket[And] here destroys the value in
+@racket[rax] in order to determine if it is an integer.  That's fine
+for this predicate, but if we wanted to compute something with the
+integer, we'd be toast as soon as checked it's type.
+
+Suppose we wanted to write a function that did @racket[add1] in case
+the argument is an integer value, otherwise it produces false.  For
+that, we would need to use a temporary register for the type tag
+check:
+
+@#reader scribble/comment-reader
+(ex
+;; Produces (add1 v) if v is an integer value, #f otherwise
+(define (plus1 v) ;; Value -> Integer | Boolean
+  (bits->value
+    (asm-interp
+      (prog (Global 'entry)
+            (Label 'entry)
+            (Mov 'rax (value->bits v))
+	    (Mov 'r9 'rax)	  
+            (And 'r9 mask-int)
+            (Cmp 'r9 type-int)
+            (Jne 'err)
+            (Add 'rax (value->bits 1))
+            (Ret)
+            (Label 'err)
+            (Mov 'rax (value->bits #f))
+            (Ret)))))
+
+(plus1 0)
+(plus1 1)
+(plus1 2)
+(plus1 #t)
+(plus1 #f))
+
+This is pretty close to how we can implement primitives like
+@racket[add1].  The only missing piece is that instead of returning a
+specific @emph{value}, like @racket[#f], we want to stop computation
+and signal that an error has occurred.  To accomplish this we add a
+function called @tt{raise_error} to our run-time system that, when
+called, prints @tt{err} and exits with a non-zero number to signal an
+error.  The @racket[asm-interp] intercepts these calls are returns the
+@racket['err] symbol to match what the interpreter does:
+
+@ex[
+(current-objs '("runtime.o"))
+(asm-interp
+  (prog (Global 'entry)
+        (Label 'entry)
+        (Extern 'raise_error)
+        (Call 'raise_error)))]
+
+Now we can make a function that either does the addition or signals an
+error:
+
+@#reader scribble/comment-reader
+(ex
+;; Produces (add1 v) if v is an integer, 'err otherwise
+(define (plus1 v) ;; Value -> Integer | 'err
+  (match 
+    (asm-interp
+      (prog (Global 'entry)
+            (Label 'entry)
+            (Mov 'rax (value->bits v))
+	    (Mov 'r9 'rax)	  
+            (And 'r9 mask-int)
+            (Cmp 'r9 type-int)
+            (Jne 'err)
+            (Add 'rax (value->bits 1))
+            (Ret)
+            (Label 'err)
+	    (Extern 'raise_error)
+            (Call 'raise_error)))
+    ['err 'err]
+    [b (bits->value b)]))
+
+(plus1 0)
+(plus1 1)
+(plus1 2)
+(plus1 #t)
+(plus1 #f))
+
+This can form the basis of how primitives with error checking can be
+implemented.  Looking at @racket[interp-prim1], we can see that in
+addition to checking for whether an argument is an integer, we will
+also need checks for characters, bytes, and unicode codepoints; the
+latter two are refinements of the integer check: they require there
+arguments to be integers in a certain range.
+
+To support these checks, we develop a small library of type assertion
+functions that, given a register name, produce code to check the type
+of value held in the register, jumping to @racket[err] whenever the
+value is not of the asserted type:
+
+@itemlist[
+@item{@racket[assert-integer] @tt{: Register -> Asm} produces code to check that the value in the given register is an integer,}
+@item{@racket[assert-char] @tt{: Register -> Asm} produces code to check that the value in the given register is a character,}
+@item{@racket[assert-byte] @tt{: Register -> Asm} produces code to check that the value in the given register is an integer and in the range [0,256).}
+@item{@racket[assert-codepoint] @tt{: Register -> Asm} produces code to check that the value in the given register is an integer and either in the range [0,55295] or [57344, 1114111].}
+]
+
+@codeblock-include["extort/assert.rkt"]
+
+The compiler for primitive operations is updated to include
+appropriate type assertions:
+
+@codeblock-include["extort/compile-ops.rkt"]
+
+@ex[
+(compile-op1 'add1)
+(compile-op1 'char->integer)
+(compile-op1 'write-byte)]
+
+
+The top-level compiler largely stays the same, but it now declares an
+external label @racket['raise_error] that will be defined by the
+run-time system and defines a label called @racket['err] that calls
+@tt{raise_error}:
+
+@codeblock-include["extort/compile.rkt"]
+
+@ex[
+(compile-e (parse '(add1 #f)))
+(compile-e (parse '(char->integer #\a)))
+(compile-e (parse '(write-byte 97)))]
+
+
+
+@section{Run-time for @this-lang}
+
 
 We extend the run-time system with a C function called
 @tt{raise_error} that prints "err" and exits with a non-zero status to
@@ -149,60 +371,37 @@ but it can be ignored.}
 
 @filebox-include[fancy-c extort "main.c"]
 
-Most of the work of error checking happens in the code emitted for
-primitive operations.  Whenever an error is detected, control jumps to
-a label called @racket['err] that immediately calls @tt{raise_error}:
 
-@codeblock-include["extort/compile-ops.rkt"]
+Linking in the run-time allows us to define the @racket[exec] and
+@racket[exec/io] functions:
 
-All that's left for the top-level compile function to declare an
-external label @racket['raise_error] that will be defined by the
-run-time system and to emit a label called @racket['err] that calls
-@tt{raise_error}, otherwise this part of the compiler doesn't change:
+@codeblock-include["extort/exec.rkt"]
+@codeblock-include["extort/exec-io.rkt"]
 
-@codeblock-include["extort/compile.rkt"]
-
-Here's the code we generate for @racket['(add1 #f)]:
-@ex[
-(define (show e)
-  (displayln (asm-string (compile-e (parse e)))))
-
-(show '(add1 #f))
-]
-
-@(void (ev '(current-objs '("runtime.o"))))
-
-Here are some examples running the compiler:
-@ex[
-(define (tell e)
-  (match (asm-interp (compile (parse e)))
-    ['err 'err]
-    [b (bits->value b)]))
-(tell #t)
-(tell #f)
-(tell '(zero? 0))
-(tell '(zero? -7))
-(tell '(if #t 1 2))
-(tell '(if #f 1 2))
-(tell '(if (zero? 0) (if (zero? 0) 8 9) 2))
-(tell '(if (zero? (if (zero? 2) 1 0)) 4 5))
-(tell '(add1 #t))
-(tell '(sub1 (add1 #f)))
-(tell '(if (zero? #t) 1 2))
-]
-
-Since the interpreter and compiler have well defined specifications
-for what should happen when type errors occur, we can test in the
-usual way again:
+We can run examples:
 
 @ex[
-(define (check-correctness e)
-  (check-equal? (match (asm-interp (compile e))
-                  ['err 'err]
-                  [b (bits->value b)])
-                (interp e)
-                e))
+(exec (parse '(add1 8)))
+(exec (parse '(add1 #f)))]
 
-(check-correctness (Prim1 'add1 (Lit 7)))
-(check-correctness (Prim1 'add1 (Lit #f)))
-]
+
+
+@section{Correctness, revisited}
+
+This allows to re-formulate the check for compiler correctness check
+in its earlier, simpler form that just blindly runs the interpreter
+and compiler and checks that the results are the same, thanks to the
+totality of the semantics:
+
+@codeblock-include["extort/correct.rkt"]
+
+@ex[
+(check-compiler (parse '(add1 8)) "")
+(check-compiler (parse '(add1 #f)) "")]
+
+And again, we can randomly test the compiler by generating programs and inputs:
+
+@ex[
+(require "random.rkt")
+(for ((i 100))
+  (check-compiler (random-expr) (random-input)))]

@@ -17,7 +17,7 @@
 @(ev `(current-directory ,(path->string (build-path langs "hustle"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "compile-ops.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("main.rkt" "heap.rkt" "unload.rkt" "interp-prims-heap.rkt"))
 
 @(define this-lang "Hustle")
 
@@ -70,10 +70,6 @@ The new operations include constructors @racket[(box _e)] and
 predicates for identifying boxes and pairs: @racket[(box? _e)] and
 @racket[(cons? _e)].
 
-@margin-note{Usually boxes are @emph{mutable} data structures, like
-OCaml's @tt{ref} type, but we will examine this aspect later.  For now,
-we treat boxes as immutable data structures.}
-
 These features will operate like their Racket counterparts:
 @ex[
 (unbox (box 7))
@@ -83,6 +79,24 @@ These features will operate like their Racket counterparts:
 (cons? (cons 3 4))
 (box? (cons 3 4))
 (cons? (box 7))
+]
+
+@margin-note{Usually boxes are @emph{mutable} data structures, like
+OCaml's @tt{ref} type, but we will examine this aspect later.  For now,
+we treat boxes as immutable data structures.}
+
+We will also add support for writing pair and box @emph{literals}
+using the same @racket[quote] notation that Racket uses.
+
+These features will operate like their Racket counterparts:
+@ex[
+(unbox '#&7)
+(car '(3 . 4))
+(cdr '(3 . 4))
+(box? '#&7)
+(cons? '(3 . 4))
+(box? '(3 . 4))
+(cons? '#&7)
 ]
 
 @section{Empty lists can be all and end all}
@@ -100,177 +114,199 @@ just need another distinguished value to designate it.
 Using @racket[cons] and @racket['()] in a structured way we can form
 @emph{proper list}, among other useful data structures.
 
-We use the following grammar for @|this-lang|:
-
-@centered[(render-language H)]
-
-We can model this as an AST data type:
+We use the following AST data type for @|this-lang|:
 
 @filebox-include-fake[codeblock "hustle/ast.rkt"]{
 #lang racket
-;; type Expr = ...
-;;           | (Empty)
-;; type Op1 = ...
-;;          | 'box | 'car | 'cdr | 'unbox | 'box? | 'cons?
-;; type Op2 = ...
-;;          | 'cons
+;; type Expr = ... | (Lit Datum)
+;; type Datum = ... | (cons Datum Datum) | (box Datum) | '()
+;; type Op1 = ... | 'box | 'car | 'cdr | 'unbox | 'box? | 'cons?
+;; type Op2 = ... | 'cons
 }
+
+@section{Parsing}
+
+Mostly the parser updates for @|this-lang| are uninteresting.  The
+only slight twist is the addition of compound literal datums.
+
+It's worth observing a few things about how @racket[quote] works in
+Racket.  First, some datums are @emph{self-quoting}, i.e. we can
+write them with or without quoting and they mean the same thing:
+@ex[
+5
+'5]
+
+All of the datums consider prior to @|this-lang| have been self-quoting:
+booleans, integers, and characters.
+
+Of the new datums, boxes are self-quoting, but pairs and the empty
+list are not.
+@ex[
+#&7
+'#&7
+(eval:error ())
+'()
+(eval:error (1 . 2))
+'(1 . 2)]
+
+The reason for this is that unquoted list datums would be confused
+with expression forms without the @racket[quote], so its required,
+however for the other datums, there's no possible confusion and the
+@racket[quote] is inferred.  Note also that once inside a self-quoting
+datum, it's unambiguous that we're talking about literal data and not
+expressions that need to be evaluated, so you can have empty lists and
+pairs:
+@ex[
+#&()
+#&(1 . 2)]
+
+This gives rise to two notions of datums that our parser uses,
+with (mutually defined) predicates for each:
+
+@filebox-include-fake[codeblock "hustle/parse.rkt"]{
+;; Any -> Boolean
+(define (self-quoting-datum? x)
+  (or (exact-integer? x)
+      (boolean? x)
+      (char? x)
+      (and (box? x) (datum? (unbox x)))))
+
+;; Any -> Boolean
+(define (datum? x)
+  (or (self-quoting-datum? x)
+      (empty? x)
+      (and (cons? x) (datum? (car x)) (datum? (cdr x)))))
+}
+
+Now when the parser encounters something that is a self-quoting datum,
+it can parse it as a @racket[Lit].  But for datums that are quoted, it
+will need to recognize the @racket[quote] form, so anything that has
+the s-expression shape @racket[(quote d)] will also get parsed as a
+@racket[Lit].
+
+Things can get a little confusing here so let's look at some examples:
+@ex[
+(parse 5)
+(parse '5)
+]
+
+Here, both examples are really the same.  When we write @racket['5],
+that @racket[read]s it as @racket[5], so this is really the same
+example and corresponds to an input program that just contains the
+number @racket[5] and we are calling @racket[parse] with an argument
+of @racket[5].
+
+If the input program contained a quoted @racket[5], then it would be
+@racket['5], which we would represent as an s-expression as
+@racket[''5].  Note that this reads as @racket['(quote 5)], i.e. a
+two-element list with the symbol @racket['quote] as the first element
+and the number @racket[5] as the second. So when writing examples
+where the input program itself uses @racket[quote] we will see this
+kind of double quotation, and we are calling @racket[parse] with
+a two-element list as the argument:
+
+@margin-note{FIXME: langs needs to be update to parse this correctly.}
+
+@ex[
+(eval:error (parse ''5))]
+
+This is saying that the input program was @racket['5].  Notice that it
+gets parsed the same as @racket[5] by our parser.
+
+If we were to parse the empty list, this should be considered a parse
+error because it's like writing @racket[()] in Racket; it's not a valid
+expression form:
+
+@ex[
+(eval:error (parse '()))]
+
+However, if the empty list is quoted, i.e. @racket[''()], then we are
+talking about the expression @racket['()], so this gets parsed as
+@racket[(Lit '())]:
+
+@ex[
+(parse ''())]
+
+It works similarly for pairs:
+
+@margin-note{FIXME: langs needs to be update to parse second example correctly.}
+
+@ex[
+(eval:error (parse '(1 . 2)))
+(eval:error (parse ''(1 . 2)))]
+
+While these examples can be a bit confusing at first, implementing
+this behavior is pretty simple.  If the input is a
+@racket[self-quoting-datum?], then we parse it as a @racket[Lit]
+containing that datum.  If the the input is a two-element list of the
+form @racket[(list 'quote _d)] and @racket[_d] is a @racket[datum?],
+the we parse it as a @racket[Lit] containing @racket[_d].
+
+Note that @emph{if} the examples are confusing, the parser actually
+explains what's going on in Racket. Somewhere down in the code that
+implements @racket[read] is something equivalent to what we've done
+here in @racket[parse] for handling self-quoting and explicitly quoted
+datums.  Also note that after the parsing phase, self-quoting and
+quoted datums are unified as @racket[Lit]s and we no longer need to be
+concerned with any distinctions that existed in the concrete syntax.
+
+The only other changes to the parser are that we've added some new
+unary and binary primitive names that the parser now recognizes for
+things like @racket[cons], @racket[car], @racket[cons?], etc.
+
+@codeblock-include["hustle/parse.rkt"]
+
+
+
 
 @section{Meaning of @this-lang programs, implicitly}
 
-The meaning of @this-lang programs is just a slight update to the
-prior language, namely we add a few new primitives.
+To extend our interpreter, we can follow the same pattern we've been
+following so far.  We have new kinds of values such as pairs, boxes,
+and the empty list, so we have to think about how to represent them,
+but the natural thing to do is to represent them with the
+corresponding kind of value from Racket.  Just as we represent Hustle
+booleans with Racket booleans, Hustle integers with Racket integers,
+and so on, we can also represent Hustle pairs with Racket pairs.  We
+can represent Hustle boxes with Racket boxes.  We can represent
+Hustle's empty list with Racket's empty list.
 
-The update to the semantics is just an extension of the semantics of
-primitives:
-
-@(judgment-form-cases #f)
-
-@;centered[(render-judgment-form 𝑯-𝒆𝒏𝒗)]
-
-@(define ((rewrite s) lws)
-   (define lhs (list-ref lws 2))
-   (define rhs (list-ref lws 3))
-   (list "" lhs (string-append " " (symbol->string s) " ") rhs ""))
-
-@centered[
- (with-compound-rewriters (['+ (rewrite '+)]
-                           ['- (rewrite '–)]
-                           ['= (rewrite '=)]
-                           ['!= (rewrite '≠)])
-   (render-metafunction 𝑯-𝒑𝒓𝒊𝒎 #:contract? #t))
-]
-
-The interpreter similarly has an update to the @racket[interp-prim]
-module:
+Under this choice of representation, there's very little to do in
+the interpreter.  We only need to update the interpretation of
+primitives to account for our new primitives such as @racket[cons],
+@racket[car], etc.  And how should these primitives be interpreted?
+Using their Racket counterparts of course!
 
 @codeblock-include["hustle/interp-prim.rkt"]
 
-Inductively defined data is easy to model in the semantics and
-interpreter because we can rely on inductively defined data at the
-meta-level in math or Racket, respectively.
+@margin-note{FIXME}
 
-In some sense, the semantics and interpreter don't shed light on
-how constructing inductive data works because they simply use
-the mechanism of the defining language to construct inductive data.
-Let's try to address that.
+We can try it out:
 
-@section{Meaning of @this-lang programs, explicitly}
-
-Let's develop an alternative semantics and interpreter that
-describes constructing inductive data without itself
-constructing inductive data.
-
-The key here is to describe explicitly the mechanisms of
-memory allocation and dereference. Abstractly, memory can be
-thought of as association between memory addresses and
-values stored in those addresses. As programs run, there is
-a current state of the memory, which can be used to look up
-values (i.e. dereference memory) or to extend by making a
-new association between an available address and a value
-(i.e. allocating memory). Memory will be assumed to be
-limited to some finite association, but we'll always assume
-programs are given a sufficiently large memory to run to
-completion.
-
-In the semantics, we can model memory as a finite function
-from addresses to values. The datatype of addresses is left
-abstract. All that matters is we can compare them for
-equality.
-
-We now change our definition of values to make it
-non-recursive:
-
-@centered{@render-language[Hm]}
-
-We define an alternative semantic relation equivalent to 𝑯 called
-𝑯′:
-
-@centered[(render-judgment-form 𝑯′)]
-
-Like 𝑯, it is defined in terms of another relation. Instead
-of 𝑯-𝒆𝒏𝒗, we define a similar relation 𝑯-𝒎𝒆𝒎-𝒆𝒏𝒗 that has an
-added memory component both as input and out:
-
-@centered[(render-judgment-form 𝑯-𝒎𝒆𝒎-𝒆𝒏𝒗)]
-
-For most of the relation, the given memory σ is simply
-threaded through the judgment. When interpreting a primitive
-operation, we also thread the memory through a relation
-analagous to 𝑯-𝒑𝒓𝒊𝒎 called 𝑯-𝒎𝒆𝒎-𝒑𝒓𝒊𝒎. The key difference
-for 𝑯-𝒎𝒆𝒎-𝒑𝒓𝒊𝒎 is that @racket[cons] and @racket[box]
-operations allocate memory by extending the given memory σ
-and the @racket[car], @racket[cdr], and @racket[unbox]
-operations dereference memory by looking up an association
-in the given memory σ:
-
-@centered[(render-metafunction 𝑯-𝒎𝒆𝒎-𝒑𝒓𝒊𝒎 #:contract? #t)]
+@ex[
+(interp (parse '(cons 1 2)))
+(interp (parse '(car (cons 1 2))))
+(interp (parse '(cdr (cons 1 2))))
+(eval:error (interp (parse '(car '(1 . 2)))))
+(eval:error (interp (parse '(cdr '(1 . 2)))))
+(interp (parse '(let ((x (cons 1 2)))
+                  (+ (car x) (cdr x)))))
+]
 
 
-There are only two unexplained bits at this point:
-
-@itemlist[
- @item{the metafunction
-@render-term[Hm (alloc σ (v ...))] which consumes a memory
-and a list of values. It produces a memory and an address
-@render-term[Hm (σ_′ α)] such that @render-term[Hm σ_′] is
-like @render-term[Hm σ] except it has a new association for
-some @render-term[Hm α] and @render-term[Hm α] is @bold{
- fresh}, i.e. it does not appear in the domain of
-@render-term[Hm σ].}
-
- @item{the metafunction @render-term[Hm (unload σ a)] used
-  in the conclusion of @render-term[Hm 𝑯′]. This function does
-  a final unloading of the answer and memory to obtain a answer
-  in the style of 𝑯.}]
-
-
-The definition of @render-term[Hm (alloc σ (v ...))] is
-omitted, since it depends on the particular representation
-chosen for @render-term[Hm α], but however you choose to
-represent addresses, it will be easy to define appropriately.
-
-The definition of @render-term[Hm (unload σ a)] just traces
-through the memory to reconstruct an inductive piece of data:
-
-@centered[(render-metafunction unload #:contract? #t)]
-                         
-
-With the semantics of explicit memory allocation and
-dereference in place, we can write an interepreter to match
-it closely.
-
-We could define something @emph{very} similar to the
-semantics by threading through some representation of a
-finite function serving as the memory, just like the
-semantics. Or we could do something that will produce the
-same result but using a more concrete mechanism that is like
-the actual memory on a computer.  Let's consider the latter
-approach.
-
-We can use a Racket @racket[list] to model the memory.
-
-@;{
-We will use a @racket[vector] of some size to model the
-memory used in a program's evaluation. We can think of
-@racket[vector] as giving us a continguous array of memory
-that we can read and write to using natural number indices
-as addresses. The interpreter keeps track of both the
-@racket[vector] and an index for the next available memory
-address. Every time the interpreter allocates, it writes in
-to the appropriate cell in the @racket[vector] and bumps the
-current address by 1.}
-
-@codeblock-include["hustle/interp-heap.rkt"]
-
-
+Now while this is a perfectly good specification, this interpreter
+doesn't really shed light on how constructing inductive data works
+because it simply uses the mechanism of the defining language to
+construct it.  Inductively defined data is easy to model in this
+interpreter because we can rely on the mechanisms provided for
+constructing inductively defined data at the meta-level of Racket.
 
 The real trickiness comes when we want to model such data in an
 impoverished setting that doesn't have such things, which of course is
 the case in assembly.
 
-The problem is that a value such as @racket[(box _v)] has a value
-inside it.  Pairs are even worse: @racket[(cons _v0 _v1)] has
+The main challenge is that a value such as @racket[(box _v)] has a
+value inside it.  Pairs are even worse: @racket[(cons _v0 _v1)] has
 @emph{two} values inside it.  If each value is represented with 64
 bits, it would seem a pair takes @emph{at a minimum} 128-bits to
 represent (plus we need some bits to indicate this value is a pair).
@@ -282,6 +318,206 @@ impossible to represent each piece of data with a fixed set of bits.
 The solution is to @bold{allocate} such data in memory, which can in
 principle be arbitrarily large, and use a @bold{pointer} to refer to
 the place in memory that contains the data.
+
+Before tackling the compiler, let's look at an alternative version of
+the interpreter that makes explicit a representation of memory and is
+able to interpret programs that construct and manipulate inductive
+data without itself relying on those mechanisms.
+
+@section{Meaning of @this-lang programs, explicitly}
+
+Let's develop an alternative interpreter that describes constructing
+inductive data without itself constructing inductive data.
+
+The key here is to describe explicitly the mechanisms of
+memory allocation and dereference. Abstractly, memory can be
+thought of as association between memory addresses and
+values stored in those addresses. As programs run, there is
+a current state of the memory, which can be used to look up
+values (i.e. dereference memory) or to extend by making a
+new association between an available address and a value
+(i.e. allocating memory).
+
+The representation of values changes to represent inductive data
+through pointers to memory:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Value* =
+;; | Integer
+;; | Boolean
+;; | Character
+;; | Eof
+;; | Void
+;; | '()
+;; | (box-ptr  Address)
+;; | (cons-ptr Address)
+(struct box-ptr (i))
+(struct cons-ptr (i))
+
+;; type Address = Natural
+)
+
+Here we have two kinds of pointer values, @emph{box pointers} and
+@emph{cons pointers}.  A box value is represented by an address (some
+natural number) and a tag, the @racket[box-ptr] constructor, which
+indicates that the address should be interpreted as the contents of a
+box.  A cons is represented by an address tagged with
+@racket[cons-ptr], indicating that the memory contains a pair of
+values.
+
+To model memory, we use a list of @tt{Value*} values.  When memory is
+allocated, new elements are placed at the front of the list.  To model
+memory locations, use the distance from the element to the end of the
+list, this way addresses don't change as memory is allocated.
+
+For example, suppose we have allocated memory to hold four values
+@racket['(97 98 99 100)].  The address of 100 is 0; the address of 99
+is 1; etc.  When a new value is allocated, say, @racket['(96 97 98
+99)], the address of 99 is still 0, and so on.  The newly allocated
+value 96 is at address 4.  In this way, memory grows toward higher
+addresses and the next address to allocate is given by the size of the
+heap currently in use.
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Heap = (Listof Value*)
+)
+
+When a program is intepreted, it results in a @tt{Value*} paired
+together with a @tt{Heap} that gives meaning to the addresses in the
+value, or an error:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Answer* = (cons Heap Value*) | 'err
+)
+
+So for example, to represent a box @racket[(box 99)] we could have
+a box value, i.e. a tagged pointer that points to memory containing 99:
+
+
+@#reader scribble/comment-reader
+(racketblock
+(cons (list 99) (box-ptr 0)))
+
+The value at list index 0 is 99 and the box value points to that
+element of the heap and indicates it is the contents of a box.
+
+It's possible that other memory was used in computing this result, so
+we might end up with an answer like:
+
+@#reader scribble/comment-reader
+(racketblock
+(cons (list 97 98 99) (box-ptr 0)))
+
+Or:
+
+@#reader scribble/comment-reader
+(racketblock
+(cons (list 97 98 99 100 101) (box-ptr 2)))
+
+Both of which really mean the same value: @racket[(box 99)].
+
+A pair contains two values, so a @racket[cons-ptr] should point to the
+start of elements that comprise the pair.  For example, this answer
+represents a pair @racket[(cons 100 99)]:
+
+@#reader scribble/comment-reader
+(racketblock
+(cons (list 99 100) (cons-ptr 0)))
+
+Note that the @racket[car] of this pair is at address 0 and the
+@racket[cdr] is at address 1.
+
+Note that we could have other things residing in memory, but so long
+as the address points to same values as before, these answers mean the
+same thing:
+
+@#reader scribble/comment-reader
+(racketblock
+(cons (list 97 98 99 100 101) (cons-ptr 1)))
+
+In fact, we can reconstruct a @tt{Value} from a @tt{Value*} and
+@tt{Heap}:
+
+@codeblock-include["hustle/unload.rkt"]
+
+Which relies on our interface for heaps:
+
+@codeblock-include["hustle/heap.rkt"]
+
+Try it out:
+
+@ex[
+(unload-value (box-ptr 0) (list 99))
+(unload-value (cons-ptr 0) (list 99 100))
+(unload-value (cons-ptr 1) (list 97 98 99 100 101))]
+
+What about nested pairs like @racket[(cons 1 (cons 2 (cons 3 '())))]?
+Well, we already have all the pieces we need to represent values like
+these.
+
+@ex[
+(unload-value (cons-ptr 0)
+	      (list '() 3 (cons-ptr 4) 2 (cons-ptr 2) 1))]
+
+Notice that this list could laid out in many different ways, but when
+viewed through the lens of @racket[unload-value], they represent the
+same list:
+
+@ex[
+(unload-value (cons-ptr 4)
+	      (list (cons-ptr 2) 1 (cons-ptr 0) 2 '() 3))]	      
+
+The idea of the interpreter that explicitly models memory will be
+thread through a heap that is used to represent the memory allocated
+by the program.  Operations that manipulate or create boxes and pairs
+will have to be updated to work with this new representation.
+
+So for example, the @racket[cons] operation should allocate two new
+memory locations and produce a tagged pointer to the address of the
+first one.  The @racket[car] operation should dereference the memory
+pointed to by the given @racket[cons-ptr] value.
+
+@ex[
+(unload (alloc-cons 100 99 '()))
+(unload (alloc-box 99 '()))
+
+#;
+(unload
+  (match (alloc-cons 3 '() '())
+    [(cons h v)
+     (match (alloc-cons 2 v h)
+       [(cons h v)
+        (alloc-cons 1 v h)])]))]
+
+
+Much of the work is handled in the new @tt{interp-prims-heap} module:
+
+@codeblock-include["hustle/interp-prims-heap.rkt"]
+
+
+@ex[
+(unload (interp-prim1 'box 99 '()))
+(unload (interp-prim2 'cons 100 99 '()))
+(unload
+  (match (interp-prim1 'box 99 '())
+    [(cons h v)
+     (interp-prim1 'unbox v h)]))]
+
+
+Finally, we can write the overall interpreter, which threads a heap
+throughout the interpretation of a program in
+@racket[interp-env-heap].  The top-level @racket[interp] function,
+which is intended to be equivalent to the original @racket[interp]
+function that modelled memory implicitly, calls
+@racket[interp-env-heap] with an initially empty heap and the unloads
+the final answer from the result:
+
+@codeblock-include["hustle/interp-heap.rkt"]
+
+
 
 @;{ Really deserves a "bit" level interpreter to bring this idea across. }
 
@@ -551,3 +787,14 @@ values to print them.  It also must account for the wrinkle of how the
 printing of proper and improper lists is different:
 
 @filebox-include[fancy-c hustle "print.c"]
+
+@section{Correctness}
+
+The statement of correctness for the @|this-lang| compiler is the same
+as the previous one:
+
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[v]
+@math{∈} @tt{Value}, if @racket[(interp/io e i)] equals @racket[(cons
+v o)], then @racket[(exec/io e i)] equals
+@racket[(cons v o)].}

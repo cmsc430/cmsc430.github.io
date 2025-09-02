@@ -4,8 +4,6 @@
 
 @title[#:style 'unnumbered]{Schedule}
 
-@;(TuTh 9:30-10:45, IRB 0318)
-
 @(define (wk d) (nonbreaking (bold d)))
 
 @; for unreleased assignments, switch to seclink when ready to release
@@ -23,92 +21,89 @@
                      @bold{Tuesday}
                      @bold{Thursday})
 
-               (list @wk{8/27}
+               (list @wk{9/2}
 	       	     #;""
-	             @secref["Intro"]
-		     @elem{@secref["OCaml to Racket"]})
+		     @elem{No class}
+	             @itemlist[@item{@secref["Intro"]}
+ 		               @item{@secref["OCaml to Racket"]}])
 		               
 
-               (list @wk{9/3}
+               (list @wk{9/9}
 	       	     @;seclink["Assignment 1"]{A1}
 	             @elem{@secref["a86"]}                     
                      @elem{@secref["a86"]})
 
-               (list @wk{9/10}
+               (list @wk{9/16}
 	             @;seclink["Assignment 2"]{A2}
                      @itemlist[@item{@secref["Abscond"]}
                                @item{@secref["Blackmail"]}]
 	             @itemlist[@item{@secref["Con"]}
                                @item{@secref["Dupe"]}])
                      
-               (list @wk{9/17}
+               (list @wk{9/23}
                      @;""
 		     @secref["Dodger"]
 		     @secref["Evildoer"])
 
-               (list @wk{9/24}
+               (list @wk{9/30}
 	             @;elem{A3}
                      @;elem{@seclink["Assignment 2"]{A2}}
 		     @secref["Evildoer"]
 		     @secref{Extort})
 
-               (list @wk{10/1}
+               (list @wk{10/7}
                      @;""
-		     @secref{Extort}
+		     @secref{Fraud}
 		     @secref{Fraud})
 
-               (list @wk{10/8}
+               (list @wk{10/14}
                      @;elem{A4}
-		     @secref{Fraud}
+		     @elem{No class: Fall Break}
 		     @secref["Midterm_1"])
 
-               (list @wk{10/15}
+               (list @wk{10/21}
                      @;""
-		     @secref{Fraud}
-		     @secref{Hustle})
-               (list @wk{10/22}
-	             @;""
 		     @secref{Hustle}
 		     @secref{Hustle})
 
-               (list @wk{10/22}
+               (list @wk{10/28}
 	             @;elem{A5}
                      @;elem{@seclink["Assignment 4"]{A4}}
 		     @secref{Hoax}
-		     @secref{Iniquity})
+		     @secref{Hoax})
 
-               (list @wk{10/29}
+               (list @wk{11/4}
                      @;""
 		     @secref{Iniquity}
 		     @secref{Iniquity})
 
 
-	       (list @wk{11/5}
+	       (list @wk{11/11}
 	             @;elem{A6}
 		     @secref{Knock}
 		     @secref["Midterm_2"])
 		     
 
-               (list @wk{11/12}
+               (list @wk{11/18}
 	             @;""
 		     @secref{Jig}
 		     @secref{Loot})
 
-               (list @wk{11/19}
+               (list @wk{11/25}
 	             @;elem{A7}
 	             @;elem{@seclink["Assignment 5"]{A5}}
 		     @secref{Loot}
-		     @secref{Mug})
+		     @elem{No class: Thanksgiving})
 
-               (list @wk{11/26}
+               (list @wk{12/2}
 	             @;""
-		     @secref{Neerdowell}
-		     @elem{No class})
+		     @secref{Mug}		     
+		     @secref{Neerdowell})
 
-               (list @wk{12/3}
+               (list @wk{12/9}
 	             @;""
 		     @secref{Outlaw}
-		     @elem{@secref{Outlaw}, cont.})
+		     @secref{Outlaw})
 
 )]
 

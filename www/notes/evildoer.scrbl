@@ -4,6 +4,7 @@
 @(require redex/pict
           racket/runtime-path
           scribble/examples
+	  evildoer/types
           "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"	  
@@ -19,7 +20,7 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "evildoer" f))))))
-	   '("interp.rkt" "interp-io.rkt" "compile.rkt" "ast.rkt" "parse.rkt"))
+	   '("main.rkt" "compile-ops.rkt" "correct.rkt"))
 
 @(ev `(current-directory ,(path->string (build-path langs "evildoer"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
@@ -153,6 +154,16 @@ and @racket[Prim1].
 The s-expression parser is defined as follows:
 
 @codeblock-include["evildoer/parse.rkt"]
+
+@ex[
+(parse 'eof)
+(parse '(void))
+(parse '(read-byte))
+(parse '(peek-byte))
+(parse '(write-byte 97))
+(parse '(eof-object? eof))
+(parse '(begin (write-byte 97)
+               (write-byte 98)))]
 
 @section{Reading and writing bytes in Racket}
 
@@ -297,16 +308,6 @@ can then use to assert the expected behavior:
 
 @section{Meaning of Evildoer programs}
 
-Formulating the semantics of Evildoer is more complicated
-than the languages we've developed so far. Let's put it off
-for now and instead focus on the interpreter, which remains
-basically as simple as before. The reason for this disparity
-is that math doesn't have side-effects. The formal semantics
-will need to account for effectful computations without
-itself having access to them. Racket, on the other hand, can
-model effectful computations directly as effectful Racket
-programs.
-
 Here's an interpreter for Evildoer:
 
 @codeblock-include["evildoer/interp.rkt"]
@@ -328,8 +329,9 @@ read and write:
      (interp (parse '(write-byte (read-byte))))))
  ]
 
-We can also build a useful utility for interpreting programs
-with strings representing stdin and stdout:
+Using @racket[with-input-from-string] and
+@racket[with-output-to-string], we can also build a useful utility for
+interpreting programs with strings representing stdin and stdout:
 
 @codeblock-include["evildoer/interp-io.rkt"]
 
@@ -347,6 +349,7 @@ computation into a pure one:
                (cons (void) "h"))
  ]
 
+@;{
 OK, so now, what about the formal mathematical model of
 Evildoer? We have to reconsider the domain of program
 meanings. No longer does an expression just mean a value;
@@ -366,6 +369,162 @@ facility, but instead of capturing the effects with string ports,
 we will define the meaning of effects directly.
 
 (Semantics omitted for now.)
+}
+
+@section{Encoding values in Evildoer}
+
+With new values, namely the void and eof values, comes the need to add
+new bit encodings. So we add new encodings for @racket[eof] and
+@racket[void], for which we simply pick two unused bit patterns:
+@binary[(value->bits eof)] and @binary[(value->bits (void))],
+respectively.
+
+@codeblock-include["evildoer/types.rkt"]
+
+@section[#:tag "calling-c"]{Detour: Calling external functions}
+
+Some aspects of the Evildoer compiler will be straightforward, e.g.,
+adding @racket[eof], @racket[(void)], @racket[eof-object?], etc.
+There's conceptually nothing new going on there.  But what about
+@racket[read-byte], @racket[write-byte] and @racket[peek-byte]?  These
+will require a new set of tricks to implement.
+
+We have a couple of options for how to approach these primitives:
+
+@itemlist[#:style 'ordered
+
+@item{generate assembly code for issuing operating system calls to
+do I/O operations, or}
+
+@item{add C code for I/O primitives in the run-time and generate
+assembly code for calling them.}
+
+]
+
+The first option will require looking up details for system calls on
+the particular operating system in use, generating code to make those
+calls, and adding logic to check for errors.  For the second option,
+we can simply write C code that calls standard functions like
+@tt{getc}, @tt{putc}, etc. and let the C compiler do the heavy lifting
+of generating robust assembly code for calling into the operating
+system.  The compiler would then only need to generate code to call
+those functions defined in the run-time system.  This is the simpler
+approach and the one we adopt.
+
+Up to this point, we've seen how C code can call code written in
+assembly as though it were a C function.  To go the other direction,
+we need to explore how to make calls to functions written in C from
+assembly.  Let's look at that now.
+
+@margin-note{If you haven't already, be sure to read up on how calls
+work in @secref{a86}.}
+
+
+
+Once you brushed up on how calls work, you'll know you can
+define labels that behave like functions and call them.
+
+
+Instead of @racket[read-byte] and friends, let's first start with
+something simpler.  Imagine we want a function to compute the greatest
+common divisor of two numbers.  We could of course write such a
+function in assembly, but it's convenient to be able to write it
+in a higher-level language like C:
+
+@filebox-include[fancy-c evildoer "gcd.c"]
+
+We can compile this into an object file:
+
+@(define format (if (eq? (system-type 'os) 'macosx) "macho64" "elf64"))
+          
+@shellbox["gcc -c gcd.c -o gcd.o"]
+
+Now, how can we call @tt{gcd} from aseembly code?  Just as there is a
+convention that a return value is communicated through @racket[rax],
+there are conventions governing the communication of arguments. The
+conventions are known as an @bold{Application Binary Interface} or
+ABI.  The set of conventions we're following is called the
+@bold{System V} ABI, and it used by Unix variants like Mac OS, Linux,
+and BSD systems. (Windows follows a different ABI.)
+
+The convention for arguments is that the first six integer
+or pointer parameters are passed in the registers
+@racket['rdi], @racket['rsi], @racket['rdx], @racket['rcx],
+@racket['r8], @racket['r9]. Additional arguments and large
+arguments such as @tt{struct}s are passed on the stack.
+
+So we will pass the two arguments of @tt{gcd} in registers
+@racket[rdi] and @racket[rsi], respectively, then we use the
+@racket[Call] instruction to call @tt{gcd}.  Suppose we want to
+compute @tt{gcd(36,60)}:
+
+@ex[
+(define p
+  (prog (Global 'entry)
+	(Label 'entry)
+	(Mov 'rdi 36)
+	(Mov 'rsi 60)
+	(Sub 'rsp 8)
+	(Extern 'gcd)
+	(Call 'gcd)
+	(Sal 'rax int-shift)
+	(Add 'rsp 8)
+	(Ret)))]
+
+A few things to notice in the above code:
+
+@itemlist[#:style 'ordered
+
+@item{The label @racket['gcd] is declared to be external with
+@racket[Extern], this means the label is used but not defined in this
+program.  We placed this declaration immediately before the @racket[Call]
+instruction, but it can appear anywhere in the program.}
+
+@item{The stack pointer register is decremented by @racket[8] before
+the @racket[Call] instruction and then incremented by @racket[8] after
+the call returns.  This is to ensure the stack is aligned to 16-bytes
+for call; a requirement of the System V ABI.}
+
+@item{For consistency with our run-time system, we return the result
+encoded as an integer value, which is accomplished by shifting the
+result in @racket[rax] to the left by @racket[#,int-shift].}
+
+]
+We could attempt to run this program with @racket[asm-interp], but it
+will complain about @tt{gcd} being an undefined label:
+
+@ex[
+(eval:error (bits->value (asm-interp p)))]
+
+The problem is that @racket[asm-interp] doesn't know anything about
+the @tt{gcd.o} file, which defines the @tt{gcd} symbol, however,
+there is a mechanism for linking in object files to the assembly
+interprer:
+
+@ex[
+(current-objs '("gcd.o"))
+(bits->value (asm-interp p))]
+
+We also could create an executable using the run-time system.
+To do this, first, let's save the assembly code to a file:
+
+@ex[
+ (with-output-to-file "p.s"
+   (λ ()
+     (asm-display p))
+   #:exists 'truncate)]
+
+Now we can assemble it into an object file, link the objects together
+to make an executable, and then run it:
+
+@shellbox[(string-append "nasm -f " format " p.s -o p.o")
+          "gcc runtime.o gcd.o p.o -o p.run"
+          "./p.run"]
+
+So now we've seen the essence of how to call functions from assembly
+code, which opens up an implementation strategy for implementing
+features: write C code as part of the run-time system and call it from
+the compiled code.
 
 @section{A Run-Time for Evildoer}
 
@@ -374,11 +533,15 @@ we add new encodings for @racket[eof] and @racket[void]:
 
 @filebox-include[fancy-c evildoer "types.h"]
 
-The main run-time file is extended slightly to take care of
-printing the new kinds of values (eof and void). Note that a
-void result causes nothing to be printed:
+The interface for the run-time system is extended to include
+file pointers for the input and output ports:
 
 @filebox-include[fancy-c evildoer "runtime.h"]
+
+The main entry point for the run-time sets up the input and output
+pointers to point to @tt{stdin} and @tt{stdout} and is updated
+to handle the proper printing of a void result:
+
 @filebox-include[fancy-c evildoer "main.c"]
 
 But the real novelty of the Evildoer run-time is that there
@@ -389,228 +552,18 @@ functions called @racket[read_byte], @racket[peek_byte] and
 
 @filebox-include[fancy-c evildoer "io.c"]
 
-The main novely of the @emph{compiler} will be that emits code
-to make calls to these C functions.
+This functionality is implemented in terms of standard C library
+functions @tt{getc}, @tt{ungetc}, @tt{putc} and the run-time system's
+functions for encoding and decoding values such as
+@tt{val_unwrap_int}, @tt{val_wrap_void}, etc.
 
-@section[#:tag "calling-c"]{Calling C functions from a86}
-
-If you haven't already, be sure to read up on how calls work
-in @secref{a86}.
-
-Once you brushed up on how calls work, you'll know you can
-define labels that behave like functions and call them.
-
-Let's start by assuming we have a simple stand-in for the
-run-time system, which is this C program that invokes an
-assembly program with a label called @tt{entry} and prints
-the result:
-
-@filebox-include[fancy-c evildoer "simple.c"]
-
-Now, here is a little program that has a function called @tt{meaning}
-that returns @tt{42}.  The main entry point calls @tt{meaning},
-adds 1 to the result, and returns:
-
-@ex[
-(define p
-  (prog (Global 'entry)
-        (Label 'entry)
-        (Call 'meaning)
-        (Add 'rax 1)
-        (Ret)
-        (Label 'meaning)
-        (Mov 'rax 42)
-        (Ret)))
-]
-
-Let's save it to a file called @tt{p.s}:
-
-@ex[
- (with-output-to-file "p.s"
-   (λ ()
-     (asm-display p))
-   #:exists 'truncate)]
-
-We can assemble it, link it together with the printer, and run it:
-
-@(define format (if (eq? (system-type 'os) 'macosx) "macho64" "elf64"))
-          
-@shellbox["gcc -c simple.c -o simple.o"
-          (string-append "nasm -f " format " p.s -o p.o")
-          "gcc simple.o p.o -o simple"
-          "./simple"]
-
-In this case, the @tt{meaning} label is defined @emph{within} the same
-assembly program as @tt{entry}, although that doesn't have to be the case.
-We can separate out the definition of @tt{meaning} into its own file,
-so long as we declare in this one that @tt{meaning} is an external label:
-
-@ex[
-(define p
-  (prog (Extern 'meaning)
-        (Global 'entry)
-        (Label 'entry)
-        (Call 'meaning)
-        (Add 'rax 1)
-        (Ret)))
-(define life
-  (prog (Global 'meaning)
-        (Label 'meaning)
-        (Mov 'rax 42)
-        (Ret)))
-]
-
-By declaring an external label, we're saying this program
-makes use of that label, but doesn't define it. The
-definition will come from a later phase where the program is
-linked against another that provides the definition.
-
-There is an important invariant that has to be maintained
-once these programs are moved into separate object files
-though. According to the System V ABI, the stack address
-must be aligned to 16-bytes before the call instruction. Not
-maintaining this alignment can result in a segmentation
-fault. Since the @racket[p] program is the one doing the
-calling, it is the one that has to worry about the issue.
-
-Now keep in mind that the @racket[p] program is itself
-called by the C program that prints the result. So when the
-call @emph{to} @racket[p] was made, the stack was aligned.
-In executing the @racket[Push] instruction, a word, which is
-8-byte, was pushed. This means at the point that control
-transfers to @racket['entry], the stack is not aligned to a
-16-byte boundary. To fix the problem, we can push another
-element to the stack, making sure to pop it off before
-returning. We opt to decrement (remember the stack grows
-toward low memory) and increment to make clear we're not
-saving anything; this is just about alignment. The revised
-@racket[p] program is:
-
-@ex[    
-(define p
-  (prog (Extern 'meaning)
-        (Global 'entry)
-        (Label 'entry)
-        (Sub 'rsp 8)
-        (Call 'meaning)
-        (Add 'rax 1)
-        (Add 'rsp 8)
-        (Ret)))]
+As we'll see in the next section, the main novely of the
+@emph{compiler} will be that emits code to make calls to these C
+functions.
 
 
-Now save each program in its nasm format:
 
-@ex[
-(with-output-to-file "p.s"
-  (λ ()
-    (asm-display p))
-  #:exists 'truncate)
-(with-output-to-file "life.s"
-  (λ ()
-    (asm-display life))
-  #:exists 'truncate)]
-
-And assemble:
-
-@shellbox[(string-append "nasm -f " format " p.s -o p.o")
-          (string-append "nasm -f " format " life.s -o life.o")]
-
-
-Then we can link all the pieces together and run it:
-
-@shellbox["gcc simple.o p.o life.o -o simple"
-          "./simple"]
-          
-Now if we look at @tt{life.s}, this is an assembly program
-that defines the @tt{meaning} label. We defined it by
-writing assembly code, but we could've just as easily
-defined it in any other language that can compile to an
-object file.  So let's write it in C:
-
-
-@filebox-include[fancy-c evildoer "life.c"]
-
-We can compile it to an object file:
-
-@shellbox["gcc -c life.c -o life.o"]
-
-This object file will have a single globally visible label
-called @tt{meaning}, just like our previous implementation.
 @;{
-To confirm this, the standard @tt{nm} utility can be used to
-list the defined symbols of an object file:
-
-@shellbox["nm -j life.o"]
-}
-We can again link together the pieces and confirm that it
-still produces the same results:
-
-@shellbox["gcc simple.o p.o life.o -o simple"
-          "./simple"]
-
-
-At this point, we've written a little assembly program (@tt{
- p.s}) that calls a function named @tt{meaning}, that was
-written in C.
-
-One thing that you can infer from this example is that the C
-compiler generates code for @tt{meaning} that is like the
-assembly code we wrote, namely it ``returns'' a value to the
-caller by placing a value in @racket['rax].
-
-The next natural question to ask is, how does an assembly
-program provide arguments to the call of a C function?
-
-Just as there is a convention that a return value is
-communicated through @racket['rax], there are conventions
-governing the communication of arguments. The conventions
-are known as an @bold{Application Binary Interface} or ABI.
-The set of conventions we're following is called the @bold{
- System V} ABI, and it used by Unix variants like Mac OS,
-Linux, and BSD systems. (Windows follows a different ABI.)
-
-The convention for arguments is that the first six integer
-or pointer parameters are passed in the registers
-@racket['rdi], @racket['rsi], @racket['rdx], @racket['rcx],
-@racket['r8], @racket['r9]. Additional arguments and large
-arguments such as @tt{struct}s are passed on the stack.
-                                                     
-So now let's try calling a C function that takes a
-parameter. Here we have a simple C function that doubles
-it's input:
-
-@filebox-include[fancy-c evildoer "double.c"]
-
-We can compile it to an object file:
-
-@shellbox["gcc -c double.c -o double.o"]
-
-Now, to call it, the assembly program should put the value
-of its argument in @racket['rdi] before the call:
-
-@ex[
- (define q
-   (prog (Extern 'dbl)
-         (Global 'entry)
-	 (Label 'entry)
-         (Mov 'rdi 21)
-         (Call 'dbl)
-         (Add 'rax 1)
-         (Ret)))                           
-(with-output-to-file "q.s"
-  (λ ()
-    (asm-display q))
-  #:exists 'truncate)]
-
-We can assemble it into an object file:
-
-@shellbox[(string-append "nasm -f " format " q.s -o q.o")]
-
-And linking everything together and running shows it works
-as expected:
-
-@shellbox["gcc simple.o q.o double.o -o simple"
-          "./simple"]
 
 
 Now we have all the tools needed to interact with libraries
@@ -626,29 +579,6 @@ use @racket['rdi] to hold the constant we'll add to the
 result of calling @tt{dbl}. Now we need to save it before
 writing the argument. All we need to do is add a push and
 pop around the call:
-
-@ex[
- (define q
-   (prog (Extern 'dbl)
-         (Global 'entry)
-	 (Label 'entry)
-         (Sub 'rsp 8)
-         (Mov 'rdi 1)
-         (Push 'rdi)
-         (Mov 'rdi 21)
-         (Call 'dbl)
-         (Pop 'rdi)
-         (Add 'rax 'rdi)
-         (Add 'rsp 8)
-         (Ret)))
-(with-output-to-file "q.s"
-  (λ ()
-    (asm-display q))
-  #:exists 'truncate)]
-
-@shellbox[(string-append "nasm -f " format " q.s -o q.o")
-          "gcc simple.o q.o double.o -o simple"
-          "./simple"]
 
 The wrinkle is actually a bit deeper than this too. Suppose
 we are using other registers, maybe some that are not used
@@ -687,6 +617,10 @@ registers.
 
 OK, now let's use these new powers to write the compiler.
 
+}
+
+
+
 @section{A Compiler for Evildoer}
 
 
@@ -715,67 +649,110 @@ The primitive operation compiler:
 
 @codeblock-include["evildoer/compile-ops.rkt"]
 
+
+Notice how expressions like @racket[(read-byte)] and @racket[(write-byte)]
+compile to calls into the run-time system:
+
+@ex[
+(compile-op0 'read-byte)
+(compile-op1 'write-byte)]
+
+
+
+@section{Testing and correctness}
+
+
+
 We can continue to interactively try out examples with
 @racket[asm-interp], although there are two issues we need
 to deal with.
 
-The first is that the @racket[asm-interp] utility doesn't
-know anything about the Evildoer run-time. Hence we need to
-tell @racket[asm-interp] to link it in when running
-an example; otherwise labels like @tt{byte_write} will be
-undefined.
+The first is that the @racket[asm-interp] utility doesn't know
+anything about the Evildoer run-time. Hence we need to tell
+@racket[asm-interp] to link it in when running an example; otherwise
+labels like @tt{byte_write} will be undefined.  We saw how to do this
+in @secref["calling-c"] using the @racket[current-objs] parameter to
+link in object files to @racket[asm-interp].  This time, the object
+file we want to link in is the Evildoer run-time.
 
-The other is that we need to have an @racket[asm-interp/io]
-counterpart that is analogous to @racket[interp/io], i.e. we
-need to be able to redirect input and output so that we can
-run programs in a functional way.
-
-There is a parameter that @racket[asm-interp] uses called
-@racket[current-objs] that can be used to add additional
-object files to be linked against when running examples.
-
-So for example, to make an example with the @tt{dbl}
-function from before, we can do the following:
-
-@ex[
- (current-objs '("double.o"))
- (asm-interp
-  (prog (Extern 'dbl)
-        (Global 'entry)
-        (Label 'entry)
-        (Mov 'rdi 21)
-        (Call 'dbl)
-        (Ret)))]
-
-
-The other issue is bit uglier to deal with. We need to do
-this redirection at the C-level. Our solution is write an
-alternative version of @tt{byte.o} that has functions for
-setting the input and out streams that are used in @tt{
- write_byte} etc. The implementation of
-@racket[asm-interp/io] is expected to be linked against a
-library that implements these functions and will use them to
-set up temporary files and redirect input and output there.
-It's a hack, but a useful one.
-
-@;{
-You can see the alternative implementation of @tt{io.c} in
-@link["code/evildoer/byte-shared.c"]{@tt{byte-shared.c}} if
-interested. Once compiled, it can be used with
-@racket[current-objs] in order to interactively run examples
-involving IO:
-}
+The other is that we need to have an @racket[asm-interp/io] analog of
+@racket[interp/io], i.e. we need to be able to redirect input and
+output so that we can run programs in a functional way.  The
+@secref["a86"] library provides this functionality by providing
+@racket[asm-interp/io].  The way this function works is @emph{if}
+linked objects define an @tt{in} and @tt{out} symbol, it will set
+these appropriately to read input from a given string and collect
+output into a string.
 
 @ex[
- (current-objs '("runtime.o"))
- (asm-interp/io
-   (prog (Extern 'read_byte)
-         (Extern 'write_byte)
-	 (Global 'entry)
-         (Label 'entry)
-         (Call 'read_byte)
-         (Mov 'rdi 'rax)
-         (Call 'write_byte)
-         (Mov 'rax 42)
-         (Ret))
-   "a")]
+(current-objs '("runtime.o"))
+(asm-interp/io (compile (parse '(write-byte (read-byte)))) "a")]
+
+Notice though, that @racket[asm-interp/io] gives back a pair
+consisting of the @emph{bits} and the output string.  To match the
+return type of @racket[interp/io] we need to convert the bits to a
+value:
+
+@ex[
+(match (asm-interp/io (compile (parse '(write-byte (read-byte)))) "a")
+  [(cons b o) (cons (bits->value b) o)])]
+
+Using these pieces, we can write a function that matches the type signature
+of @racket[interp/io]:
+
+@codeblock-include["evildoer/exec-io.rkt"]
+
+@ex[
+(exec/io (parse '(write-byte (read-byte))) "z")]
+
+Note that we still provide an @racket[exec] function that works for
+programs that don't do I/O:
+
+@ex[
+(exec (parse '(eof-object? #f)))]
+
+But it will fail if executing a program that uses I/O:
+
+@ex[
+(eval:error (exec (parse '(write-byte 97))))]
+
+We can now state the correctness property we want of the compiler:
+
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
+@tt{Expr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[v]
+@math{∈} @tt{Value}, if @racket[(interp/io e i)] equals @racket[(cons
+v o)], then @racket[(exec/io e i)] equals
+@racket[(cons v o)].}
+
+Testing compiler correctness is updated as follows, notice it now
+takes an additional parameter representing the state of the input
+stream:
+
+@codeblock-include["evildoer/correct.rkt"]
+
+@ex[
+(check-compiler (parse '(void)) "")
+(check-compiler (parse '(read-byte)) "a")
+(check-compiler (parse '(write-byte 97)) "")]
+
+The @racket[random-expr] function generates random expressions and
+@racket[random-well-defined-expr] generates random expressions that are
+guaranteed to be well-defined, as usual.  Additionally, the
+@racket[random-input] function produces a random string that can be
+used as the input.
+
+@ex[
+(require "random.rkt")
+(random-expr)
+(random-well-defined-expr)
+(random-input)]
+
+Together, these can be used to randomly test the correctness of the
+compiler:
+
+@ex[
+(for ((i 100))
+  (check-compiler (random-expr) (random-input)))
+(for ((i 100))
+  (check-compiler (random-well-defined-expr) (random-input)))]
+  

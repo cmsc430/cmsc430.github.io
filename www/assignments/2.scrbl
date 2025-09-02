@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 2" #:style 'unnumbered]{Assignment 2: a86 Primer}
+@title[#:tag "Assignment 2" #:style 'unnumbered]{Assignment 2: Assembly primer}
 
 @bold{Due: @assign-deadline[2]}
 
@@ -10,13 +10,14 @@ The goal of this assignment is to gain practice programming in a86.
 you'd like on this assignment, but each person must submit their
 @tt{submit.zip} file on Gradescope.
 
-You are given a @tt{a86-basics.zip} file (on ELMS under "Files"), that
-contains a README, a Makefile, and a number of Racket modules.  In
-each module there are several ``stubs,'' i.e. incomplete definitions
-with type signatures, descriptions, and a small set of tests.  Each
-definition has a bogus (but type correct) body marked with a ``TODO''
-comment.  Your job is to replace each of these expressions with a
-correct implementation of the a86 code.
+You are given a @tt{a86-basics.zip} file (in ELMS, linked in the
+description for Assignment 1), that contains a README, a Makefile, and
+a number of Racket modules.  In each module there are several
+``stubs,'' i.e. incomplete definitions with type signatures,
+descriptions, and a small set of tests.  Each definition has a bogus
+(but type correct) body marked with a ``TODO'' comment.  Your job is
+to replace each of these expressions with a correct implementation of
+the a86 code.
 
 Make sure you do not rename any files.  Also make sure not to change
 the name or signature of any definition given to you.  You may add any

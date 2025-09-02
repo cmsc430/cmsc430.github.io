@@ -755,7 +755,7 @@ Racket.
 @section{Symbols}
 
 One of the built-in datatypes we will use often in Racket is
-that of a @emph{symbol}. A symbol is just an atomic peice of
+that of a @emph{symbol}. A symbol is just an atomic piece of
 data. A symbol is written using the @racket[quote] notation
 @racket[(code:quote symbol-name)], which is abbreviated
 @racket['symbol-name]. What's allowable as a symbol name
@@ -965,7 +965,7 @@ representation of itself.
 For example, @racket[(+ 1 2)] is an expression.  When run, it applies
 the @emph{function} bound to the variable @racket[+] to the arguments
 @racket[1] and @racket[2] and produces @racket[3].  On the other hand:
-@racket['(+ 1 2)] constructs a peice of data, namely, a list of three
+@racket['(+ 1 2)] constructs a piece of data, namely, a list of three
 elements.  The first element is the @emph{symbol} @tt{+}, the second
 element is @racket[2], the third element is @racket[3].
 
@@ -989,7 +989,7 @@ then the @emph{expression} @racket[e] is evaluated and it's
 value will be used in place of @tt{(unquote e)}.
 
 This gives us the ability to ``escape'' out of a quoted
-peice of data and go back to expression mode.
+piece of data and go back to expression mode.
 
 If we think of @racket[quasiquote] like @racket[quote] in
 terms of ``pushing in'' then the rules are exactly the same
@@ -1009,7 +1009,7 @@ instead as data.. @emph{unless we encounter a
 things as expressions.
 
 
-The last remaining peice is @racket[unquote-splicing], which
+The last remaining piece is @racket[unquote-splicing], which
 is abbreviated with ``comma-at'': @racket[,@e] means @tt{
  (unquote-splicing e)}. The @racket[unquote-splicing] form is
 like @racket[unquote] in that if it occurs within a
@@ -1048,7 +1048,7 @@ data. It doesn't contain anything and its only real purpose
 is to be distinguishable from @racket[node] structures. On
 the other hand a @racket[node] structure needs to be
 distinguishable from @racket[leaf]s, but also contain 3
-peices of data within it.
+pieces of data within it.
 
 We can formulate definition of binary trees using only
 symbols and lists as:

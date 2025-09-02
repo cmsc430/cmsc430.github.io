@@ -20,7 +20,9 @@
 
 @title[#:style 'unnumbered]{Syllabus}
 
-@bold{Introduction to Compilers, CMSC 430}
+@local-table-of-contents[]
+
+@section{Introduction to Compilers (@courseno)}
 
 @bold{Term:} @string-titlecase[semester], @year
 
@@ -31,38 +33,151 @@
 @bold{Office Hours:} By appointment.  Send email or ELMS message to set
 up.
 
-@bold{Prerequisite:} a grade of C or better in CMSC330; and permission
-of department; or CMSC graduate student.
+@bold{Credits:} 3
 
-@bold{Credits:} 3.
+@bold{Course Dates:} From @start-date to @final-date
+
+@bold{Lectures:}
+@lecture-schedule1, @classroom1
+
 
 @;{@bold{Lecture dates:} @lecture-dates}
 
-@bold{Lectures:}
-@lecture-schedule1, @classroom1 (@prof1-initials)
 
-@bold{Course Description:} @courseno is an introduction to compilers.
-Its major goal is to arm students with the ability to design,
-implement, and extend a programming language. Throughout the course,
-students will design and implement several related high-level
-programming languages, building compilers that target the x86 CPU
-architecture.
+@section{Course Description}
+
+@;{
+Have you wondered what @emph{really} happens when you compile and run
+a program?  Have you ever had dreams of making your own programming
+language, but thought that seems hard or even... mystical?  Like maybe
+it involves a kind of wizard-level abilitiy that you don't have access
+to, or perhaps even know about?  Maybe the thought of making your own
+programming language has never even occurred to you until reading this
+just now. They have always seemed to be things given to you from on
+high, right?  Sure, you can choose from a bunch of existing options:
+C, Rust, Java, PostScript, etc.  But where did these choices come
+from?  How were they designed and built?  And what if none of the
+existing choices are quite what you want and you decide to strike out
+on your own?
+
+As you read this, your mind is maybe spawning a background process
+asking itself, what would even be involved in making my own
+programming language?  What even is a programming language, if you
+really think about it?  What are they made of?  Are they made of the
+same stuff as other kinds of programs?  Are they like the pedestrian
+kind I learned to write in school:,the ones that shuffle lists or find
+the shortest path between two vertices in a graph?  If they are like
+other programs, what are they written in?  Some sort of programming
+language ostensibly, but where did @emph{that} lanuage come from?
+What's @emph{it} made of?  Where's the bottom?  Is there a bottom? I
+thought I was just going to read a syllabus and now I've lost my
+computational footing.
+}
+
+@courseno is an introduction to compilers.  Its major goal is to arm
+students with the ability to design, implement, and extend a
+programming language. Throughout the course, students will design and
+implement several related high-level programming languages, building
+compilers that target the x86 CPU architecture.
 
 The course assumes familiarity with a functional programming such as
 OCaml from CMSC 330, and, to a lesser extent, imperative programming
 in C and Assembly as covered in CMSC 216.
 
+@bold{Prerequisite:} a grade of C or better in CMSC330; and permission
+of department; or CMSC graduate student.
 
-@bold{Course Structure:} The course will consist of
-in-person lectures, which will be recorded and available on ELMS
-immediately after each lecture.  There are two midterms, a final
-project, which counts as the final assessment for the class, several
-assignments, and several quizes and surveys.  Midterms are take-home
-exams and completed online over a @midterm-hours period.
 
-@bold{Contents:}
+@section{Learning Outcomes}
 
-@local-table-of-contents[]
+After successfully completing this course, you will be able to:
+
+@itemlist[
+
+@item{Design a programming language.}
+
+@item{Implement a high-level programming language via interpretation in a high-level programming language.}
+
+@item{Implement a high-level programming language via compilation into a low-level programming language.}
+
+@item{Define and test a compiler's correctness.}
+
+@item{Analyze language design choices.}
+
+@item{Evaluate language implementation choices.}
+
+@item{Evolve a large software artifact with complex invariants and specifications.}
+
+]
+
+@section{Topics}
+
+The following list of lecture topics will vary according to the pace
+of the course:
+
+@itemlist[
+  @item{Overview of compilation}
+  @;item{Operational semantics}
+  @item{Interpreters}
+  @item{Intermediate representations and bytecode}
+  @item{Code generation}
+  @item{Run-time systems}
+  @item{Garbage collection}
+  @item{Type systems, type soundness, type inference}
+  @item{Register allocation and optimization}
+  @item{Language design}
+  @item{Advanced topics in compilation}]
+
+@;section{Required Resources}
+
+
+
+
+@section{Course Structure}
+
+The course will consist of in-person lectures, which will be recorded
+and available on ELMS immediately after each lecture.  There are two
+midterms, a final project, which counts as the final assessment for
+the class, several assignments, and several quizes and surveys.
+Midterms are take-home exams and completed online over a
+@|midterm-hours|-hour period.
+
+
+@section{Tips for Success in this Course}
+
+@itemlist[#:style 'numbered
+
+@item{@bold{Participate.} Engage deeply, ask questions, and talk about
+the course content with your classmates. You can learn a great deal
+from discussing ideas and perspectives with your peers and
+professor. Participation can also help you articulate your thoughts
+and develop critical thinking skills.}
+
+@item{@bold{Stay current.} This is a deeply cumulative class.  If you
+fall behind it will be challenging to get back on track.  The moment
+you disconnect with the material, seek help (from TAs, classmates,
+prof, etc.).}
+
+@item{@bold{Go slow; you'll get there faster.} You will be asked to
+implement several parts of a compiler.  The code will not be large,
+but it will require thought and precision.  You will be served well to
+make sure you know the material and have a clear idea of what you
+intend to do before you start doing it.  The other path is pain.}
+
+@item{@bold{Start early.}  Thinking requires time and can't be rushed,
+but if you spend the time thinking, it will ultimately be a huge time
+saver.  This means you have to start thinking early, which means
+starting early.}
+
+@item{@bold{Submit often.}  Things happen.  Life goes sideways.  Make
+sure you submit your work as you go, as often as you can.}
+
+@item{@bold{Bring your curiosity.}  The study of programming languages
+is rooted in logic, philosophy, computation, algorithms, optimization,
+and design.  If you approach it with an open and curious mind, it will
+be rewarding.}
+
+]
 
 @section{Policies and Resources for Undergraduate Courses}
 
@@ -79,10 +194,10 @@ like:
 @item{Copyright and intellectual property}
 ]
 
-Please visit
-@link["https://www.ugst.umd.edu/courserelatedpolicies.html"]{https://www.ugst.umd.edu/courserelatedpolicies.html}
-for the Office of Undergraduate Studies' full list of campus-wide
-policies and follow up with the instructor if you have questions.
+Please visit the
+@link["https://www.ugst.umd.edu/courserelatedpolicies.html"]{Office of
+Undergraduate Studies' full list of campus-wide policies} and follow
+up with the course staff if you have questions.
 
 @section{Course Guidelines}
 
@@ -105,7 +220,6 @@ will do their best to address and refer to all students accordingly,
 and we ask you to do the same for all of your fellow Terps.
 
 @bold{Communication with Instructor:}
-
 Email: If you need to reach out and communicate with @prof1,
 please email at @|prof1-email|. Please DO NOT email
 questions that are easily found in the syllabus or on ELMS (i.e. When
@@ -120,7 +234,6 @@ not miss any messages.  You are responsible for checking your email
 and Canvas/ELMS inbox with regular frequency.
 
 @bold{Communication with Peers:}
-
 With a diversity of perspectives and experience, we may find ourselves
 in disagreement and/or debate with one another. As such, it is
 important that we agree to conduct ourselves in a professional manner
@@ -143,11 +256,9 @@ feel threatened, dismissed, or silenced at any point during the
 semester and/or if your engagement in discussion has been in some way
 hindered by the learning environment.
 
-@;{HERE}
+@;{section{Office Hours}}
 
-@section{Office Hours}
-
-Office hours will be held online and in-person.  Details TBD.
+@;{TA office hours will be held online and in-person.  Details TBD.}
 
 @;{Please make sure that you fill out
 @link["https://docs.google.com/spreadsheets/d/1sDCpekBHIGjVSuGDsabPb74wZ5nHA_sTLvIPOzTUQ4k/edit?usp=sharing"]{
@@ -171,24 +282,6 @@ There is a channel '#course-discussion' that is meant for
 discussion/questions/help regarding the material of the course, make sure that
 you keep that channel free from noise so that other students and course staff
 can easily see what issues are being brought up.}
-
-@section{Topics}
-
-The following list of lecture topics will vary according to the pace
-of the course:
-
-@itemlist[
-  @item{Overview of compilation}
-  @item{Operational semantics}
-  @item{Interpreters}
-  @item{Intermediate representations and bytecode}
-  @item{Code generation}
-  @item{Run-time systems}
-  @item{Garbage collection}
-  @item{Type systems, type soundness, type inference}
-  @item{Register allocation and optimization}
-  @item{Language design}
-  @item{Advanced topics in compilation}]
 
 @section{Grades}
 
@@ -215,36 +308,34 @@ percentages:
   (list "Midterms (2)" "25%")
   (list "Final project" "15%")]
 
-Final letter grades will be assigned based on the following cutoff
-table:
+Final letter grades are assigned following the University of
+Maryland's "97 A+ Grading Scheme":
 
-@tabular[#:style 'boxed #:sep @hspace[1]
-         (list (list "A+" "97%" "C+" "77%" "D+" "67%" " " " ")
-	       (list "A"  "94%" "C"  "74%" "D"  "64%" "F" "<60%")
-	       (list "A-" "90%" "C-" "70%" "D-" "60%" " " " "))]
+@tabular[#:style 'boxed @;#:sep @;"|" @;@hspace[1]
+         (list (list "A+" "[100,100]" "B+" "(92,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
+	       (list "A"  "(100,97]"  "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
+	       (list "A-" "(97,92]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
+
+This table uses interval notation, so "(@math{x},@math{y}]" means any
+number less than @math{x} and greater than or equal to @math{y}.
 
 
 @section[#:tag "syllabus-videos"]{Videos}
 
 Lectures will be recorded and posted to ELMS shortly after every
 class.  There are also prepared videos available covering the
-material.
-
-These videos will be made available as the course
+material. These videos will be made available as the course
 progresses. If there is ever any issue with accessing these videos,
 let the instructor know as soon as possible.
 
 
 @section[#:tag "syllabus-assignments"]{Assignments}
 
-There will be several programming @secref{Assignments}, often with a full week
-given for completion and submission (e.g. if it assigned on a Tuesday it will
-be due the following Tuesday at 11:59pm EST unless otherwise noted).
-
-Assignments will be submitted through Gradescope.
-
-On the weeks were there are no programming assignments, there will be assigned
-reading.
+There will be several programming @secref{Assignments}, often with a
+full week given for completion and submission (e.g. if it assigned on
+a Tuesday it will be due the following Tuesday at 11:59pm EST unless
+otherwise noted).  Assignments will be submitted through
+@link[gradescope]{Gradescope}.
 
 @section[#:tag "syllabus-quiz"]{Quizzes & surveys}
 
@@ -255,8 +346,8 @@ right to reject survey responses that are not considered thoughtful.
 @section[#:tag "syllabus-midterms"]{Midterms}
 
 There will be two @secref{Midterms}, which will be @bold{take-home}
-exams.  Exams will be distributed at least 48 hours before the due
-date of the midterm.
+exams.  Exams will be distributed at least @|midterm-hours| hours
+before the due date of the midterm.
 
 @itemlist[
   @item{Midterm 1: @bold{@m1-date}}
@@ -278,32 +369,33 @@ before the due date.
 @section{Computing Resources}
 
 Programming projects can be developed on your own system and subitted
-via Gradescope, which will provide virtual machines suitably
-configured for running your code.  All project submissions @bold{must}
-work correctly on the Gradescope VMs, and your projects will be graded
-solely based on their results on those machines. Because language and
-library versions may vary with the installation, in unfortunate
-circumstances a program might work perfectly on your system but not
-work at all on the VMs. Thus we strongly recommend that as you develop
-any project, you should run it @bold{several days early} on Gradescope
-to have time to address any compatibility problems.
+via @link[gradescope]{Gradescope}, which will provide virtual machines
+suitably configured for running your code.  All project submissions
+@bold{must} work correctly on the Gradescope VMs, and your projects
+will be graded solely based on their results on those
+machines. Because language and library versions may vary with the
+installation, in unfortunate circumstances a program might work
+perfectly on your system but not work at all on the VMs. Thus we
+strongly recommend that as you develop any project, you should run it
+@bold{several days early} on Gradescope to have time to address any
+compatibility problems.
 
 
 @section{Outside-of-class communication with course staff}
 
-Course staff will interact with students outside of class in primarily two
-ways: office hours, and electronically via e-mail.  The use of Piazza and/or
-other classroom forums is allowed, and discussion amongst the students is
-encouraged, as long as the discuss is @italic{about the concepts} and not
-@italic{the solutions}. The majority of communication should be via office
-hours.
+Course staff will interact with students outside of class in primarily
+two ways: office hours, and electronically via e-mail.  The use of
+@link[piazza]{Piazza} and/or other classroom forums is allowed, and
+discussion amongst the students is encouraged, as long as the discuss
+is @italic{about the concepts} and not @italic{the solutions}. @;{The
+majority of communication should be via office hours.}
 
 Personalized assistance, e.g., with assignments or exam preparation,
 will be provided during office hours.  Office hours for the
 instructional staff will be posted on the course web page.
 
 Additional assistance will provided via discussion on
-@link[@piazza]{Piazza}. You may use this forum to ask general
+@link[piazza]{Piazza}. You may use this forum to ask general
 questions of interest to the class as a whole, e.g., administrative
 issues or problem set clarification questions. The course staff will
 monitor it on a daily basis, but do not expect immediate answers to
@@ -414,8 +506,6 @@ All arrangements for exam accommodations as a result of disability
 three business days prior to the exam date; later requests (including
 retroactive ones) will be refused.
 
-
-
 @section{Academic Integrity}
 
 The Campus Senate has adopted a policy asking students to include the
@@ -468,6 +558,18 @@ but the specific source must be cited in a comment in the relevant
 section of the program. }
 
 ]
+
+@bold{AI tool disclosure:} If a student chooses to use an AI tool to
+assist in any course work (e.g. assignments, programs, projects,
+reports, etc), they must disclose this information to the
+instructor. This disclosure should include the name of the AI tool and
+explain how it was used.
+
+Failure to adhere to this policy may result in a zero on the
+particular course work where the AI tool is used.  In addition the
+university honor code is applicable here: violation of the honor code
+and appropriate action will be enforced.
+
 
 @bold{Violations of the Code of Academic Integrity may include, but
 are not limited to:}
@@ -524,10 +626,38 @@ will not be extended upon in a later assignment.
 @section{Course Evaluations}
 
 If you have a suggestion for improving this class, don't hesitate to
-tell the instructor or TAs during the semester. At the end of the
-semester, please don't forget to provide your feedback using the
-campus-wide @link["https://www.courseevalum.umd.edu/"]{CourseEvalUM}
-system. Your comments will help make this class better.
+tell the instructor or TAs during the semester.  You may submit
+feedback anonymously using this @link[feedback]{form}.  If you are
+uncomfortable contacting the instructor or if issues are not addressed
+to your satisfaction, you may use the
+@link["https://www.cs.umd.edu/classconcern"]{CS Class Concern Form}.
+
+At the end of the semester, please provide your feedback using the
+campus-wide @link["https://www.courseevalum.umd.edu/"]{Student
+Feedback on Course Experiences} system. Your comments will help make
+this class better.
+
+@section{Mandatory Reporting of Disclosures of Inappropriate Behavior}
+
+Instructors and teaching assistants are designated as Responsible
+University Employees by the University and are required to to promptly
+notify the Title IX Coordinator when they become aware of any type of
+sexual misconduct.  @bold{They are not confidential resources.}
+
+
+If you wish to speak with someone confidentially, please contact one
+of UMD's confidential resources, such as CARE to Stop Violence
+(located on the Ground Floor of the Health Center) at 301-741-3442 or
+the Counseling Center (located at the Shoemaker Building) at
+301-314-7651.
+
+
+You may also seek assistance or supportive measures from UMD's Title
+IX Coordinator, Angela Nastase, by calling 301-405-1142, or emailing
+titleIXcoordinator@"@"umd.edu. To view further information on the above,
+please visit the Office of Civil Rights and Sexual Misconduct’s
+website at @link["https://ocrsm.umd.edu/"]{ocrsm.umd.edu}.
+
 
 @section{Right to Change Information}
 
@@ -539,13 +669,14 @@ information on this syllabus or in other course materials.  Such
 changes will be announced and prominently displayed at the top of the
 syllabus.
 
-@section{Course Materials}
+@section{Acknowledgments}
 
 Portions of the course materials are based on material developed by
 Ranjit Jhala and Joe Gibbs Politz.
 
-We gratefully acknowledge the work of past CMSC 430 TAs William Chung,
-Pierce Darragh, Justin Frank, Vyas Gupta, Sankha Narayan Guria, Tasnim
-Kabir, John Kastner, Yiyun Liu, Dhruv Maniktala, Christopher Maxey,
-Deena Postol, Ivan Quiles-Rodriguez, Benjamin Quiring, Temur
-Saidkhodjaev, Matvey Stepanov, Alex Taber.
+We gratefully acknowledge the work of past CMSC 430 TAs Kaylan
+Bhetwal, William Chung, Pierce Darragh, Justin Frank, Vyas Gupta,
+Sankha Narayan Guria, Tasnim Kabir, John Kastner, Yiyun Liu, Dhruv
+Maniktala, Christopher Maxey, Caspar Popova, Deena Postol, Ivan
+Quiles-Rodriguez, Benjamin Quiring, Temur Saidkhodjaev, Emma Shroyer,
+Matvey Stepanov, Alex Taber, Kazi Tasnim Zinat.

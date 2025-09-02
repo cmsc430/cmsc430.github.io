@@ -15,7 +15,7 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "dodger" f))))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("main.rkt" "random.rkt" "correct.rkt"))
 
 
 @title[#:tag "Dodger"]{Dodger: addressing a lack of character}
@@ -54,6 +54,12 @@ Abstract syntax is modelled with the following datatype definition:
 The s-expression parser is defined as follows:
 
 @codeblock-include["dodger/parse.rkt"]
+
+@ex[
+(parse #\a)
+(parse '(char? #\λ))
+(parse '(char->integer #\λ))
+(parse '(integer->char 97))]
 
 @section{Characters in Racket}
 
@@ -97,8 +103,6 @@ system, described below, takes care of printing them.
 
 
 @section{Meaning of Dodger programs}
-
-The semantics are omitted for now (there's really nothing new that's interesting).
 
 The interpeter is much like that of Dupe, except we have a new base case:
 
@@ -154,41 +158,40 @@ We can use the following encoding scheme:
 
 Notice that each kind of value is disjoint.
 
-We can write an interpreter that operates at the level of bits just as we did for Dupe;
-notice that it only ever constructs characters at the very end when converting from
-bits to values.  Let's first define our bit encodings:
+We can write down functions for encoding into and decoding out of bits:
 
 @codeblock-include["dodger/types.rkt"]
 
-And now the interpreter:
-
-@codeblock-include["dodger/interp-bits.rkt"]
-
-
 @section{A Compiler for Dodger}
 
-Compilation is pretty easy, particularly since we took the
-time to develop the bit-level interpreter. The compiler uses
-the same bit-level representation of values and uses logical
-operations to implement the same bit manipulating operations.
-Most of the work happens in the compilation of primitives:
+Compilation is pretty easy. The compiler uses the bit-level
+representation of values described earlier and uses logical operations
+to implement the bit manipulating operations.  Most of the work
+happens in the compilation of primitives:
 
 @codeblock-include["dodger/compile-ops.rkt"]
 
-The top-level compiler for expressions now has a case for character
-literals, which are compiled like other kinds of values:
+In fact the @racket[compile] is identical to its Dodger predecessor,
+since all the new work is done in @racket[value->bits] and
+@racket[compile-op1]:
 
 @codeblock-include["dodger/compile.rkt"]
 
 We can take a look at a few examples:
 
 @ex[
-(define (show e)
-  (displayln (asm-string (compile-e (parse e)))))
-(show '#\a)
-(show '#\λ)
-(show '(char->integer #\λ))
-(show '(integer->char 97))]
+(compile-e (parse #\a))
+(compile-e (parse #\λ))
+(compile-e (parse '(char->integer #\λ)))
+(compile-e (parse '(integer->char 97)))]
+
+We can run them:
+
+@ex[
+(exec (parse #\a))
+(exec (parse #\λ))
+(exec (parse '(char->integer #\λ)))
+(exec (parse '(integer->char 97)))]
 
 @section{A Run-Time for Dodger}
 
@@ -210,13 +213,4 @@ the case of printing characters:
 
 @filebox-include[fancy-c dodger "print.c"]
 
-Will these pieces in place, we can try out some examples:
-
-@ex[
- (define (run e)
-   (bits->value (asm-interp (compile (parse e)))))
- (run '#\a)
- (run '(integer->char (add1 (char->integer #\a))))
- (run '(integer->char 955))
-]
-
+@;{FIXME: examples should be creating executable at the command-line, not exec.}

@@ -18,7 +18,7 @@
 
 @(ev '(require rackunit a86))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "con" f))))))
-	   '("interp.rkt" "compile.rkt" "parse.rkt" "ast.rkt" "random.rkt"))
+	   '("main.rkt" "random.rkt" "correct.rkt"))
 
 
 @title[#:tag "Con"]{Con: branching with conditionals}
@@ -44,10 +44,6 @@ This leads to the following grammar for concrete Con:
 
 And abstract grammar:
 
-@centered{@render-language[C]}
-
-Which can be modeled with the following definitions:
-
 @codeblock-include["con/ast.rkt"]
 
 @;{
@@ -58,6 +54,11 @@ let's return to this after considering the semantics and interpreter.
 The parser is similar to what we've seen before:
 
 @codeblock-include["con/parse.rkt"]
+
+@ex[
+(parse '(if (zero? 42) 1 2))
+(parse '(if (zero? (sub1 1)) (add1 2) (sub1 7)))
+(parse '(if (zero? 0) (if (zero? 1) 2 3) 4))]
 
 
 @section{Meaning of Con programs}
@@ -85,7 +86,7 @@ Let's consider some examples (using concrete notation):
 ]
 
 
-The semantics is inductively defined as before.  There are @emph{two}
+@;{The semantics is inductively defined as before.  There are @emph{two}
 new rules added for handling if-expressions: one for when the test
 expression means @racket[0] and one for when it doesn't.
 
@@ -160,18 +161,13 @@ according to @render-term[C 𝑪𝒓]:
 
 @(show-judgment 𝑪 0 1)
 }
+}
 
-The interpreter has an added case for if-expressions, which
-recursively evaluates the test expression and branches based on its
-value.
+The semantics is defined by extending the interpreter to add a case
+for if-expressions, which recursively evaluates the test expression
+and branches based on its value.
 
 @codeblock-include["con/interp.rkt"]
-
-We've also made one trivial change, which is to move @racket[interp-prim1] to its
-own module.  This will be useful in the future when more primitive operations are
-added, we won't have to clutter up the interpreter:
-
-@codeblock-include["con/interp-prim.rkt"]
 
 We can confirm the interpreter computes the right result for the
 examples given earlier (using @racket[parse] to state the examples
@@ -184,9 +180,6 @@ with concrete notation):
 (interp (parse '(if (zero? (add1 0)) (add1 2) (if (zero? (sub1 1)) 1 0))))
 ]
 
-The argument for the correctness of the interpreter follows the same
-structure as for @seclink["Blackmail"]{Blackmail}, but with an added case for
-if-expressions.
 
 @section{An Example of Con compilation}
 
@@ -247,14 +240,14 @@ this, we arrive at the following code for the compiler:
 @racketblock[
 (let ((l0 (gensym 'if))
       (l1 (gensym 'if)))
-  (append (compile-e e1)
-          (list (Cmp 'rax 0)
-                (Je l0))
-          (compile-e e3)
-          (list (Jmp l1)
-                (Label l0))
-          (compile-e e2)
-          (list (Label l1))))
+  (seq (compile-e e1)
+       (Cmp 'rax 0)
+       (Je l0)
+       (compile-e e3)
+       (Jmp l1)
+       (Label l0)
+       (compile-e e2)
+       (Label l1)))
 ]
 
 
@@ -265,11 +258,6 @@ instructions.
 The complete compiler code is:
 
 @codeblock-include["con/compile.rkt"]
-
-Mirroring the change we made to the interpreter, we separate out a
-module for compiling primitives:
-
-@codeblock-include["con/compile-ops.rkt"]
 
 Let's take a look at a few examples:
 @ex[
@@ -284,13 +272,10 @@ Let's take a look at a few examples:
 
 And confirm they are running as expected:
 @ex[
-(define (tell s)
-  (asm-interp (compile (parse s))))
-
-(tell '(if (zero? 8) 2 3))
-(tell '(if (zero? 0) 1 2))
-(tell '(if (zero? 0) (if (zero? 0) 8 9) 2))
-(tell '(if (zero? (if (zero? 2) 1 0)) 4 5))
+(exec (parse '(if (zero? 8) 2 3)))
+(exec (parse '(if (zero? 0) 1 2)))
+(exec (parse '(if (zero? 0) (if (zero? 0) 8 9) 2)))
+(exec (parse '(if (zero? (if (zero? 2) 1 0)) 4 5)))
 ]
 
 
@@ -298,17 +283,12 @@ And confirm they are running as expected:
 
 The statement of correctness follows the same outline as before:
 
-@bold{Compiler Correctness}: @emph{For all expressions @racket[e] and
-integers @racket[i], if (@racket[e],@racket[i]) in @render-term[C 𝑪],
-then @racket[(asm-interp (compile e))] equals @racket[i].}
+@bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈} @tt{Expr},
+@racket[(interp e)] equals @racket[(exec e)].}
 
 Again, we formulate correctness as a property that can be tested:
 
-@ex[
-(define (check-compiler e)
-  (check-equal? (asm-interp (compile e))
-                (interp e)
-                e))]
+@codeblock-include["con/correct.rkt"]
 
 Generating random Con programs is essentially the same as Blackmail
 programs, and are provided in a @link["con/random.rkt"]{random.rkt}
@@ -323,3 +303,7 @@ module.
 (for ([i (in-range 10)])
   (check-compiler (random-expr)))
 ]
+
+This compiler has continues to have the issues identified in
+@secref{broken}, but appears correct in its implementation of
+conditional expressions.
