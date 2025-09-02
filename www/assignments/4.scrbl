@@ -1,156 +1,259 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Let There Be (Many) Variables}
+@title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Case}
+
+@(require (for-label a86 (except-in racket ...)))
 
 @bold{Due: @assign-deadline[4]}
 
-The goal of this assignment is to extend a compiler with binding forms and
-primitives that can take any number of arguments.
+The goal of this assignment is to extend the language developed in
+@secref{Dupe} with a new form of control flow expressions:
+@racket[case]-expressions.
 
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Dupe+}
 
-@section[#:tag-prefix "a4-" #:style 'unnumbered]{Overview}
+The Dupe+ language extends Dupe in the follow ways:
 
-For this assignment, you are given a @tt{fraud-plus.zip} file on ELMS
-with a starter compiler similar to the @seclink["Fraud"]{Fraud}
-language we studied in class.
-
-Unlike @seclink["Assignment 3"]{Assignment 3}, the following files have already
-been updated for you @bold{and should not be changed by you}:
 @itemlist[
-@item{@tt{ast.rkt}}
-@item{@tt{parse.rkt}}
+@item{adding @racket[case].}
 ]
 
-So you will only need to modify:
+@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Primitives}
+
+The following new primitves are included in Dupe+:
+
 @itemlist[
-@item{@tt{interp.rkt}}
-@item{@tt{interp-prim.rkt}}
-@item{@tt{compile.rkt}}
-@item{@tt{compile-ops.rkt}}
+@item{@racket[(abs _e)]: compute the absolute value of @racket[_e],}
+@item{@racket[(- _e)]: flips the sign of @racket[_e], i.e. compute @math{0-@racket[_e]}, and}
+@item{@racket[(not _e)]: compute the logical negation of @racket[_e]; note that the negation of @emph{any} value other than @racket[#f] is @racket[#f] and the negation of @racket[#f] is @racket[#t].}
 ]
-to correctly implement the new features. These features are described below.
+
+@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Conditional expressions}
+
+The following new conditional form is included in Dupe+:
+
+@racketblock[
+(cond [_e-p1 _e-a1]
+      ...
+      [else _e-an])
+]
+
+A @racket[cond] expression has any number of clauses @racket[[_e-pi
+_e-ai] ...], followed by an ``else'' clause @racket[[else _en]].  For
+the purposes of this assignment, we will assume every @racket[cond]
+expression ends in an @racket[else] clause, even though this is not
+true in general for Racket.  The parser should reject any
+@racket[cond]-expression that does not end in @racket[else].
 
 
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Submitting}
+The meaning of a @racket[cond] expression is computed by evaluating
+each expression @racket[_e-pi] in order until the first one that
+does not evaluate to @racket[#f] is found, in which case, the corresponding expression
+@racket[_e-ai] is evaluated and its value is the value of the
+@racket[cond] expression.  If no such @racket[_e-pi] exists, the
+expression @racket[_e-an]'s value is the value of the @racket[cond].
 
-Submit a zip file containing your work to Gradescope. Use @tt{make submit.zip}
-from within the @tt{fraud-plus} directory to create a zip file with the proper
-structure.
+@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Case expressions}
 
-We will not use your @tt{ast.rkt} or @tt{parse.rkt} files. Part of Assignment 3
-was learning to design your own structures, but part of Assignment 4 is
-learning to work within the constraints of an existing design!
+The following new case form is included in Dupe+:
+
+@racketblock[
+(case _ev
+      [(_d1 ...) _e1]
+      ...
+      [else _en])
+]
+
+The @racket[case] expression form is a mechanism for dispatching
+between a number of possible expressions based on a value, much like
+C's notion of a @tt{switch}-statement.
+
+The meaning of a @racket[case] expression is computed by evaluating
+the expression @racket[_ev] and then proceeding in order through each
+clause until one is found that has a datum @racket[_di] equal to
+@racket[_ev]'s value.  Once such a clause is found, the corresponding
+expression @racket[_ei] is evaluated and its value is the value of the
+@racket[case] expression.  If no such clause exists, expression
+@racket[_en] is evaluated and its value is the value of the
+@racket[case] expression.
+
+Note that each clause consists of a parenthesized list of
+@emph{datums}, which in the setting of Dupe means either integer or
+boolean literals.
+
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Implementing Dupe+}
+
+You must extend the parser, interpreter, and compiler to implement
+Dupe+.  You are given a file @tt{dupe-plus.zip} on ELMS with a starter
+compiler based on the @secref{Dupe} language we studied in class.
+
+You may use any a86 instructions you'd like, however it is possible to
+complete the assignment using @racket[Cmp], @racket[Je], @racket[Jg],
+@racket[Jmp], @racket[Label], @racket[Mov], and @racket[Sub].
+
+@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Implementing primitives}
+
+Implement the primitives as described earlier.
+
+There are many ways to implement these at the assembly level. You should try implementing
+these using the limited a86 instruction set.
+
+To do this, you should:
+@itemlist[
+@item{Study @tt{ast.rkt} and the new forms of expression (i.e. new AST nodes)
+      then update the comment at the top describing what the grammmar should look like.}
+      
+@item{Study @tt{parse.rkt} and add support for parsing these
+expressions. (See @secref[#:tag-prefixes '("a4-")]{parse} for guidance.)}
+
+@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret these expressions.}
+
+@item{Make examples of these primitives and potential translations of them
+to assembly.}
+
+@item{Update @tt{compile.rkt} to correctly compile these expressions.}
+
+@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+]
+
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Implementing cond}
+
+Implement the @racket[cond] expression form as described earlier.
+To do this, you should:
+
+@itemlist[
+@item{Study @tt{ast.rkt} to add appropriate AST nodes.}
+@item{Extend @tt{parse.rkt} to parse such expressions. (See @secref[#:tag-prefixes '("a4-")]{parse} for guidance.)}
+@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[cond] expressions.}
+
+@item{Make examples of @racket[cond]-expressions and potential translations of them
+to assembly.}
+
+@item{Update @tt{compile.rkt} to correctly compile @racket[cond]
+expressions based on your examples.}
+
+@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+]
+
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Implementing case}
+
+Implement the @racket[case] expression form as described earlier.
+To do this, you should:
+
+@itemlist[
+@item{Study @tt{ast.rkt} to add appropriate AST nodes.}
+@item{Extend @tt{parse.rkt} to parse such expressions. (See @secref[#:tag-prefixes '("a4-")]{parse} for guidance.)}
+@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[case] expressions.}
+
+@item{Make examples of @racket[case]-expressions and potential translations of them
+to assembly.}
+
+@item{Update @tt{compile.rkt} to correctly compile @racket[case] expressions based on your examples.}
+
+@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+]
+
+@section[#:tag-prefix "a4-" #:style 'unnumbered #:tag "parse"]{A Leg Up on Parsing}
+
+In the past, designing the AST type and structure definitions has
+given students some grief.  Getting stuck at this point means you
+can't make any progress on the assignment and making a mistake at this
+level can cause real trouble down the line for your compiler.
+
+For that reason, let us give you a strong hint for a potential design
+of the ASTs and examples of how parsing could work.  You are not
+required to follow this design, but you certainly may.
+
+Here's a potential AST definition for the added primitives,
+@racket[cond], and @racket[case]:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Expr =
+;; ...
+;; | (Cond [Listof CondClause] Expr)
+;; | (Case Expr [Listof CaseClause] Expr)
+
+;; type CondClause = (Clause Expr Expr)
+;; type CaseClause = (Clause [Listof Datum] Expr)
+
+;; type Datum = Integer | Boolean
+
+;; type Op = 
+;; ...
+;; | 'abs | '- | 'not
+
+(struct Cond (cs e)    #:prefab)
+(struct Case (e cs el) #:prefab)
+(struct Clause (p b)   #:prefab)
+)
+
+There are two new kinds of expression constructors: @racket[Cond] and
+@racket[Case].  A @racket[Cond] AST node contains a list of
+cond-clauses and expression, which the expression of the @racket[else]
+clause.  Each cond-clause is represented by a @racket[Clause]
+structure containing two expressions: the left-hand-side of the
+clause which is used to determine whether the right-hand-side is
+evaluated, and the right-hand-side expression.
+
+The @racket[Case] AST node contains three things: an expression that
+is the subject of the dispatch (i.e. the expression that is evaluated
+to determine which clause should be taken), a list of case-clauses
+(not to be confused with cond-clauses), and an @racket[else]-clause
+expression.  Each case-clause, like a cond-clause, consists of two
+things.  Hence we re-use the @racket[Clause] structure, but with
+different types of elements.  The first element is a list of
+@emph{datums}, each being either an integer or a boolean.
+
+Now, we won't go so far as to @emph{give} you the code for
+@racket[parse], but we can give you some examples:
+
+@itemlist[
+
+@item{@racket[(abs 1)] parses as @racket[(Prim1 'abs (Lit 1))],}
+
+@item{@racket[(not #t)] parses as @racket[(Prim1 'not (Lit #t))],}
+
+@item{@racket[(cond [else 5])] parses as @racket[(Cond '() (Lit 5))],}
+
+@item{@racket[(cond [(not #t) 3] [else 5])] parses as @racket[(Cond
+(list (Clause (Prim1 'not (Lit #t)) (Lit 3))) (Lit 5))],}
+
+@item{@racket[(cond [(not #t) 3] [7 4] [else 5])] parses as
+@racket[(Cond (list (Clause (Prim1 'not (Lit #t)) (Lit 3)) (Clause
+(Lit 7) (Lit 4))) (Lit 5))],}
+
+@item{@racket[(case (add1 3) [else 2])] parses as @racket[(Case (Prim1
+'add1 (Lit 3)) '() (Lit 2))].}
+
+@item{@racket[(case 4 [(4) 1] [else 2])] parses as @racket[(Case (Lit
+4) (list (Clause (list 4) (Lit 1))) (Lit 2))],}
+
+@item{@racket[(case 4 [(4 5 6) 1] [else 2])] parses as @racket[(Case (Lit
+4) (list (Clause (list 4 5 6) (Lit 1))) (Lit 2))], and}
+
+@item{@racket[(case 4 [(4 5 6) 1] [(#t #f) 7] [else 2])] parses as @racket[(Case (Lit
+4) (list (Clause (list 4 5 6) (Lit 1)) (Clause (list #t #f) (Lit 7))) (Lit 2))].}
+]
 
 
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Testing}
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Testing}
 
 You can test your code in several ways:
 
 @itemlist[
 
- @item{Using the command line @tt{raco test test/} from the @tt{fraud-plus}
-  directory to test everything.}
+ @item{Using the command line @tt{raco test .} from
+  the directory containing the repository to test everything.}
 
- @item{Using the command line @tt{raco test <file>} to only test @tt{<file>}.}
-  ]
+ @item{Using the command line @tt{raco test <file>} to
+  test only @tt{<file>}.}
+]
 
 Note that only a small number of tests are given to you, so you should
-write additional test cases. 
+write additional test cases.
 
+@section[#:tag-prefix "a4-" #:style 'unnumbered]{Submitting}
 
-@section[#:tag-prefix "a4-" #:style 'unnumbered]{Fraud+}
-
-The Fraud+ language extends the Fraud language we studied in class with some
-new features:
-
-@itemlist[
-
-@item{The features added in @seclink["Assignment 3"]{Assignment 3}, namely:
-
-  @itemlist[
-
-  @item{@racket[abs], @racket[-], and @racket[not]}
-  @item{@racket[cond]}
-  @item{@racket[case]}
-
-  ]}
-
-@item{New primitives @racket[integer?] and @racket[boolean?].}
-
-@item{An extended @racket[+] that accepts any number of arguments.}
-
-@item{An extended @racket[let] that can bind multiple variables at once.}
-
-@item{Back-referencing @racket[let*] that can bind multiple variables at once.}
-
-]
-
-
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{From Dupe+ to Fraud+}
-
-Implement the @racket[abs], unary @racket[-], and @racket[not] operations and
-the @racket[cond] and @racket[case] forms from
-@seclink["Assignment 3"]{Assignment 3} by modifying @tt{interp.rkt},
-@tt{interp-prim.rkt}, @tt{compile.rkt}, and @tt{compile-ops.rkt}. You can
-start from your previous code, but you will need to update it to work for the
-structures provided. What's essentially left for you to do is to make sure to
-correctly signal an error (@racket['err]) when these constructs are
-applied to the wrong type of argument.
-
-While you're at it, implement the predicates @racket[integer?] and
-@racket[boolean?] for checking the type of an argument, modeled by the
-@racket[char?] predicate that was covered in the lectures.
-
-
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{From Binary to Variadic Addition}
-
-In Fraud, we implemented a binary operation for addition. However, Racket
-supports an arbitrary number of arguments for @racket[+]. Your job is to extend
-the interpreter and compiler to behave similarly.
-
-
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Generalizing Let}
-
-The Fraud language has a @tt{let} form that binds a single variable in the
-scope of some expression. This is a restriction of the more general form of
-@racket[let] that binds any number of expressions. So, for example,
-
-@racketblock[
-(let ((x 1) (y 2) (z 3))
-  _e)
-]
-
-simultaneously binds @racket[x], @racket[y], and @racket[z] in the scope of
-@racket[_e].
-
-The syntax of a @racket[let] expression allows any number of binders to occur,
-so @racket[(let () _e)] is valid syntax and is equivalent to @racket[_e].
-
-The binding of each variable is only in-scope within the body, @bold{not} in
-the right-hand sides of any of the @racket[let]. So, for example,
-@racketblock[(let ((x 1) (y x)) 0)] is a syntax error because the occurrence of
-@racket[x] is not bound.
-
-
-@subsection[#:tag-prefix "a4-" #:style 'unnumbered]{Back-Referencing Let}
-
-Similar to @racket[let], there is also @racket[let*] that can also bind any
-number of expressions. The difference is that previous bindings are available
-in the right-hand sides of subsequent bindings. For example,
-
-@racketblock[
-(let* ((x 1) (y 2) (z (add1 y)))
-  _e)
-]
-
-binds @racket[x] to 1, @racket[y] to 2, and @racket[z] to 3 in
-the scope of @racket[_e].
-
-The syntax of a @racket[let*] expression allows any number of binders to occur,
-so @racket[(let* () _e)] is valid syntax and is equivalent to @racket[_e].
-
-Unlike @racket[let], @racketblock[(let* ((x 1) (y x)) 0)] is @emph{not} a
-syntax error. However, bindings are only available forward, so
-@racketblock[(let* ((x y) (y 1)) 0)] @emph{is} a syntax error.
-
-HINT: Think about what a lazy compiler writer would do.
+To submit, use @tt{make} from within the @tt{dupe-plus} directory to
+create a zip file containing your work and submit it to Gradescope.

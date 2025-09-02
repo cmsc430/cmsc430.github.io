@@ -53,9 +53,14 @@
 (define feedback "https://forms.gle/99yTz7HVfopCaDMz9")
 
 (define (assign-deadline i)
-  (list-ref '("Tuesday, September 10, 11:59PM"
-              "Thursday, September 12, 11:59PM"
-              "Thursday, October 3, 11:59PM"
-              "Thursday, October 31, 11:59PM"
-              "Tuesday, November 26, 11:59PM")            
+  (list-ref '("Thursday, September 11, 11:59PM"
+              "Thursday, September 18, 11:59PM"
+              "Thursday, September 25, 11:59PM"
+              "Thursday, October 2, 11:59PM"
+              "Thursday, October 9, 11:59PM"
+              "Thursday, October 23, 11:59PM"
+              "Thursday, October 30, 11:59PM"
+              "Thursday, November 6, 11:59PM"
+              "Thursday, November 20, 11:59PM"
+              "Thursday, December 4, 11:59PM")
             (sub1 i)))

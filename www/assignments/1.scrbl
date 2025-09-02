@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 1" #:style 'unnumbered]{Assignment 1: Racket Primer}
+@title[#:tag "Assignment 1" #:style 'unnumbered]{Assignment 1: Racket primer}
 
 @bold{Due: @assign-deadline[1]}
 
@@ -10,13 +10,14 @@ The goal of this assignment is to gain practice programming in Racket.
 you'd like on this assignment, but each person must submit their
 @tt{submit.zip} file on Gradescope.
 
-You are given a @tt{racket-basics.zip} file (on ELMS under "Files"),
-that contains a README, a Makefile, and a number of Racket modules.
-In each module there are several function ``stubs,'' i.e. incomplete
-function definitions with type signatures, descriptions, and a small
-set of tests.  Each function has a bogus (but type correct) body
-marked with a ``TODO'' comment.  Your job is to replace each of these
-expressions with a correct implementation of the function.
+You are given a @tt{racket-basics.zip} file (in ELMS, linked in the
+description for Assignment 1) that contains a README, a Makefile, and
+a number of Racket modules.  In each module there are several function
+``stubs,'' i.e. incomplete function definitions with type signatures,
+descriptions, and a small set of tests.  Each function has a bogus
+(but type correct) body marked with a ``TODO'' comment.  Your job is
+to replace each of these expressions with a correct implementation of
+the function.
 
 The last section of problems deals with functions that operate over a
 representation of expressions in a lambda-calculus-like language and

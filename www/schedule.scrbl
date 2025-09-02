@@ -4,8 +4,6 @@
 
 @title[#:style 'unnumbered]{Schedule}
 
-@;(TuTh 9:30-10:45, IRB 0318)
-
 @(define (wk d) (nonbreaking (bold d)))
 
 @; for unreleased assignments, switch to seclink when ready to release
@@ -25,8 +23,9 @@
 
                (list @wk{9/2}
 	       	     #;""
-	             @secref["Intro"]
-		     @elem{@secref["OCaml to Racket"]})
+		     @elem{No class}
+	             @itemlist[@item{@secref["Intro"]}
+ 		               @item{@secref["OCaml to Racket"]}])
 		               
 
                (list @wk{9/9}

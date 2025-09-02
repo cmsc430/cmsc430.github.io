@@ -14,15 +14,17 @@ its due date.
 
 @section{Practice}
 
-There is a practice midterm from Summer 2023 available on ELMS as
-@tt{m2-summer-2023.zip}.  You may submit to the Practice Midterm 1 -
-Summer 2023 assignment on Gradescope to get feedback on your solution.
-However during the real midterm, you will not get this level of
-feedback from the autograder.
+There is a practice midterm available on ELMS.  You may submit to the
+Practice Midterm 1 assignment on Gradescope to get feedback on your
+solution.  However during the real midterm, you will not get this
+level of feedback from the autograder.  @bold{Make sure you do not
+submit your practice midterm solution for the real midterm!  We will
+not allow late submissions if you submit the wrong work.}
 
 @section{Instructions}
 
-The midterm will be released as a zip file @tt{m1.zip} on ELMS.
+The midterm will be released as a zip file on ELMS (see the
+description of Midterm 1 there for the link).
 
 There are several parts to this midterm.  Each part has its own
 directory with a README and supplementary files.  Read the README in

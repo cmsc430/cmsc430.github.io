@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 3" #:style 'unnumbered]{Assignment 3: Primitives, Conditionals, and Dispatch}
+@title[#:tag "Assignment 3" #:style 'unnumbered]{Assignment 3: Primitives, conditionals}
 
 @(require (for-label a86 (except-in racket ...)))
 

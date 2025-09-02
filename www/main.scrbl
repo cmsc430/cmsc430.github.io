@@ -40,8 +40,8 @@ implement several related languages.
 	        #;(list prof2 prof2-email)
 		staff)]
 
-@bold{Office hours:} @office-hour-location
 
+@;{
 @tabular[#:style 'boxed
          #:row-properties '(bottom-border ())
 	 (list (list @bold{Time}  @bold{Monday} @bold{Tuesday} @bold{Wednesday} @bold{Thursday}  @bold{Friday})
@@ -55,6 +55,7 @@ implement several related languages.
 	       (list      "3 PM"  'cont        'cont           'cont            'cont         'cont)
 	       (list      "4 PM"  'cont        'cont           'cont            'cont         'cont)
 	       (list      "5 PM"  'cont        'cont           'cont            'cont         'cont))]
+}
 
 @bold{Communications:} @link[@elms-url]{ELMS}, @link[@piazza]{Piazza}
 
@@ -70,6 +71,32 @@ class via ELMS.
 
 @bold{Feedback:} We welcome anonymous feedback on the course and its
 staff using this @link[feedback]{form}.
+
+@bold{TA office hours:} @office-hour-location
+
+@itemlist[
+ #:style 'compact
+ @item{Monday
+  @itemlist[
+   @item{9:00–12:00 — Zhonqi}
+   @item{12:00–3:00 — Ben}
+   @item{3:30–6:30 — Kalyan}]}
+ @item{Tuesday
+  @itemlist[
+   @item{11:00–1:00 — Kazi}]}
+ @item{Wednesday
+  @itemlist[
+   @item{9:00–12:00 — Zhonqi}
+   @item{12:00–3:00 — Ben}
+   @item{3:30–6:30 — Kalyan}]}
+ @item{Thursday
+  @itemlist[
+   @item{11:00–1:00 — Kazi}]}
+ @item{Friday
+  @itemlist[
+   @item{11:00–1:00 — Kazi}
+   @item{1:00–4:00 — Kalyan}]}
+]     
 
 @include-section{syllabus.scrbl}
 @include-section{texts.scrbl}
