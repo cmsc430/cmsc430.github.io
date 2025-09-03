@@ -280,13 +280,16 @@ library.
 
 To install, run the following command:
 
-@verbatim|{raco pkg install --auto 'https://github.com/cmsc430/www.git?path=langs#main'}|
+@verbatim|{raco pkg install --auto 'https://github.com/cmsc430/langs.git'}|
 
 To test the package works as expected, run:
 
 @verbatim|{raco test -p langs}|
 
-All of the tests should pass; if they don't, consult course staff.
+You may see some test failures (like 185/7657).  This is OK.  It has
+to do with later features that we often don't get to that require more
+supporting libraries.  If you see a much higher proportion of
+failures, contact the course staff.
 
 The package source is hosted on Github. To check for and
 install updates, run:
