@@ -7,12 +7,14 @@
 
 @title{Midterm 2}
 
+@(define prefix "m2-")
+
 @bold{Due: @m2-date 11:59PM}
 
 Midterm 2 will be released at least @midterm-hours hours prior to
 its due date.
 
-@section{Practice}
+@section[#:tag-prefix prefix]{Practice}
 
 There is a practice midterm available on ELMS.  You may submit to the
 Practice Midterm 1 assignment on Gradescope to get feedback on your
@@ -21,7 +23,7 @@ level of feedback from the autograder.  @bold{Make sure you do not
 submit your practice midterm solution for the real midterm!  We will
 not allow late submissions if you submit the wrong work.}
 
-@section{Instructions}
+@section[#:tag-prefix prefix]{Instructions}
 
 The midterm will be released as a zip file on ELMS (see the
 description of Midterm 1 there for the link).
@@ -31,7 +33,7 @@ directory with a README and supplementary files.  Read the README in
 each part for instructions on how to complete that part of the
 midterm.
 
-@section{Communications}
+@section[#:tag-prefix prefix]{Communications}
 
 If you have questions about the exam, send a @bold{private} message on
 @link[piazza]{Piazza}.
@@ -45,7 +47,7 @@ If you have trouble reaching the course staff via Piazza, email
 You may not communicate with anyone outside of the course staff about
 the midterm.
 
-@section{Submissions}
+@section[#:tag-prefix prefix]{Submissions}
 
 You should submit your work as a single zip file of this directory on
 Gradescope.  Unlike past assignments, Gradescope will only do a basic
