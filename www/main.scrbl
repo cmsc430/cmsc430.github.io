@@ -81,9 +81,7 @@ staff using this @link[feedback]{form}.
    @item{9:00–12:00 — Zhonqi}
    @item{12:00–3:00 — Ben}
    @item{3:30–6:30 — Kalyan}]}
- @item{Tuesday
-  @itemlist[
-   @item{11:00–1:00 — Kazi}]}
+ @item{Tuesday}
  @item{Wednesday
   @itemlist[
    @item{9:00–12:00 — Zhonqi}
@@ -91,10 +89,10 @@ staff using this @link[feedback]{form}.
    @item{3:30–6:30 — Kalyan}]}
  @item{Thursday
   @itemlist[
-   @item{11:00–1:00 — Kazi}]}
+   @item{10:00–1:00 — Zinat}]}
  @item{Friday
   @itemlist[
-   @item{11:00–1:00 — Kazi}
+   @item{11:00–2:00 — Zinat}
    @item{1:00–4:00 — Kalyan}]}
 ]     
 
