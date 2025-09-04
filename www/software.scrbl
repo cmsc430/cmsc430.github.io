@@ -249,14 +249,16 @@ Racket is available for all major operating systems from:
 
 @centered{@link["https://racket-lang.org/"]{@tt{https://racket-lang.org/}}}
 
-We will be using Racket @racket-version, but any version from the past several
-years should work fine.
+We will be using Racket @racket-version, but any version from the past
+several years should work fine.  The course software is tested against
+Racket versions 8.6, 8.8, 8.14, and 8.18.
 
 It's best to install Racket using the Racket installer rather than any
 package management system (e.g. Homebrew) as these bundles are often
 out-of-date, missing features, or will select the wrong platform
 (remember: you need to be running the Intel 64-bit version, even if
-you're on Apple Silicon).
+you're on Apple Silicon).  In particular, Racket version 8.2 which is
+what you get via @tt{apt get} on Ubuntu @bold{will not work}.
 
 There are two essential references:
 
