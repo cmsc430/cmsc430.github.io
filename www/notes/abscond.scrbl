@@ -36,13 +36,16 @@
 
 @title[#:tag "Abscond"]{Abscond: a language of numbers}
 
-@src-code["abscond"]
+@(define lang-name "abscond")
+@(define prefix (string-append lang-name "-"))
+
+@src-code[lang-name]
 
 @emph{Let's Make a Programming Language!}
 
 @table-of-contents[]
 
-@section{Overview}
+@section[#:tag-prefix prefix]{Overview}
 
 A compiler is just one (optional!) component of a @emph{programming
 language}.  So if you want to make a compiler, you must first settle
@@ -96,7 +99,7 @@ To begin, let's start with a dead simple programming language called
 literals.  Running an abscond program just produces that integer.
 (Told you it was simple.)
 
-@section{Concrete syntax for Abscond}
+@section[#:tag-prefix prefix]{Concrete syntax for Abscond}
 
 We will simplify matters of syntax by using the Lisp
 notation of s-expression for the @bold{concrete} form of
@@ -153,7 +156,7 @@ line and then using the @racket[read] function to
 parse the concrete expression as an s-expression.
 
 
-@section{Abstract syntax for Abscond}
+@section[#:tag-prefix prefix]{Abstract syntax for Abscond}
 
 While not terribly useful for a language as overly simplistic as Abscond, we use
 an AST datatype for representing expressions and another syntactic categories.
@@ -175,7 +178,7 @@ it is, otherwise it signals an error:
 (eval:error (parse #t))]
 
 
-@section{Meaning of Abscond programs}
+@section[#:tag-prefix prefix]{Meaning of Abscond programs}
 
 The meaning of an Abscond program is simply the number itself.  So
 @racket[(Lit 42)] evaluates to @racket[42].
@@ -267,7 +270,7 @@ operational semantics and an interpreter, which is (obviously)
 correct.  Now let's write a compiler.
 }
 
-@section{Toward a Compiler for Abscond}
+@section[#:tag-prefix prefix]{Toward a Compiler for Abscond}
 
 A compiler, like an interpreter, is an implementation of a programming
 language.  The key difference is that a compiler stages the work of
@@ -343,7 +346,7 @@ with an object file that contains @tt{entry} will produce an
 executable that, when run, will carry out the execution of an Abscond
 program.
 
-@section{An Example}
+@section[#:tag-prefix prefix]{An Example}
 
 Before trying to write the Abscond compiler, let's first make an
 example of what we would like the compiler to produce for a particular
@@ -408,7 +411,7 @@ We now have a working example.  The remaining work will be to design a
 compiler that takes an Abscond program and emits a file like
 @tt{42.s}, but with the appropriate integer literal.
 
-@section{A Compiler for Abscond}
+@section[#:tag-prefix prefix]{A Compiler for Abscond}
 
 We will now write a compiler for Abscond.  To heart of the compiler
 will be a function with the following signature:
@@ -510,7 +513,7 @@ Moreover, we can compare our compiled code to code compiled by Racket:
 	  "time -p racket 42.rkt"]
 
 
-@section{But is it @emph{Correct}?}
+@section[#:tag-prefix prefix]{But is it @emph{Correct}?}
 
 At this point, we have a compiler for Abscond.  But is it correct?
 What does that even mean, to be correct?

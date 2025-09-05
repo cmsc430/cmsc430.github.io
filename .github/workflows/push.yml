@@ -1,8 +1,10 @@
 on:
   - push
 
+name: Build and Deploy
+
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -15,12 +17,12 @@ jobs:
         sudo apt-get install fonts-stix
         sudo apt-get install libunistring-dev
     - name: Install Racket
-      uses: Bogdanp/setup-racket@v1.11
+      uses: Bogdanp/setup-racket@v1.14
       with:
         architecture: 'x64'
         distribution: 'full'
         variant: 'CS'
-        version: '8.14'
+        version: '8.18'
     - name: Install a86 and langs
       run: |
         git clone https://github.com/cmsc430/a86.git
@@ -33,13 +35,21 @@ jobs:
         # raco pkg install --auto www/
         raco make www/main.scrbl
         make -C www main
-    - name: Archive www
+    - name: Upload www for GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
         name: github-pages
         path: www/main
-  deploy:
-    needs: build-and-test
+    - name: Upload www as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: site-static
+        path: www/main
+        if-no-files-found: error
+        retention-days: 7
+
+  deploy-github-pages:
+    needs: build
     permissions:
       pages: write
       id-token: write
