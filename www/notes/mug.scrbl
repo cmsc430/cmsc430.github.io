@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile ...) a86))
+@(require (for-label (except-in racket compile ...) a86/ast))
 @(require redex/pict
 	  racket/runtime-path
 	  scribble/examples
@@ -190,12 +190,13 @@ computed at link time.
 Here is a version of the same program that avoids the @racket[Or]
 instruction, instead computing that type tagging at link time:
 
+
 @ex[
 (bits->value
  (asm-interp
   (seq (Global 'entry)
        (Label 'entry)
-       (Lea 'rax (Plus 'hi type-str))
+       (Lea 'rax (|@| (+ 'hi type-str)))
        (Ret)
        (Data)
        (Label 'hi)
@@ -222,7 +223,7 @@ efficient to evaluate string literals.  We could replace the old
 	 (Dq (string-length s))
 	 (map Dd (map char->integer (string->list s)))
 	 (Text)
-	 (Lea 'rax (Plus l type-str)))))
+	 (Lea 'rax (|@| (+ l type-str))))))
 
 (compile-string "Hello!")
 
@@ -344,11 +345,11 @@ association needs to be maintained explicity.
 (racketblock
 ;; String -> Asm
 (define (compile-string s)
-  (seq (Lea 'rax (Plus (symbol->label (string->symbol s)) type-str))))
+  (seq (Lea 'rax (|@| (+ (symbol->label (string->symbol s)) type-str)))))
 )
 
 @(ev '(define (compile-string s)
-	(seq (Lea 'rax (Plus (symbol->label (string->symbol s)) type-str)))))
+	(seq (Lea 'rax (|@| (+ (symbol->label (string->symbol s)) type-str))))))
 
 So here's how an occurrence of @racket["Hello!"] is compiled:
 
@@ -572,7 +573,7 @@ The key additions are a function for compiling symbol occurrences:
 (racketblock
 ;; Symbol -> Asm
 (define (compile-symbol s)
-  (seq (Lea 'rax (Plus (symbol->data-label s) type-symb))))
+  (seq (Lea 'rax (|@| (+ (symbol->data-label s) type-symb)))))
 )
 
 Which works as follows:
@@ -892,7 +893,7 @@ Extending the interpreter is straightforward:
 Extending the compiler is more involved, but essentially boils down to
 doing exactly what the interpreter is doing above:
 
-@filebox-include-fake[codeblock "mug/compile-expr.rkt"]{
+@filebox-include-fake[codeblock "mug/compile-expr.rkt"]|{
 ;; Pat CEnv Symbol -> (list Asm Asm CEnv)
 (define (compile-pattern p cm next)
   (match p
@@ -917,14 +918,14 @@ doing exactly what the interpreter is doing above:
              cm))]
     [(PSymb s)
      (let ((fail (gensym)))
-       (list (seq (Lea r9 (Plus (symbol->data-label s) type-symb))
+       (list (seq (Lea r9 (@ (+ (symbol->data-label s) type-symb)))
                   (Cmp rax r9)
                   (Jne fail))
              (seq (Label fail)
                   (Add rsp (* 8 (length cm)))
                   (Jmp next))
              cm))]))
-}
+}|
 
 The implementation of string matching uses the @tt{symb_cmp} function
 from the run-time system, checking whether it returns @racket[0] to

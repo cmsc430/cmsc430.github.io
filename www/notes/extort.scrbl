@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile)))
+@(require (for-label (except-in racket ... compile) a86/printer a86/ast))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -202,7 +202,7 @@ encodes an integer, and if it doesn't, it should somehow stop the
 computation and signal that an error has occurred.
 
 The checking part is fairly easy.  Our encoding of values, first
-discussed in @secref["dupe"], devotes some number of bits within a
+discussed in @secref["Dupe"], devotes some number of bits within a
 value to indicate the type.  Checking whether something is an integer
 involves inspecting just those parts of the value.
 

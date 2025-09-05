@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile ...) a86))
+@(require (for-label (except-in racket compile ...) a86/ast a86/printer))
 @(require scribble/examples
           redex/pict
 	  "../fancyverb.rkt"
@@ -31,9 +31,12 @@
 @;{ Have to compile 42.s (at expand time) before listing it }
 @(shell-expand "cat add1-add1-40.rkt | racket -t compile-stdin.rkt -m > add1-add1-40.s")
 
-@title[#:tag "Blackmail"]{Blackmail: incrementing and decrementing}
+@(define this-lang "Blackmail")
+@(define prefix (string-append this-lang "-"))
 
-@src-code["blackmail"]
+@title[#:tag this-lang]{@|this-lang|: incrementing and decrementing}
+
+@src-code[this-lang]
 
 @emph{Let's Do It Again!}
 

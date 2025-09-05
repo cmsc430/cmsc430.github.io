@@ -2,7 +2,7 @@
 @(require "../defns.rkt")
 @title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Case}
 
-@(require (for-label a86 (except-in racket ...)))
+@(require (for-label a86/ast (except-in racket ...)))
 
 @bold{Due: @assign-deadline[4]}
 

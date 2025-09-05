@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) a86))
+@(require (for-label (except-in racket ... compile) a86/ast))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -20,6 +20,7 @@
 	   '("main.rkt" "heap.rkt" "unload.rkt" "interp-prims-heap.rkt"))
 
 @(define this-lang "Hustle")
+@(define prefix (string-append this-lang "-"))
 
 @title[#:tag this-lang]{@|this-lang|: heaps and lists}
 
@@ -31,7 +32,7 @@ makes an inundation.}
 
 @table-of-contents[]
 
-@section{Inductive data}
+@section[#:tag-prefix prefix]{Inductive data}
 
 So far all of the data we have considered can fit in a single machine
 word (64-bits).  Well, integers can't, but we truncated them and only
@@ -99,7 +100,7 @@ These features will operate like their Racket counterparts:
 (cons? '#&7)
 ]
 
-@section{Empty lists can be all and end all}
+@section[#:tag-prefix prefix]{Empty lists can be all and end all}
 
 While we've introduced pairs, you may wonder what about @emph{lists}?
 Just as in Racket, lists can be represented by idiomatic uses of
@@ -124,7 +125,7 @@ We use the following AST data type for @|this-lang|:
 ;; type Op2 = ... | 'cons
 }
 
-@section{Parsing}
+@section[#:tag-prefix prefix]{Parsing}
 
 Mostly the parser updates for @|this-lang| are uninteresting.  The
 only slight twist is the addition of compound literal datums.
@@ -259,7 +260,7 @@ things like @racket[cons], @racket[car], @racket[cons?], etc.
 
 
 
-@section{Meaning of @this-lang programs, implicitly}
+@section[#:tag-prefix prefix]{Meaning of @this-lang programs, implicitly}
 
 To extend our interpreter, we can follow the same pattern we've been
 following so far.  We have new kinds of values such as pairs, boxes,
@@ -324,7 +325,7 @@ the interpreter that makes explicit a representation of memory and is
 able to interpret programs that construct and manipulate inductive
 data without itself relying on those mechanisms.
 
-@section{Meaning of @this-lang programs, explicitly}
+@section[#:tag-prefix prefix]{Meaning of @this-lang programs, explicitly}
 
 Let's develop an alternative interpreter that describes constructing
 inductive data without itself constructing inductive data.
@@ -524,7 +525,7 @@ the final answer from the result:
 
 @;codeblock-include["hustle/interp.rkt"]
 
-@section{Representing @this-lang values}
+@section[#:tag-prefix prefix]{Representing @this-lang values}
 
 The first thing do is make another distinction in the kind of values
 in our language.  Up until now, each value could be represented in a
@@ -670,7 +671,7 @@ From here, writing the compiler for @racket[box], @racket[unbox],
 putting together pieces we've already seen such as evaluating multiple
 subexpressions and type tag checking before doing projections.
 
-@section{A Compiler for @this-lang}
+@section[#:tag-prefix prefix]{A Compiler for @this-lang}
 
 The compiler for @this-lang is essentially the same as for Fraud, although
 now with support for the new primitives: @racket[box], @racket[unbox],
@@ -788,7 +789,7 @@ printing of proper and improper lists is different:
 
 @filebox-include[fancy-c hustle "print.c"]
 
-@section{Correctness}
+@section[#:tag-prefix prefix]{Correctness}
 
 The statement of correctness for the @|this-lang| compiler is the same
 as the previous one:

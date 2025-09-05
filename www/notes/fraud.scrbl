@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) a86))
+@(require (for-label (except-in racket ... compile) a86/ast))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -20,6 +20,7 @@
 
 
 @(define this-lang "Fraud")
+@(define prefix (string-append this-lang "-"))
 
 @title[#:tag this-lang]{@|this-lang|: local binding, variables, and binary operations}
 
@@ -29,7 +30,7 @@
 
 @table-of-contents[]
 
-@section{Binding, variables, and binary operations}
+@section[#:tag-prefix prefix]{Binding, variables, and binary operations}
 
 Let's now consider add a notion of @bold{local binding} and
 the ability to use @bold{binary operations} to our target
@@ -134,7 +135,7 @@ We can model it as a datatype as usual:
 
 
 
-@section{Syntax matters}
+@section[#:tag-prefix prefix]{Syntax matters}
 
 With the introduction of variables comes the issue of expressions that
 have @bold{free} and @bold{bound variables}.  A bound variable is a
@@ -210,7 +211,7 @@ relevant part of the input where the variable is bound:
 @codeblock-include["fraud/parse.rkt"]
 
 
-@section{Meaning of @this-lang programs}
+@section[#:tag-prefix prefix]{Meaning of @this-lang programs}
 
 The meaning of @this-lang programs depends on the form of the expression and
 in the case of integers, increments, and decrements, the meaning is
@@ -353,7 +354,7 @@ examples given earlier:
 ]
 
 
-@section{Lexical Addressing}
+@section[#:tag-prefix prefix]{Lexical Addressing}
 
 Just as we did with @seclink["Dupe"], the best way of understanding
 the forthcoming compiler is to write a ``low-level'' interpreter that
@@ -508,7 +509,7 @@ Try to convince yourself that the two version of @racket[interp]
 compute the same function.
 
 
-@section{Compiling lets and variables}
+@section[#:tag-prefix prefix]{Compiling lets and variables}
 
 Suppose we want to compile @racket[(let ((x 7)) (add1 x))].  There
 are two new forms we need to compile: the @racket[(let ((x ...))
@@ -592,7 +593,7 @@ compute the lexical address of variable references just like the
 interpreter.  The only (trivial) difference is the addresses are given
 in word offsets, i.e. each binding adds @racket[8] to the address.
 
-@section{Compiling binary operations}
+@section[#:tag-prefix prefix]{Compiling binary operations}
 
 Binary expressions are easy to deal with at the level of the semantics
 and interpreter.  However things are more complicated at the level of
@@ -717,7 +718,7 @@ the same thing by sticking in something that no variable is equal to:
 With variables, @racket[let]s, and binary operations in place, we can
 complete the compiler.
 
-@section{The wrinkle of stack alignment}
+@section[#:tag-prefix prefix]{The wrinkle of stack alignment}
 
 There is a wrinkle that comes from using the stack to hold variable
 bindings and intermediate results, which has to do with how it
@@ -818,7 +819,7 @@ stack-alignment issues, but is otherwise the same as before:
 
 @filebox-include[codeblock fraud "compile-ops.rkt"]
 
-@section{Complete @this-lang compiler}
+@section[#:tag-prefix prefix]{Complete @this-lang compiler}
 
 We can now take a look at the main compiler for expressions.  Notice
 the compile-time environment which is weaved through out the
@@ -885,7 +886,7 @@ Finally, we can see the stack alignment issues in action:
 (show '(add1 #f) '(x))
 ]
 
-@section{Correctness}
+@section[#:tag-prefix prefix]{Correctness}
 
 For the statement of compiler correctness, we must now restrict the
 domain of expressions to be just @bold{closed expressions}, i.e. those

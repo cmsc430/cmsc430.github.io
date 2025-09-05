@@ -1,7 +1,7 @@
 #lang scribble/manual
 
 @(require (for-label (except-in racket compile)
-                     a86))
+                     a86/printer a86/ast a86/interp))
 
 @(require scribble/examples
 	  redex/reduction-semantics
@@ -121,7 +121,8 @@ of x86-64 to a small, core language (which we call @bold{
 to x86 as the last step in the compiler pipeline will be
 dead simple.
 
-This chapter describes the a86 language.
+This chapter describes the a86 language at a high-level.  See
+@secref["a86_Reference"] for a complete reference manual.
 
 @section{Giving x86 a try}
 
@@ -418,9 +419,9 @@ Notice how this generates exactly what you saw in @tt{tri.s}.
 
 From here, we can assemble, link, and execute.
 
-We can also, since we have a general purpose programming
-language at our disposal in the meta-language, write a
-program to do all that for us:
+We can also, since we have a general purpose programming language at
+our disposal in the meta-language, write a program to do all that for
+us, which what the implementors of the a86 library have done:
 
 @ex[
  (asm-interp (tri 36))
@@ -436,5 +437,6 @@ interactively exploring the a86 language (you can write
 assembly in a REPL), but also an important tool when it
 comes time to test the compilers we write.
 
-
-@include-section[(lib "a86/scribblings/a86.scrbl")]
+There is more to a86, which you can find documented in the
+@secref["a86_Reference"], although we try to introduce features of a86
+as we encounter them.

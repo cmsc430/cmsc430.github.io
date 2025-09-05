@@ -24,9 +24,9 @@
                                           (syntax->datum #'fn)))))
          #`(filebox (link (string-append "code/" fn) (tt fn)) (form #,(datum->syntax #'form s)))))]))
 
-(define ((make-codeblock-include ctxt) fn) ;; Should h be ctxt!?  Seems like a bug
+(define ((make-codeblock-include ctxt) fn)
    (filebox (link (string-append "code/" fn) (tt fn))
-            (typeset-code #:context #'h (file->string (build-path langs fn)))))
+            (typeset-code #:context ctxt (file->string (build-path langs fn)))))
 
 (define-syntax (filebox-include-fake stx)
   (syntax-case stx ()
