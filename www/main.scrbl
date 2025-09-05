@@ -72,24 +72,25 @@ class via ELMS.
 @bold{Feedback:} We welcome anonymous feedback on the course and its
 staff using this @link[feedback]{form}.
 
-@bold{TA office hours:} @office-hour-location
+@bold{TA office hours:} @office-hour-location (unless otherwise noted)
 
 @itemlist[
  #:style 'compact
  @item{Monday
   @itemlist[
    @item{9:00–12:00 — Zhonqi}
-   @item{12:00–3:00 — Ben}
-   @item{3:30–6:30 — Kalyan}]}
- @item{Tuesday}
+   @item{12:00–3:00 — Ben}]}
+ @item{Tuesday
+  @itemlist[
+   @item{5:00–8:00 - Kalyan (IRB, 2nd Floor)}]}
  @item{Wednesday
   @itemlist[
    @item{9:00–12:00 — Zhonqi}
-   @item{12:00–3:00 — Ben}
-   @item{3:30–6:30 — Kalyan}]}
+   @item{12:00–3:00 — Ben}]}
  @item{Thursday
   @itemlist[
-   @item{10:00–1:00 — Zinat}]}
+   @item{10:00–1:00 — Zinat}
+   @item{5:00–8:00 - Kalyan (IRB, 2nd Floor)}]}
  @item{Friday
   @itemlist[
    @item{11:00–2:00 — Zinat}
