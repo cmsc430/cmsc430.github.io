@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) a86))
+@(require (for-label (except-in racket ... compile) a86/ast))
 @(require redex/pict
 	  racket/runtime-path
 	  scribble/examples

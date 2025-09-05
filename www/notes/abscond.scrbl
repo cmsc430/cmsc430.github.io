@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile) a86))
+@(require (for-label (except-in racket compile) a86/ast a86/printer))
 @(require scribble/examples
 	  redex/reduction-semantics	  
           redex/pict
@@ -34,12 +34,12 @@
 @(shell-expand "cat 42.rkt | racket -t compile-stdin.rkt -m > 42.s")
 
 
-@title[#:tag "Abscond"]{Abscond: a language of numbers}
+@(define this-lang "Abscond")
+@(define prefix (string-append this-lang "-"))
 
-@(define lang-name "abscond")
-@(define prefix (string-append lang-name "-"))
+@title[#:tag this-lang]{@|this-lang|: a language of numbers}
 
-@src-code[lang-name]
+@src-code[this-lang]
 
 @emph{Let's Make a Programming Language!}
 
