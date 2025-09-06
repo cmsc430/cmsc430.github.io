@@ -7,6 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Set timezone
+      uses: szenius/set-timezone@v2.0
+        with:
+          timezoneLinux: "America/New_York"
     - name: Checkout
       uses: actions/checkout@main
     - name: Install dependencies
