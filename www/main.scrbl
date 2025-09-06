@@ -105,3 +105,4 @@ staff using this @link[feedback]{form}.
 @include-section{midterms.scrbl}
 @include-section{project.scrbl}
 @include-section{software.scrbl}
+@include-section{colophon.scrbl}
