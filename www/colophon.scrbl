@@ -10,13 +10,13 @@
 @(define (i s)
    (item (verbatim (shell s))))
 
-@title{Colophon}
+@title[#:style '(unnumbered)]{Colophon}
 
 This document (@string-trim[(shell "git rev-parse --short HEAD")]) was produced on @(date->string (current-date) #t).
 
 System information:
 @itemlist[
- (i "uname -a")
+ (i "uname -omr")
  (i "racket --version")
  (i "raco pkg show -u a86 langs")
  (i "nasm --version")
