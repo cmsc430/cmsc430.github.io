@@ -18,6 +18,6 @@ System information:
 @itemlist[
  (i "uname -omr")
  (i "racket --version")
- (i "raco pkg show -u a86 langs")
+ (i "raco pkg show -u a86 langsraco pkg show -lu a86 langs")
  (i "nasm --version")
  (i "gcc --version")]
