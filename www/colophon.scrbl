@@ -16,7 +16,7 @@ This document (@string-trim[(shell "git rev-parse --short HEAD")]) was produced 
 
 System information:
 @itemlist[
- (i "uname -omr")
+ (i "uname -srm")
  (i "racket --version")
  (i "raco pkg show -u a86 langsraco pkg show -lu a86 langs")
  (i "nasm --version")
