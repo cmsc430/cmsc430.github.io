@@ -93,8 +93,7 @@ staff using this @link[feedback]{form}.
    @item{5:00–8:00 - Kalyan (IRB, 2nd Floor)}]}
  @item{Friday
   @itemlist[
-   @item{11:00–2:00 — Zinat}
-   @item{1:00–4:00 — Kalyan}]}
+   @item{11:00–2:00 — Zinat}]}
 ]     
 
 @include-section{syllabus.scrbl}
