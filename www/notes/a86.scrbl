@@ -144,9 +144,9 @@ underscore, while on Linux you do not.  So on a Mac, you would use the
 names @tt{_entry}, @tt{_tri}, and @tt{_done}, while on Linux you would
 use @tt{entry}, @tt{tri}, and @tt{done}.
 
-This example is shown using the @(if (eq? (system-type 'os) 'macosx)
-"MacOS" "Linux") naming convention, because that's what operating
-system was used when this web page was built.}
+Alternatively, you can impose the underscore naming convention by
+passing @tt{--gprefix _} to @tt{nasm}; this way you avoid having to
+write the underscores within the file.}
 
 @filebox-include[fancy-nasm a86 "tri.s"]
 
@@ -246,13 +246,15 @@ stack or use the @tt{call} instruction.}
 We can compile the @tt{tri.s} assembly program to an object
 file with @tt{nasm}:
 
-@margin-note{The format argument should be @tt{macho64} on
- Mac OS and @tt{elf64} on Linux.}
+@margin-note{The format argument should be @tt{macho64} on macOS and
+ @tt{elf64} on Linux.  The @tt{--gprefix _} argument should be given
+ on macOS in order to follow the system's naming convention
+ requirements.}
 
 @shellbox[
  (format "nasm -f ~a -o tri.o tri.s"
          (if (eq? 'macosx (system-type 'os))
-             "macho64"
+             "macho64 --gprefix _"
              "elf64"))]
 
 To run the object file, we will need to link with a small C program
@@ -406,10 +408,6 @@ There is a function provided for printing an a86 program as an x86
 program using nasm notation, called @racket[asm-display].  Calling
 this function prints to the current output port, but it's also
 possible to write the output to a file or convert it to a string.
-
-@margin-note{The @racket[asm-display] function knows what OS you are
-using and adjusts the label naming convention to use underscores or
-not, so that you don't have to worry about it.}
 
 @ex[
 (asm-display (tri 36))

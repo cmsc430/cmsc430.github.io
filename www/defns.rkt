@@ -39,6 +39,7 @@
   (list (list "Pierce Darragh" "pdarragh@umd.edu")
         (list "Benjamin Quiring" "bquiring@umd.edu")
         (list "Kalyan Bhetwal" "bhetwal@umd.edu")
+        (list "Abhi Senthilkumar" "asenthil@terpmail.umd.edu")
         (list "Zhongqi Wang" "zqwang@umd.edu")
         (list "Kazi Tasnim Zinat" "kzintas@umd.edu")))
 
@@ -64,3 +65,27 @@
               "Thursday, November 20, 11:59PM"
               "Thursday, December 4, 11:59PM")
             (sub1 i)))
+
+(define office-hours
+  (itemlist
+   #:style 'compact
+   (item "Monday"
+         (itemlist
+          (item "9:00am–12:00pm — Zhonqi")
+          (item "12:00pm–3:00pm — Ben")
+          (item "3:00pm–6:00pm — Abhi")))
+   (item "Tuesday"
+         (itemlist
+          (item "11:00am–2:00pm - Abhi")
+          (item "5:00pm–8:00pm - Kalyan (IRB, 2nd Floor)")))
+   (item "Wednesday"
+         (itemlist
+          (item "9:00am–12:00pm — Zhonqi")
+          (item "12:00pm–3:00pm — Ben")))
+   (item "Thursday"
+         (itemlist
+          (item "10:00am–1:00pm — Zinat")
+          (item "5:00pm–8:00pm — Kalyan (IRB, 2nd Floor)")))
+   (item "Friday"
+         (itemlist
+          (item "11:00am–2:00pm — Zinat")))))
