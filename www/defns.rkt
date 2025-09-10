@@ -76,16 +76,16 @@
           (item "3:00pm–6:00pm — Abhi")))
    (item "Tuesday"
          (itemlist
-          (item "11:00am–2:00pm - Abhi")
-          (item "5:00pm–8:00pm - Kalyan (IRB, 2nd Floor)")))
+          (item "11:00am–2:00pm - Abhi")))
    (item "Wednesday"
          (itemlist
           (item "9:00am–12:00pm — Zhonqi")
-          (item "12:00pm–3:00pm — Ben")))
+          (item "12:00pm–3:00pm — Ben")
+          (item "3:00pm–6:00pm - Kalyan")))
    (item "Thursday"
          (itemlist
-          (item "10:00am–1:00pm — Zinat")
-          (item "5:00pm–8:00pm — Kalyan (IRB, 2nd Floor)")))
+          (item "10:00am–1:00pm — Zinat")))
    (item "Friday"
          (itemlist
-          (item "11:00am–2:00pm — Zinat")))))
+          (item "11:00am–2:00pm — Zinat")
+          (item "4:00pm–7:00pm — Kalyan")))))

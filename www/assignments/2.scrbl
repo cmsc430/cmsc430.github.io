@@ -11,7 +11,7 @@ you'd like on this assignment, but each person must submit their
 @tt{submit.zip} file on Gradescope.
 
 You are given a @tt{a86-basics.zip} file (in ELMS, linked in the
-description for Assignment 1), that contains a README, a Makefile, and
+description for Assignment 2), that contains a README, a Makefile, and
 a number of Racket modules.  In each module there are several
 ``stubs,'' i.e. incomplete definitions with type signatures,
 descriptions, and a small set of tests.  Each definition has a bogus
@@ -23,6 +23,16 @@ Make sure you do not rename any files.  Also make sure not to change
 the name or signature of any definition given to you.  You may add any
 additional functions that help you solve the overall problem you're
 tackling.
+
+@section[#:tag-prefix "a2-" #:style 'unnumbered]{Software}
+
+You will need to install the @seclink["langs-package"]{@tt{langs}
+package}, which includes the
+@seclink["a86_Reference"]{@tt{a86} library}, in order to
+complete this assignment.  It is recommended you start early in case
+you encounter any problems getting things set up.  If you run into any
+issues, please seek help at office hours or on @link[@piazza]{Piazza}.
+
 
 @section[#:tag-prefix "a2-" #:style 'unnumbered]{Testing}
 
