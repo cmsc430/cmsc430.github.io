@@ -81,7 +81,7 @@
          (itemlist
           (item "9:00am–12:00pm — Zhonqi")
           (item "12:00pm–3:00pm — Ben")
-          (item "3:00pm–6:00pm — Kalyan")))
+          (item "3:30pm–6:30pm — Kalyan")))
    (item "Thursday"
          (itemlist
           (item "10:00am–1:00pm — Zinat")))
