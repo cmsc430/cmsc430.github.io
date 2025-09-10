@@ -24,6 +24,16 @@ the name or signature of any definition given to you.  You may add any
 additional functions that help you solve the overall problem you're
 tackling.
 
+@section[#:tag-prefix "a2-" #:style 'unnumbered]{Software}
+
+You will need to install the @seclink["langs-package"]{@tt{langs}
+package}, which includes the
+@seclink["a86_Reference"]{@tt{a86} library}, in order to
+complete this assignment.  It is recommended you start early in case
+you encounter any problems getting things set up.  If you run into any
+issues, please seek help at office hours or on @link[@piazza]{Piazza}.
+
+
 @section[#:tag-prefix "a2-" #:style 'unnumbered]{Testing}
 
 You can test your code in several ways:
