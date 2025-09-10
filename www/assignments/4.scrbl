@@ -129,12 +129,14 @@ To do this, you should:
 @itemlist[
 @item{Study @tt{ast.rkt} to understand how this new form of expression is represented.}
 
-@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[case] expressions.}
+@item{Update @tt{interp.rkt} to correctly interpret @racket[case] expressions.}
 
 @item{Make examples of @racket[case]-expressions and potential translations of them
 to assembly.}
 
 @item{Update @tt{compile.rkt} to correctly compile @racket[case] expressions based on your examples.}
+
+@item{Bring forward all the changes you made for @secref{a3-dupe-plus}.}
 
 @item{Check your implementation by running the tests in @tt{test/all.rkt}.}
 ]
