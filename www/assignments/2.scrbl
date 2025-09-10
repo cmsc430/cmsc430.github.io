@@ -11,7 +11,7 @@ you'd like on this assignment, but each person must submit their
 @tt{submit.zip} file on Gradescope.
 
 You are given a @tt{a86-basics.zip} file (in ELMS, linked in the
-description for Assignment 1), that contains a README, a Makefile, and
+description for Assignment 2), that contains a README, a Makefile, and
 a number of Racket modules.  In each module there are several
 ``stubs,'' i.e. incomplete definitions with type signatures,
 descriptions, and a small set of tests.  Each definition has a bogus
