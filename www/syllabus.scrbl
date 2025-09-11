@@ -311,7 +311,7 @@ percentages:
 Final letter grades are assigned following this grading scheme:
 
 @tabular[#:style 'boxed @;#:sep @;"|" @;@hspace[1]
-         (list (list "A+" "[100,97]"  "B+" "(92,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
+         (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
 	       (list "A"  "(97,94]"   "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
 	       (list "A-" "(94,90]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
 
