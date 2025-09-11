@@ -76,24 +76,20 @@ Here's the AST definition for the added primitives and @racket[cond]:
 (racketblock
 ;; type Expr =
 ;; ...
-;; | (Cond [Listof CondClause] Expr)
-
-;; type CondClause = (Clause Expr Expr)
+;; | (Cond [Listof Expr] [Listof Expr] Expr)
 
 ;; type Op = 
 ;; ...
 ;; | 'abs | '- | 'not
 
 (struct Cond (cs e)    #:prefab)
-(struct Clause (p b)   #:prefab)
 )
 
 There is one new kind of expression constructor: @racket[Cond].  A
-@racket[Cond] AST node contains a list of cond-clauses and expression,
-which the expression of the @racket[else] clause.  Each cond-clause is
-represented by a @racket[Clause] structure containing two expressions:
-the left-hand-side of the clause which is used to determine whether
-the right-hand-side is evaluated, and the right-hand-side expression.
+@racket[Cond] AST node contains three parts: two equal length lists of
+expression and an expression.  The two lists represent the clauses,
+where the first list contains all of the left-hand-side parts of the
+clauses and the other contains all of the right-hand-side parts.
 
 Here are some examples of how concrete expressions are parsed into
 ASTs using this representation:
@@ -104,14 +100,14 @@ ASTs using this representation:
 
 @item{@racket[(not #t)] parses as @racket[(Prim1 'not (Lit #t))],}
 
-@item{@racket[(cond [else 5])] parses as @racket[(Cond '() (Lit 5))],}
+@item{@racket[(cond [else 5])] parses as @racket[(Cond '() '() (Lit 5))],}
 
 @item{@racket[(cond [(not #t) 3] [else 5])] parses as @racket[(Cond
-(list (Clause (Prim1 'not (Lit #t)) (Lit 3))) (Lit 5))],}
+(list (Prim1 'not (Lit #t))) (list (Lit 3)) (Lit 5))],}
 
 @item{@racket[(cond [(not #t) 3] [7 4] [else 5])] parses as
-@racket[(Cond (list (Clause (Prim1 'not (Lit #t)) (Lit 3)) (Clause
-(Lit 7) (Lit 4))) (Lit 5))],}
+@racket[(Cond (list (Prim1 'not (Lit #t)) (Lit 7)) (list (Lit 3)
+(Lit 4)) (Lit 5))],}
 ]
 
 @subsection[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing primitives}
