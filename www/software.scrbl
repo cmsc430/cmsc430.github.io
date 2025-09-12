@@ -57,14 +57,7 @@ This course will make use of the following software:
   system such as clang.}
 ]
 
-Instruction for using each system are below:
-
-@itemlist[
-@item{@secref{Linux}}
-@item{@secref{mac}}
-@item{@secref{Windows}}
-@item{@secref{GRACE}}
-]
+@table-of-contents[]
 
 @section[#:tag "Linux"]{Using Linux}
 
