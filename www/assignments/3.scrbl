@@ -82,7 +82,7 @@ Here's the AST definition for the added primitives and @racket[cond]:
 ;; ...
 ;; | 'abs | '- | 'not
 
-(struct Cond (cs e)    #:prefab)
+(struct Cond (cs es el)    #:prefab)
 )
 
 There is one new kind of expression constructor: @racket[Cond].  A

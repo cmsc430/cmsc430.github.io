@@ -308,13 +308,12 @@ percentages:
   (list "Midterms (2)" "25%")
   (list "Final project" "15%")]
 
-Final letter grades are assigned following the University of
-Maryland's "97 A+ Grading Scheme":
+Final letter grades are assigned following this grading scheme:
 
 @tabular[#:style 'boxed @;#:sep @;"|" @;@hspace[1]
-         (list (list "A+" "[100,100]" "B+" "(92,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
-	       (list "A"  "(100,97]"  "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
-	       (list "A-" "(97,92]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
+         (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
+	       (list "A"  "(97,94]"   "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
+	       (list "A-" "(94,90]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
 
 This table uses interval notation, so "(@math{x},@math{y}]" means any
 number less than @math{x} and greater than or equal to @math{y}.

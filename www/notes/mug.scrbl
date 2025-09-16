@@ -69,6 +69,7 @@ characters:
 Let's consider how strings were previously compiled.  Here's an assembly program
 that returns @racket["Hello!"]:
 
+@;{
 @ex[
 (require loot/compile)
 (seq (Label 'entry)
@@ -88,6 +89,7 @@ We can run it just to make sure:
        (compile-string "Hello!")
        (Ret))))
 ]
+}
 
 Notice that this program dynamically allocates the string by executing
 instructions that write to memory pointed to by @racket['rbx] and
