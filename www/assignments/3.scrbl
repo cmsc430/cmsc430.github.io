@@ -140,7 +140,9 @@ Implement the @racket[cond] expression form as described earlier.
 To do this, you should:
 
 @itemlist[
-@item{Study @tt{ast.rkt} to add appropriate AST nodes.}
+@item{Study @tt{ast.rkt} to understand how these new forms of
+expression are represented.}
+
 @item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[cond] expressions.}
 
 @item{Make examples of @racket[cond]-expressions and potential translations of them
