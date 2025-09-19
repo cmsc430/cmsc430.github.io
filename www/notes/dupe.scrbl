@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket ... compile) a86/printer a86/ast))
+@(require (for-label (except-in racket ... compile) a86/printer a86/ast a86/registers a86/interp))
 @(require redex/pict
           racket/runtime-path
           scribble/examples
@@ -271,14 +271,14 @@ To make the problem concrete, consider the Dupe expression
 that moves this value into the @racket[rax] register:
 
 @ex[
-(Mov 'rax 5)]
+(Mov rax 5)]
 
 But now consider @racket[#t].  The compiler needs to emit an
 instruction that moves ``@racket[#t]'' into @racket[rax], but the
 @racket[Mov] instruction doesn't take booleans:
 
 @ex[
-(eval:error (Mov 'rax #t))]
+(eval:error (Mov rax #t))]
 
 We have to move some 64-bit integer into @racket[rax], but the
 question is: which one?
@@ -289,12 +289,12 @@ C tradition and say @racket[#f] will be @racket[0] and @racket[#t]
 will be 1.  So compiling @racket[#t] would emit:
 
 @ex[
-(Mov 'rax 1)]
+(Mov rax 1)]
 
 And compiling @racket[#f] would emit:
 
 @ex[
-(Mov 'rax 0)]
+(Mov rax 0)]
 
 Seems reasonable.  Well except that the specification of @racket[if]
 in our interpreter requires that @racket[(if 0 1 2)] evaluates to
@@ -925,12 +925,12 @@ Let's consider some simple examples:
 
 @item{@racket[42]: this should compile just like integer literals
 before, but needs to use the new representation, i.e. the compiler
-should produce @racket[(Mov 'rax #,(value->bits 42))], which is
+should produce @racket[(Mov rax #,(value->bits 42))], which is
 @racket[42] shifted to the left @racket[#,int-shift]-bit.}
 
-@item{@racket[#f]: this should produce @racket[(Mov 'rax #,(value->bits #f))].}
+@item{@racket[#f]: this should produce @racket[(Mov rax #,(value->bits #f))].}
 
-@item{@racket[#t]: this should produce @racket[(Mov 'rax #,(value->bits #t))].}
+@item{@racket[#t]: this should produce @racket[(Mov rax #,(value->bits #t))].}
 
 @item{@racket[(add1 _e)]: this should produce the instructions for
 @racket[_e], which when executed would leave @emph{the encoding of the
