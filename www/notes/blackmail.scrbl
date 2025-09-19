@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile ...) a86/ast a86/printer))
+@(require (for-label (except-in racket compile ...) a86/ast a86/printer a86/registers a86/interp))
 @(require scribble/examples
           redex/pict
 	  "../fancyverb.rkt"
@@ -238,7 +238,7 @@ Just as we did with Abscond, let's approach writing the compiler by
 first writing an example.
 
 Suppose we want to compile @racket[(add1 (add1 40))].  We already know
-how to compile the @racket[40]: @racket[(Mov 'rax 40)].  To do the
+how to compile the @racket[40]: @racket[(Mov rax 40)].  To do the
 increment (and decrement) we need to know a bit more a86.  In
 particular, the @racket[Add] instruction is relevant.  It increments
 the contents of a register by some given amount.
@@ -250,9 +250,9 @@ So, a program that adds 1 twice to 40 looks like:
 (asm-interp
   (prog (Global 'entry)
         (Label 'entry)
-        (Mov 'rax 40)
-        (Add 'rax 1)
-        (Add 'rax 1)
+        (Mov rax 40)
+        (Add rax 1)
+        (Add rax 1)
         (Ret)))]
       
 
@@ -275,7 +275,7 @@ recursion, much like the interpreter.
 In the case of a unary primitive @racket[(Prim1 p e)], the compiler
 first compiles the subexpression @racket[e] obtaining a list of
 instructions that, when executed, will place @racket[e]'s value in the
-@racket['rax] register.  After that sequence of instructions, the
+@racket[rax] register.  After that sequence of instructions, the
 compiler emits instructions for carrying out the operation @racket[p],
 defering to a helper function @racket[compile-op1]:
 

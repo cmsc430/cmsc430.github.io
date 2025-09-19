@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile) a86/ast a86/printer))
+@(require (for-label (except-in racket compile) a86/ast a86/printer a86/registers))
 @(require scribble/examples
 	  redex/reduction-semantics	  
           redex/pict
@@ -429,7 +429,7 @@ So the AST representation of our example is:
 
 @racketblock[
 (list (Label 'entry)
-      (Mov 'rax 42)
+      (Mov rax 42)
       (Ret))
 ]
 
