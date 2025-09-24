@@ -120,9 +120,8 @@ these using the limited a86 instruction set.
 To do this, you should:
 @itemlist[
 @item{Study @tt{ast.rkt} to understand how these new forms of expression are represented.}
-      
-@item{Study @tt{parse.rkt} and add support for parsing these
-expressions. (See @secref[#:tag-prefixes '("a3-")]{parse} for guidance.)}
+
+@item{Add test cases to @tt{test/test-runner.rkt}.}
 
 @item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret these expressions.}
 
@@ -131,7 +130,7 @@ to assembly.}
 
 @item{Update @tt{compile.rkt} to correctly compile these expressions.}
 
-@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+@item{Check your implementation by running the tests: @tt{raco test test/}.}
 ]
 
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing cond}
@@ -143,6 +142,8 @@ To do this, you should:
 @item{Study @tt{ast.rkt} to understand how these new forms of
 expression are represented.}
 
+@item{Add test cases to @tt{test/test-runner.rkt}.}
+
 @item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[cond] expressions.}
 
 @item{Make examples of @racket[cond]-expressions and potential translations of them
@@ -151,7 +152,7 @@ to assembly.}
 @item{Update @tt{compile.rkt} to correctly compile @racket[cond]
 expressions based on your examples.}
 
-@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+@item{Check your implementation by running the tests: @tt{raco test tests/}.}
 ]
 
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Testing}
