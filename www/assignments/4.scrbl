@@ -76,31 +76,24 @@ For that reason, let us give you a strong hint for a potential design
 of the ASTs and examples of how parsing could work.  You are not
 required to follow this design, but you certainly may.
 
-Here's a potential AST definition for the added primitives,
-@racket[cond], and @racket[case]:
+Here's the AST definition for @racket[case]:
 
 @#reader scribble/comment-reader
 (racketblock
-;; type Expr =
-;; ...
-;; | (Case Expr [Listof CaseClause] Expr)
-
-;; type CaseClause = (Clause [Listof Datum] Expr)
+;; type Expr = ...
+;; | (Case Expr [Listof [Listof Datum]] [Listof Expr] Expr)
 
 ;; type Datum = Integer | Boolean
 
-(struct Case (e cs el) #:prefab)
+(struct Case (e ds cs el) #:prefab)
 )
 
 There is one new kind of expression constructor: @racket[Case].  A
-@racket[Case] AST node contains three things: an expression that is
-the subject of the dispatch (i.e. the expression that is evaluated to
-determine which clause should be taken), a list of case-clauses (not
-to be confused with cond-clauses), and an @racket[else]-clause
-expression.  Each case-clause, like a cond-clause, consists of two
-things.  Hence we re-use the @racket[Clause] structure, but with
-different types of elements.  The first element is a list of
-@emph{datums}, each being either an integer or a boolean.
+@racket[Case] AST node contains four things: an expression that is the
+subject of the dispatch (i.e. the expression that is evaluated to
+determine which clause should be taken), a list of lists of datums, an
+equal length list of expressions, and an @racket[else]-clause
+expression.  A  @emph{datum} is either an integer or a boolean.
 
 Here are some examples of how concrete expressions are parsed into
 ASTs using this representation:
@@ -108,16 +101,16 @@ ASTs using this representation:
 @itemlist[
 
 @item{@racket[(case (add1 3) [else 2])] parses as @racket[(Case (Prim1
-'add1 (Lit 3)) '() (Lit 2))].}
+'add1 (Lit 3)) '() '() (Lit 2))].}
 
 @item{@racket[(case 4 [(4) 1] [else 2])] parses as @racket[(Case (Lit
-4) (list (Clause (list 4) (Lit 1))) (Lit 2))],}
+4) (list (list 4)) (list (Lit 1)) (Lit 2))],}
 
 @item{@racket[(case 4 [(4 5 6) 1] [else 2])] parses as @racket[(Case (Lit
-4) (list (Clause (list 4 5 6) (Lit 1))) (Lit 2))], and}
+4) (list  (list 4 5 6)) (list (Lit 1)) (Lit 2))], and}
 
 @item{@racket[(case 4 [(4 5 6) 1] [(#t #f) 7] [else 2])] parses as @racket[(Case (Lit
-4) (list (Clause (list 4 5 6) (Lit 1)) (Clause (list #t #f) (Lit 7))) (Lit 2))].}
+4) (list (list 4 5 6) (list #t #f)) (list (Lit 1) (Lit 7)) (Lit 2))].}
 ]
 
 
