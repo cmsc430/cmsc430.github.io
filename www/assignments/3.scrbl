@@ -110,65 +110,33 @@ ASTs using this representation:
 (Lit 4)) (Lit 5))],}
 ]
 
-@subsection[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing primitives}
+@section[#:tag-prefix "a3-" #:style 'unnumbered]{Steps toward Dupe+}
 
-Implement the primitives as described earlier.
+Implement the new expression forms as described earlier, both for the
+interpreter and compiler.
 
-There are many ways to implement these at the assembly level. You should try implementing
-these using the limited a86 instruction set.
-
-To do this, you should:
-@itemlist[
-@item{Study @tt{ast.rkt} to understand how these new forms of expression are represented.}
-      
-@item{Study @tt{parse.rkt} and add support for parsing these
-expressions. (See @secref[#:tag-prefixes '("a3-")]{parse} for guidance.)}
-
-@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret these expressions.}
-
-@item{Make examples of these primitives and potential translations of them
-to assembly.}
-
-@item{Update @tt{compile.rkt} to correctly compile these expressions.}
-
-@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
-]
-
-@section[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing cond}
-
-Implement the @racket[cond] expression form as described earlier.
 To do this, you should:
 
 @itemlist[
 @item{Study @tt{ast.rkt} to understand how these new forms of
 expression are represented.}
 
-@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly interpret @racket[cond] expressions.}
+@item{Add test cases to @tt{test/test-runner.rkt}.  These will be
+tested with both the interpreter and compiler.}
 
-@item{Make examples of @racket[cond]-expressions and potential translations of them
-to assembly.}
+@item{Update @tt{interp-prim.rkt} and @tt{interp.rkt} to correctly
+interpret @racket[cond] expressions and new primitives.}
 
-@item{Update @tt{compile.rkt} to correctly compile @racket[cond]
-expressions based on your examples.}
+@item{Test your interpreter with @tt{raco test test/interp.rkt}.}
 
-@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
+@item{Make examples of @racket[cond]-expressions and primitives and
+potential translations of them to assembly.}
+
+@item{Update @tt{compile.rkt} and @tt{compile-prim.rkt} to correctly
+compile these expressions based on your examples.}
+
+@item{Test your compiler with @tt{raco test test/compile.rkt}.}
 ]
-
-@section[#:tag-prefix "a3-" #:style 'unnumbered]{Testing}
-
-You can test your code in several ways:
-
-@itemlist[
-
- @item{Using the command line @tt{raco test .} from
-  the directory containing the repository to test everything.}
-
- @item{Using the command line @tt{raco test <file>} to
-  test only @tt{<file>}.}
-]
-
-Note that only a small number of tests are given to you, so you should
-write additional test cases.
 
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Submitting}
 
