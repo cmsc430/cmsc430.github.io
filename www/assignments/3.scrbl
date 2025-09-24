@@ -152,7 +152,7 @@ to assembly.}
 @item{Update @tt{compile.rkt} to correctly compile @racket[cond]
 expressions based on your examples.}
 
-@item{Check your implementation by running the tests: @tt{raco test tests/}.}
+@item{Check your implementation by running the tests: @tt{raco test test/}.}
 ]
 
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Testing}
