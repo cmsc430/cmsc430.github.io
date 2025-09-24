@@ -122,30 +122,24 @@ To do this, you should:
 @itemlist[
 @item{Study @tt{ast.rkt} to understand how this new form of expression is represented.}
 
+@item{Add test cases to @tt{test/test-runner.rkt}.  These will be
+tested with both the interpreter and compiler.}
+
 @item{Update @tt{interp.rkt} to correctly interpret @racket[case] expressions.}
+
+@item{Bring forward all of the changes you made to the interpreter from @secref{a3-dupe-plus}.}
+
+@item{Test your interpreter with @tt{raco test test/interp.rkt}.}
 
 @item{Make examples of @racket[case]-expressions and potential translations of them
 to assembly.}
 
 @item{Update @tt{compile.rkt} to correctly compile @racket[case] expressions based on your examples.}
 
-@item{Bring forward all the changes you made for @secref{a3-dupe-plus}.}
+@item{Bring forward all of the changes you made to the compiler from @secref{a3-dupe-plus}.}
 
-@item{Check your implementation by running the tests in @tt{test/all.rkt}.}
-]
+@item{Test your interpreter with @tt{raco test test/compile.rkt}.}
 
-
-@section[#:tag-prefix "a4-" #:style 'unnumbered]{Testing}
-
-You can test your code in several ways:
-
-@itemlist[
-
- @item{Using the command line @tt{raco test .} from
-  the directory containing the repository to test everything.}
-
- @item{Using the command line @tt{raco test <file>} to
-  test only @tt{<file>}.}
 ]
 
 Note that only a small number of tests are given to you, so you should
