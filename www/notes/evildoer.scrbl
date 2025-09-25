@@ -700,7 +700,7 @@ value:
 Using these pieces, we can write a function that matches the type signature
 of @racket[interp/io]:
 
-@codeblock-include["evildoer/exec-io.rkt"]
+@codeblock-include["evildoer/exec.rkt"]
 
 @ex[
 (exec/io (parse '(write-byte (read-byte))) "z")]
