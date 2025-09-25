@@ -40,8 +40,10 @@
 
 We have added multiple, disjoint types, but mostly swept issues of
 errors under the rug by considering type mismatches as meaningless.
-Now let's redesign the semantics to specify the error behavior of such
-programs.
+But undefined behavior, while convenient from the compiler writer's
+perspective, is the gateway to all kinds of bad outcomes for
+programmers.  Let's redesign the semantics to specify the error
+behavior of such programs.
 
 
 We'll call it @bold{@this-lang}.
@@ -134,18 +136,32 @@ results that may be given by the interpretation function:
 Type mismatches can arise as the result of primitive operations being
 applied to arguments for which the primitive is undefined, so we
 revise @racket[interp-prim1] to check all necessary preconditions
-before carrying out an operation, and producing an error in case
-those conditions are not met:
+before carrying out an operation.
+
+We will take advantage of Racket's exception system to @racket[raise]
+an error result whenever an error occurs.  This is a nice way of
+shortcircuiting the remaining evaluation since as soon as we encounter
+an error, we know this is going to be the answer for the whole
+program.
 
 @codeblock-include["extort/interp-prim.rkt"]
 
-Within the interpreter, we update the type signature to reflect the
-fact that interpreting an expression produces an answer, no longer
-just an expression.  We must also take care to observe that evaluating
-a subexpression may produce an error and as such it should prevent
-further evaluation.  To do this, the interpreter is written to check
-for an error result of any subexpression it evaluates before
-proceeding to evaluate another subexpression:
+Notice that the signature for these functions indicate that you get a
+value, or they raise an exception.  The functions for interpreting
+primitives check all of the necessary preconditions of a primitive
+before calling the corresponding Racket function.  This ensures that
+the Racket functions are always @emph{safe}, they cannot raise an
+error.  As a final catch-all case, we know that some precondition must
+not have held and we can raise the @racket['err] answer to indicate an
+error.
+
+Within the interpreter, we restructure things so that there is now a
+top-level @racket[interp] function that installs an exception handler.
+Should interpreting the expression raise @racket['err], it handles
+this exception and returns the @racket['err] answer.  The
+@racket[interp] function makes use of an auxilary function
+@racket[interp-e] that does the work of recursively interpreting the
+meaning of an expression:
 
 @codeblock-include["extort/interp.rkt"]
 
@@ -157,6 +173,16 @@ examples given earlier:
 (interp (parse '(zero? #t)))
 (interp (parse '(if (zero? #f) 1 2)))
 ]
+
+Note that if you use the @racket[interp-e] function, expressions that
+cause errors will raise an exception:
+
+@ex[
+(eval:error (interp-e (parse '(add1 #f))))
+(eval:error (interp-e (parse '(zero? #t))))
+(eval:error (interp-e (parse '(if (zero? #f) 1 2))))
+]
+
 
 This interpreter implicitly relies on the state of the input and
 output port, but we can define a pure interpreter like before,
@@ -376,7 +402,6 @@ Linking in the run-time allows us to define the @racket[exec] and
 @racket[exec/io] functions:
 
 @codeblock-include["extort/exec.rkt"]
-@codeblock-include["extort/exec-io.rkt"]
 
 We can run examples:
 
