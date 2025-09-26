@@ -132,7 +132,7 @@ interpret @racket[cond] expressions and new primitives.}
 @item{Make examples of @racket[cond]-expressions and primitives and
 potential translations of them to assembly.}
 
-@item{Update @tt{compile.rkt} and @tt{compile-prim.rkt} to correctly
+@item{Update @tt{compile.rkt} and @tt{compile-ops.rkt} to correctly
 compile these expressions based on your examples.}
 
 @item{Test your compiler with @tt{raco test test/compile.rkt}.}

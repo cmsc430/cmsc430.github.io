@@ -312,9 +312,9 @@ value of the right hand side.
 
 
 
-The heart of the semantics is a function @racket[interp-env] the
+The heart of the semantics is a function @racket[interp-e] the
 provides the meaning of an expression under a given environment.  The
-top-level @racket[interp] function simply calls @racket[interp-env]
+top-level @racket[interp] function simply calls @racket[interp-e]
 with an empty enivornment.
 
 These rely on two functions: one for extending an environment with a

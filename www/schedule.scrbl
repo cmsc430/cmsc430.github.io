@@ -42,19 +42,20 @@
                      
                (list @wk{9/23}
                      @;""
-		     @secref["Dodger"]
-		     @secref["Evildoer"])
-
+		     @itemlist[@item{@secref["Dodger"]}
+                               @item{@secref["Evildoer"]}]
+                     @secref["Extort"])
+			       
                (list @wk{9/30}
 	             @;elem{A3}
                      @;elem{@seclink["Assignment 2"]{A2}}
-		     @secref["Evildoer"]
-		     @secref{Extort})
+		     @secref["Fraud"]
+		     @secref["Fraud"])
 
                (list @wk{10/7}
                      @;""
-		     @secref{Fraud}
-		     @secref{Fraud})
+		     @secref{Hustle}
+		     @secref{Hustle})
 
                (list @wk{10/14}
                      @;elem{A4}
@@ -63,47 +64,47 @@
 
                (list @wk{10/21}
                      @;""
-		     @secref{Hustle}
-		     @secref{Hustle})
+		     @secref{Hoax}
+		     @secref{Hoax})
 
                (list @wk{10/28}
 	             @;elem{A5}
                      @;elem{@seclink["Assignment 4"]{A4}}
-		     @secref{Hoax}
-		     @secref{Hoax})
+		     @secref{Iniquity}
+		     @secref{Iniquity})
 
                (list @wk{11/4}
                      @;""
-		     @secref{Iniquity}
-		     @secref{Iniquity})
+		     @secref{Knock}
+		     @secref{Jig})
 
 
 	       (list @wk{11/11}
 	             @;elem{A6}
-		     @secref{Knock}
+		     @secref{Loot}
 		     @secref["Midterm_2"])
 		     
 
                (list @wk{11/18}
 	             @;""
-		     @secref{Jig}
-		     @secref{Loot})
+		     @secref{Loot}
+		     @secref{Mug})
 
                (list @wk{11/25}
 	             @;elem{A7}
 	             @;elem{@seclink["Assignment 5"]{A5}}
-		     @secref{Loot}
+		     @secref{Neerdowell}
 		     @elem{No class: Thanksgiving})
 
                (list @wk{12/2}
 	             @;""
-		     @secref{Mug}		     
-		     @secref{Neerdowell})
+		     @secref{Outlaw}
+		     @elem{Outlaw})
 
                (list @wk{12/9}
 	             @;""
-		     @secref{Outlaw}
-		     @secref{Outlaw})
+		     @elem{Slack}
+		     @elem{Slack})
 
 )]
 
