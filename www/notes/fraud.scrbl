@@ -12,12 +12,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(ev `(current-directory ,(path->string (build-path langs "fraud"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(for-each (λ (f) (ev `(require (file ,f))))
-	   '("main.rkt" "translate.rkt"))
-
+@(ev '(require rackunit a86 fraud fraud/translate))
 
 @(define this-lang "Fraud")
 @(define prefix (string-append this-lang "-"))

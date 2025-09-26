@@ -13,9 +13,7 @@
 
 @(define codeblock-include (make-codeblock-include #'here))
 
-@(ev '(require rackunit a86))
-@(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "abscond" f))))))
-	   '("main.rkt" "correct.rkt"))
+@(ev '(require rackunit a86 abscond abscond/correct))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "abscond")])

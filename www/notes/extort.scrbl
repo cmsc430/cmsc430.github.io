@@ -15,12 +15,8 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "extort" f))))))
-	   '("main.rkt" "correct.rkt" "compile-ops.rkt"))
+@(ev '(require rackunit a86 extort extort/compile-ops extort/correct))
 
-@(ev `(current-directory ,(path->string (build-path langs "extort"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @;{Hack to get un-provided functions from compile-ops}
 @(ev '(require (only-in rackunit require/expose)))
 @(ev '(require/expose extort/compile-ops [assert-integer assert-char assert-byte assert-codepoint]))
