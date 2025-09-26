@@ -2,13 +2,22 @@
 
 @(require (for-label (except-in racket ... compile) a86/ast))
 @(require redex/pict
+          redex/reduction-semantics
           racket/runtime-path
           scribble/examples
-	  (except-in fraud/semantics ext lookup)
-          (prefix-in sem: (only-in fraud/semantics ext lookup))
 	  "utils.rkt"
 	  "ev.rkt"
 	  "../utils.rkt")
+
+
+@(define-language L (e ::= ignored))
+@(define-extended-language F-let L
+  (e ::= .... x (let ((x e)) e))
+  (x ::= variable))
+
+@(define-extended-language F-prim2 L
+  (e ::= .... (p2 e_1 e_2))
+  (p2 ::= + - = <))
 
 @(define codeblock-include (make-codeblock-include #'h))
 
@@ -63,7 +72,7 @@ variables to the syntax of expressions.
 
 Together this leads to the following grammar for @|this-lang|:
 
-@centered{@render-language[F-pre]}
+@centered{@render-language[F-let]}
 
 Which can be modeled with the following data type definition:
 
@@ -112,9 +121,9 @@ What's new are the following @emph{binary} operations:
 (= _e0 _e1)
 ]
 
-This leads to the following revised grammar for @|this-lang|:
+This leads to the following additions to the grammar for @|this-lang|:
 
-@centered[(render-language G)]
+@centered[(render-language F-prim2)]
 
 We can model it as a datatype as usual:
 
