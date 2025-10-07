@@ -266,20 +266,19 @@ check:
 (ex
 ;; Produces (add1 v) if v is an integer value, #f otherwise
 (define (plus1 v) ;; Value -> Integer | Boolean
-  (bits->value
-    (asm-interp
-      (prog (Global 'entry)
-            (Label 'entry)
-            (Mov 'rax (value->bits v))
-	    (Mov 'r9 'rax)	  
-            (And 'r9 mask-int)
-            (Cmp 'r9 type-int)
-            (Jne 'err)
-            (Add 'rax (value->bits 1))
-            (Ret)
-            (Label 'err)
-            (Mov 'rax (value->bits #f))
-            (Ret)))))
+  (run
+    (prog (Global 'entry)
+          (Label 'entry)
+          (Mov 'rax (value->bits v))
+	  (Mov 'r9 'rax)	  
+          (And 'r9 mask-int)
+          (Cmp 'r9 type-int)
+          (Jne 'err)
+          (Add 'rax (value->bits 1))
+          (Ret)
+          (Label 'err)
+          (Mov 'rax (value->bits #f))
+          (Ret))))
 
 (plus1 0)
 (plus1 1)
@@ -297,8 +296,7 @@ error.  The @racket[asm-interp] intercepts these calls are returns the
 @racket['err] symbol to match what the interpreter does:
 
 @ex[
-(current-objs '("runtime.o"))
-(asm-interp
+(run
   (prog (Global 'entry)
         (Label 'entry)
         (Extern 'raise_error)
@@ -311,22 +309,19 @@ error:
 (ex
 ;; Produces (add1 v) if v is an integer, 'err otherwise
 (define (plus1 v) ;; Value -> Integer | 'err
-  (match 
-    (asm-interp
-      (prog (Global 'entry)
-            (Label 'entry)
-            (Mov 'rax (value->bits v))
-	    (Mov 'r9 'rax)	  
-            (And 'r9 mask-int)
-            (Cmp 'r9 type-int)
-            (Jne 'err)
-            (Add 'rax (value->bits 1))
-            (Ret)
-            (Label 'err)
-	    (Extern 'raise_error)
-            (Call 'raise_error)))
-    ['err 'err]
-    [b (bits->value b)]))
+  (run
+    (prog (Global 'entry)
+          (Label 'entry)
+          (Mov 'rax (value->bits v))
+	  (Mov 'r9 'rax)	  
+          (And 'r9 mask-int)
+          (Cmp 'r9 type-int)
+          (Jne 'err)
+          (Add 'rax (value->bits 1))
+          (Ret)
+          (Label 'err)
+	  (Extern 'raise_error)
+          (Call 'raise_error))))
 
 (plus1 0)
 (plus1 1)
@@ -423,6 +418,6 @@ totality of the semantics:
 And again, we can randomly test the compiler by generating programs and inputs:
 
 @ex[
-(require "random.rkt")
+(require extort/random)
 (for ((i 100))
   (check-compiler (random-expr) (random-input)))]
