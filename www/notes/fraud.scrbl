@@ -17,7 +17,7 @@
 
 @(define-extended-language F-prim2 L
   (e ::= .... (p2 e_1 e_2))
-  (p2 ::= + - = <))
+  (p2 ::= + - < =))
 
 @(define codeblock-include (make-codeblock-include #'h))
 
@@ -70,7 +70,8 @@ what it should produce.
 Adding a notion of variable binding also means we need to add
 variables to the syntax of expressions.
 
-Together this leads to the following grammar for @|this-lang|:
+Together this leads to the following grammar for concrete
+@|this-lang|:
 
 @centered{@render-language[F-let]}
 
@@ -121,7 +122,8 @@ What's new are the following @emph{binary} operations:
 (= _e0 _e1)
 ]
 
-This leads to the following additions to the grammar for @|this-lang|:
+This leads to the following additions to the grammar for concrete
+@|this-lang|:
 
 @centered[(render-language F-prim2)]
 
