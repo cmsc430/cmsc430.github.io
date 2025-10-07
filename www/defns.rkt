@@ -58,7 +58,6 @@
               "Thursday, September 18, 11:59PM"
               "Thursday, September 25, 11:59PM"
               "Thursday, October 2, 11:59PM"
-              "Thursday, October 9, 11:59PM"
               "Thursday, October 23, 11:59PM"
               "Thursday, October 30, 11:59PM"
               "Thursday, November 6, 11:59PM"
