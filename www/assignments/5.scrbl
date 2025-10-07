@@ -45,7 +45,7 @@ new features:
 Implement the @racket[abs], unary @racket[-], and @racket[not] operations and
 the @racket[cond] and @racket[case] forms from
 @seclink["Assignment 4"]{Assignment 4} by modifying @tt{interp.rkt},
-@tt{interp-prim.rkt}, @tt{compile.rkt}, and @tt{compile-op.rkt}. You can
+@tt{interp-prim.rkt}, @tt{compile.rkt}, and @tt{compile-ops.rkt}. You can
 start from your previous code, but you will need to update it to work for the
 code you are given. What's essentially left for you to do is to make sure to
 correctly signal an error (@racket['err]) when these constructs are
@@ -77,6 +77,10 @@ the right-hand sides of any of the @racket[let]. So, for example,
 @racketblock[(let ((x 1) (y x)) 0)] is a syntax error because the occurrence of
 @racket[x] is not bound.
 
+The provided interpreter and compiler work when the @racket[let]
+expression happens to bind a single variable, but you must revise the
+code to work for any number of bindings.
+
 
 @subsection[#:tag-prefix "a5-" #:style 'unnumbered]{Back-Referencing Let}
 
@@ -99,43 +103,11 @@ Unlike @racket[let], @racketblock[(let* ((x 1) (y x)) 0)] is @emph{not} a
 syntax error. However, bindings are only available forward, so
 @racketblock[(let* ((x y) (y 1)) 0)] @emph{is} a syntax error.
 
-
-
-
-@;{
-The goal of this assignment is to extend the language developed in
-@secref{Extort} with new forms of control flow expressions:
-@racket[when]- and @racket[unless]-expressions.
-
-@section[#:tag-prefix "a5-" #:style 'unnumbered]{Extort+}
-
-The Extort+ language extends Extort in the follow ways:
-
-@itemlist[
-@item{adding @racket[when],}
-@item{adding @racket[unless], and}
-@item{bringing forward all the features of Dupe++.}
-]
-
-
-@section[#:tag-prefix "a5-" #:style 'unnumbered]{Testing}
-
-You can test your code in several ways:
-
-@itemlist[
-
- @item{Using the command line @tt{raco test .} from
-  the directory containing the repository to test everything.}
-
- @item{Using the command line @tt{raco test <file>} to
-  test only @tt{<file>}.}
-]
-
-Note that only a small number of tests are given to you, so you should
-write additional test cases.
+The provided interpreter and compiler work when the @racket[let*]
+expression happens to bind a single variable, but you must revise the
+code to work for any number of bindings.
 
 @section[#:tag-prefix "a5-" #:style 'unnumbered]{Submitting}
 
-To submit, use @tt{make} from within the code directory to create a
-zip file containing your work and submit it to Gradescope.
-}
+To submit, use @tt{make} from within the @tt{fraud-plus} directory to
+create a zip file containing your work and submit it to Gradescope.
