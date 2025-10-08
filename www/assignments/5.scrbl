@@ -1,8 +1,12 @@
 #lang scribble/manual
-@(require "../defns.rkt")
+@(require "../defns.rkt"
+	  "../notes/ev.rkt")
+
 @title[#:tag "Assignment 5" #:style 'unnumbered]{Assignment 5: Let There Be (Many) Variables}
 
 @(require (for-label a86/ast (except-in racket ...)))
+
+@(ev '(require fraud-plus))
 
 @bold{Due: @assign-deadline[5]}
 
@@ -77,10 +81,49 @@ the right-hand sides of any of the @racket[let]. So, for example,
 @racketblock[(let ((x 1) (y x)) 0)] is a syntax error because the occurrence of
 @racket[x] is not bound.
 
+The given code uses the following abstract representation of
+@racket[let] expressions:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Expr = ...
+;; | (Let [Listof Id] [Listof Expr] Expr)
+(struct Let (xs es e) #:prefab)
+)
+
+Notice that all of the variable bindings and their RHS expressions
+have been split into two (equal-length) lists.  The third component
+is the body expression.
+
+The provided parser has been revised to parse these @racket[let]
+expressions (as well as the new operation forms):
+
+@ex[
+(parse '(let ((x 1)) x))
+(parse '(let () 1))
+(parse '(let ((x 1) (y 2)) (+ x y)))
+]
+
+Recall that there are two parsers: @racket[parse] parses any
+expression form, while @racket[parse-closed] only parses closed
+expressions.  The interpreter and compiler may assume that the program
+is closed (i.e. it is parsed with @racket[parse-closed]).
+
+@ex[
+(parse 'x)
+(eval:error (parse-closed 'x))
+(eval:error (parse-closed '(let ((x 1) (y x)) x)))]
+
+
 The provided interpreter and compiler work when the @racket[let]
 expression happens to bind a single variable, but you must revise the
 code to work for any number of bindings.
 
+@ex[
+(interp (parse '(let ((x 1)) (add1 x))))
+(eval:error (interp (parse '(let ((x 1) (y 2)) (+ x y)))))
+(exec (parse '(let ((x 1)) (add1 x))))
+(eval:error (exec (parse '(let ((x 1) (y 2)) (+ x y)))))]
 
 @subsection[#:tag-prefix "a5-" #:style 'unnumbered]{Back-Referencing Let}
 
@@ -103,9 +146,53 @@ Unlike @racket[let], @racketblock[(let* ((x 1) (y x)) 0)] is @emph{not} a
 syntax error. However, bindings are only available forward, so
 @racketblock[(let* ((x y) (y 1)) 0)] @emph{is} a syntax error.
 
+The given code uses the following abstract representation of
+@racket[let*] expressions:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Expr = ...
+;; | (Let* [Listof Id] [Listof Expr] Expr)
+(struct Let* (xs es e) #:prefab)
+)
+
+The provided parser works for @racket[let*]
+expressions:
+
+@ex[
+(parse '(let* ((x 1)) x))
+(parse '(let* () 1))
+(parse '(let* ((x 1) (y 2)) (+ x y)))
+]
+
+And the @racket[parse-closed] parser works appropriately, too:
+
+@ex[
+(parse-closed '(let* ((x 1) (y 2) (z (add1 y))) z))]
+
+
 The provided interpreter and compiler work when the @racket[let*]
 expression happens to bind a single variable, but you must revise the
-code to work for any number of bindings.
+code to work for any number of bindings: 
+
+@ex[
+(interp (parse '(let* ((x 1)) (add1 x))))
+(eval:error (interp (parse '(let* ((x 1) (y 2)) (+ x y)))))
+(exec (parse '(let* ((x 1)) (add1 x))))
+(eval:error (exec (parse '(let* ((x 1) (y 2)) (+ x y)))))]
+
+Note that when there is only a single binding, @racket[let] and
+@racket[let*] are equivalent.
+
+@subsection[#:tag-prefix "a5-" #:style 'unnumbered]{Testing}
+
+A small number of test cases have been provided in
+@tt{test/test-runner.rkt}.  There is function called @racket[test]
+that contains I/O-free test cases and another called @racket[test/io]
+that contains I/O tests.  To run these tests, @tt{raco test
+test/interp.rkt} will test the interpreter and @tt{raco test
+test/compile.rkt} will test the compiler.  You are encouraged to add
+your own tests.
 
 @section[#:tag-prefix "a5-" #:style 'unnumbered]{Submitting}
 
