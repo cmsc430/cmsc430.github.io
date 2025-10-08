@@ -18,12 +18,9 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "evildoer" f))))))
-	   '("main.rkt" "compile-ops.rkt" "correct.rkt"))
-
+@(ev '(require rackunit a86 evildoer evildoer/correct evildoer/compile-ops))
+@;{This is needed for the example that uses current-objs}
 @(ev `(current-directory ,(path->string (build-path langs "evildoer"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 
 @(require (for-syntax racket/base))
 @(begin-for-syntax

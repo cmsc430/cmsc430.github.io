@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 8" #:style 'unnumbered]{Assignment 8: List primitives}
+@title[#:tag "Assignment 8" #:style 'unnumbered]{Assignment 8: Functions with default arguments}
 
 @(require (for-label a86 (except-in racket ...)))
 

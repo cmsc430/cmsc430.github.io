@@ -15,12 +15,8 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "extort" f))))))
-	   '("main.rkt" "correct.rkt" "compile-ops.rkt"))
+@(ev '(require rackunit a86 extort extort/compile-ops extort/correct))
 
-@(ev `(current-directory ,(path->string (build-path langs "extort"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @;{Hack to get un-provided functions from compile-ops}
 @(ev '(require (only-in rackunit require/expose)))
 @(ev '(require/expose extort/compile-ops [assert-integer assert-char assert-byte assert-codepoint]))
@@ -270,20 +266,19 @@ check:
 (ex
 ;; Produces (add1 v) if v is an integer value, #f otherwise
 (define (plus1 v) ;; Value -> Integer | Boolean
-  (bits->value
-    (asm-interp
-      (prog (Global 'entry)
-            (Label 'entry)
-            (Mov 'rax (value->bits v))
-	    (Mov 'r9 'rax)	  
-            (And 'r9 mask-int)
-            (Cmp 'r9 type-int)
-            (Jne 'err)
-            (Add 'rax (value->bits 1))
-            (Ret)
-            (Label 'err)
-            (Mov 'rax (value->bits #f))
-            (Ret)))))
+  (run
+    (prog (Global 'entry)
+          (Label 'entry)
+          (Mov 'rax (value->bits v))
+	  (Mov 'r9 'rax)	  
+          (And 'r9 mask-int)
+          (Cmp 'r9 type-int)
+          (Jne 'err)
+          (Add 'rax (value->bits 1))
+          (Ret)
+          (Label 'err)
+          (Mov 'rax (value->bits #f))
+          (Ret))))
 
 (plus1 0)
 (plus1 1)
@@ -301,8 +296,7 @@ error.  The @racket[asm-interp] intercepts these calls are returns the
 @racket['err] symbol to match what the interpreter does:
 
 @ex[
-(current-objs '("runtime.o"))
-(asm-interp
+(run
   (prog (Global 'entry)
         (Label 'entry)
         (Extern 'raise_error)
@@ -315,22 +309,19 @@ error:
 (ex
 ;; Produces (add1 v) if v is an integer, 'err otherwise
 (define (plus1 v) ;; Value -> Integer | 'err
-  (match 
-    (asm-interp
-      (prog (Global 'entry)
-            (Label 'entry)
-            (Mov 'rax (value->bits v))
-	    (Mov 'r9 'rax)	  
-            (And 'r9 mask-int)
-            (Cmp 'r9 type-int)
-            (Jne 'err)
-            (Add 'rax (value->bits 1))
-            (Ret)
-            (Label 'err)
-	    (Extern 'raise_error)
-            (Call 'raise_error)))
-    ['err 'err]
-    [b (bits->value b)]))
+  (run
+    (prog (Global 'entry)
+          (Label 'entry)
+          (Mov 'rax (value->bits v))
+	  (Mov 'r9 'rax)	  
+          (And 'r9 mask-int)
+          (Cmp 'r9 type-int)
+          (Jne 'err)
+          (Add 'rax (value->bits 1))
+          (Ret)
+          (Label 'err)
+	  (Extern 'raise_error)
+          (Call 'raise_error))))
 
 (plus1 0)
 (plus1 1)
@@ -427,6 +418,6 @@ totality of the semantics:
 And again, we can randomly test the compiler by generating programs and inputs:
 
 @ex[
-(require "random.rkt")
+(require extort/random)
 (for ((i 100))
   (check-compiler (random-expr) (random-input)))]
