@@ -5,9 +5,15 @@
 
 @(require (for-label a86 (except-in racket ...)))
 
+@(require racket/port)
+
 @bold{Due: @assign-deadline[6]}
 
-@(ev '(require hoax-plus))
+@;{ All this to silence some Makefile output on Linux -- should probably be taken care of at the Makefile level }
+@(ev '(begin (define p (current-output-port))
+     	     (current-output-port (open-output-string))
+	     (require hoax-plus)
+	     (current-output-port p)))
 
 The goal of this assignment is to gain proficiency with our
 representation of memory-allocated values by implementing a number of
