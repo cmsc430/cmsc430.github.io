@@ -702,16 +702,12 @@ of @racket[interp/io]:
 @ex[
 (exec/io (parse '(write-byte (read-byte))) "z")]
 
-Note that we still provide an @racket[exec] function that works for
-programs that don't do I/O:
+Note that we still provide an @racket[exec] function, but it
+assumes there is no input and it prints all output:
 
 @ex[
-(exec (parse '(eof-object? #f)))]
-
-But it will fail if executing a program that uses I/O:
-
-@ex[
-(eval:error (exec (parse '(write-byte 97))))]
+(exec (parse '(eof-object? (read-byte))))
+(exec (parse '(write-byte 97)))]
 
 We can now state the correctness property we want of the compiler:
 

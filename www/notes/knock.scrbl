@@ -325,7 +325,7 @@ It's fairly straightforward:
     [((cons p ps) (cons e es))
      (match (interp-match-pat p v r)
        [#f (interp-match v ps es r ds)]
-       [r  (interp-env e r ds)])]))
+       [r  (interp-e e r ds)])]))
 )
 
 The complete interpreter:
@@ -337,7 +337,7 @@ We can now see it in action:
 
 @ex[
 (define (run e)
-  (interp-env (parse-e e) '() '()))
+  (interp-e (parse-e e) '() '()))
 
 (run '(match 1 [1 #t] [_ #f]))
 (run '(match 2 [1 #t] [_ #f]))

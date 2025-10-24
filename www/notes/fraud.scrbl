@@ -899,10 +899,10 @@ domain of expressions to be just @bold{closed expressions}, i.e. those
 that have no unbound variables.
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
-@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[v]
-@math{∈} @tt{Value}, if @racket[(interp/io e i)] equals @racket[(cons
-v o)], then @racket[(exec/io e i)] equals
-@racket[(cons v o)].}
+@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[A]
+@math{∈} @tt{Answer}, if @racket[(interp/io e i)] equals @racket[(cons
+a o)], then @racket[(exec/io e i)] equals
+@racket[(cons a o)].}
 
 The check for correctness is the same as before, although the check should only be applied
 to elements of @tt{ClosedExpr}:

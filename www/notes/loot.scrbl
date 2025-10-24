@@ -187,7 +187,7 @@ forms are @racket[λ]s and applications:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)  '...]
@@ -236,16 +236,16 @@ in what we know so far:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
      (λ ??? '...)]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (apply f vs)])])]))
@@ -261,16 +261,16 @@ number of arguments:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
      (λ vs '...)]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (apply f vs)])])]))
@@ -284,16 +284,16 @@ Translating that to code, we get:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs (interp-env e (zip xs vs) ds))]
+     (λ vs (interp-e e (zip xs vs) ds))]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (apply f vs)])])]))
@@ -334,16 +334,16 @@ in the (Racket) function:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs (interp-env e (append (zip xs vs) r)) ds)]
+     (λ vs (interp-e e (append (zip xs vs) r)) ds)]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (apply f vs)])])]))
@@ -354,20 +354,20 @@ The last remaining issue is we should do some type and arity-checking:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
      (λ vs
        ; check arity matches
        (if (= (length xs) (length vs))           
-           (interp-env e (append (zip xs vs) r) ds)
+           (interp-e e (append (zip xs vs) r) ds)
            'err))]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (if (procedure? f)
@@ -398,7 +398,7 @@ So for now we interpret variables as follows:
 (define (interp-var x r ds)
   (match (lookup r x)
     ['err (match (defns-lookup ds x)
-            [(Defn f xs e) (interp-env (Lam f xs e) '() ds)]
+            [(Defn f xs e) (interp-e (Lam f xs e) '() ds)]
             [#f 'err])]
     [v v]))
 )
@@ -476,7 +476,7 @@ We can also ``import'' Racket functions in to Loot:
 
 
 @ex[
-(interp-env (parse-e '(expt 2 10))
+(interp-e (parse-e '(expt 2 10))
             (list (list 'expt expt))
 	    '())
 ]
@@ -542,23 +542,23 @@ to be in the (Racket) function:
 @#reader scribble/comment-reader
 (racketblock
 ;; Expr REnv Defns -> Answer
-(define (interp-env e r ds)
+(define (interp-e e r ds)
   (match e
     ;;...
     [(Lam _ xs e)
      (Closure xs e r)]
     [(App e es)
-     (match (interp-env e r ds)
+     (match (interp-e e r ds)
        ['err 'err]
        [f
-        (match (interp-env* es r ds)
+        (match (interp-e* es r ds)
           ['err 'err]
           [vs
            (match f
   	     [(Closure xs e r)        
               ; check arity matches
               (if (= (length xs) (length vs))           
-                  (interp-env e (append (zip xs vs) r) ds)
+                  (interp-e e (append (zip xs vs) r) ds)
                   'err)]
              [_ 'err])])])]))
 )
@@ -620,7 +620,7 @@ interpretation of functions:
     [(Closure xs e r)        
      ; check arity matches
      (if (= (length xs) (length vs))           
-         (interp-env e (append (zip xs vs) r) '())
+         (interp-e e (append (zip xs vs) r) '())
          'err)]
     [_ 'err]))
 
