@@ -36,13 +36,19 @@
 (define (save-file f s)
   (with-output-to-file f (λ () (display s)) #:exists 'replace))
 
-(define (binary i [len 0])
+(define (base i b [len 0])
   (typeset-code #:block? #f #:indent 0
-                (string-append "#b"
-                               (~a (number->string i 2)
+                (string-append "#"
+                               (case b [(2) "b"] [(16) "x"])
+                               (~a (string-upcase (number->string i b))
                                    #:left-pad-string "0"
                                    #:align 'right
                                    #:min-width len))))
+
+(define (hex i [len 0])
+  (base i 16 len))
+(define (binary i [len 0])
+  (base i 2 len))
 
 (define (src-code lang)
   (margin-note (small-save-icon) " "

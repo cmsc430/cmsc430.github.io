@@ -4,20 +4,16 @@
 @(require redex/pict
           racket/runtime-path
           scribble/examples
-	  (except-in hustle/semantics ext lookup)
-          (prefix-in sem: (only-in hustle/semantics ext lookup))
 	  "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"
-	  "../utils.rkt")
+	  "../utils.rkt"
+	  "diagrams.rkt"
+	  hustle/types)
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(ev `(current-directory ,(path->string (build-path langs "hustle"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(for-each (λ (f) (ev `(require (file ,f))))
-	   '("main.rkt" "heap.rkt" "unload.rkt" "interp-prims-heap.rkt"))
+@(ev '(require rackunit a86 hustle hustle/unload hustle/heap hustle/interp-prims-heap hustle/compile-ops))
 
 @(define this-lang "Hustle")
 @(define prefix (string-append this-lang "-"))
@@ -86,20 +82,6 @@ These features will operate like their Racket counterparts:
 OCaml's @tt{ref} type, but we will examine this aspect later.  For now,
 we treat boxes as immutable data structures.}
 
-We will also add support for writing pair and box @emph{literals}
-using the same @racket[quote] notation that Racket uses.
-
-These features will operate like their Racket counterparts:
-@ex[
-(unbox '#&7)
-(car '(3 . 4))
-(cdr '(3 . 4))
-(box? '#&7)
-(cons? '(3 . 4))
-(box? '(3 . 4))
-(cons? '#&7)
-]
-
 @section[#:tag-prefix prefix]{Empty lists can be all and end all}
 
 While we've introduced pairs, you may wonder what about @emph{lists}?
@@ -120,145 +102,78 @@ We use the following AST data type for @|this-lang|:
 @filebox-include-fake[codeblock "hustle/ast.rkt"]{
 #lang racket
 ;; type Expr = ... | (Lit Datum)
-;; type Datum = ... | (cons Datum Datum) | (box Datum) | '()
+;; type Datum = ... | '()
 ;; type Op1 = ... | 'box | 'car | 'cdr | 'unbox | 'box? | 'cons?
 ;; type Op2 = ... | 'cons
 }
 
 @section[#:tag-prefix prefix]{Parsing}
 
-Mostly the parser updates for @|this-lang| are uninteresting.  The
-only slight twist is the addition of compound literal datums.
+Mostly the parser updates for @|this-lang| are uninteresting.  We've
+added some new unary and binary primitive names that the parser now
+recognizes for things like @racket[cons], @racket[car],
+@racket[cons?], etc., however, one wrinkle is that we now have a very
+limited form of @racket[quote], so it's worth discussing what this
+means for the concrete syntax of our language.
 
-It's worth observing a few things about how @racket[quote] works in
-Racket.  First, some datums are @emph{self-quoting}, i.e. we can
-write them with or without quoting and they mean the same thing:
-@ex[
-5
-'5]
+@subsection{Quote and the notion of self-quoting datums}
 
-All of the datums consider prior to @|this-lang| have been self-quoting:
-booleans, integers, and characters.
+In Racket, some datums are @emph{self-quoting}, which means they don't
+need to be quoted.  For example, @racket[5] is a self-quoting datum.
+You actually can quote @racket[5]: @racket['5].  This means exactly
+the same thing as @racket[5].  These are two different concrete
+syntaxes for exactly the same thing: the integer literal @racket[5].
 
-Of the new datums, boxes are self-quoting, but pairs and the empty
-list are not.
-@ex[
-#&7
-'#&7
-(eval:error ())
-'()
-(eval:error (1 . 2))
-'(1 . 2)]
+The whole reason for @racket[quote] is that it is used to indicate
+when something is a datum when it would otherwise be interpreted as an
+expression.  This becomes relevant we start having datums with
+parentheses in them because for example the expression @racket[(add1
+5)] and the datum @racket['(add1 5)] mean very different things,
+whereas @racket[5] and @racket['5], do not.  So lists (and pairs) are
+@emph{not} self-quoting: we are required to use @racket[quote] when we
+want to write such datums: @racket[(code:quote (add1 5))], which can
+also be written in shorthand form as @racket['(add1 5)].
 
-The reason for this is that unquoted list datums would be confused
-with expression forms without the @racket[quote], so its required,
-however for the other datums, there's no possible confusion and the
-@racket[quote] is inferred.  Note also that once inside a self-quoting
-datum, it's unambiguous that we're talking about literal data and not
-expressions that need to be evaluated, so you can have empty lists and
-pairs:
-@ex[
-#&()
-#&(1 . 2)]
+Up until this point, all of our datums have been self-quoting and we
+have thus just left @racket[quote] out of the concrete syntax.  Now we
+have @racket[quote] for the empty list. 
 
-This gives rise to two notions of datums that our parser uses,
-with (mutually defined) predicates for each:
+@subsection{Parsing quoted datums and self-quoting datums}
 
-@filebox-include-fake[codeblock "hustle/parse.rkt"]{
-;; Any -> Boolean
-(define (self-quoting-datum? x)
-  (or (exact-integer? x)
-      (boolean? x)
-      (char? x)
-      (and (box? x) (datum? (unbox x)))))
+In our parser, we introduce a predicate for identifying self-quoting
+datums (@racket[self-quoting-datum?]), which includes integers,
+boolean, and characters; and another for identifying the larger class
+of datums (@racket[datum?]), which includes all the self-quoting
+datums, plus the empty list @racket['()].  Notice in the parser that
+self-quoting datums are expressions, but quoted datums must occur
+withing a @racket[(code:quote ...)] form.
 
-;; Any -> Boolean
-(define (datum? x)
-  (or (self-quoting-datum? x)
-      (empty? x)
-      (and (cons? x) (datum? (car x)) (datum? (cdr x)))))
-}
-
-Now when the parser encounters something that is a self-quoting datum,
-it can parse it as a @racket[Lit].  But for datums that are quoted, it
-will need to recognize the @racket[quote] form, so anything that has
-the s-expression shape @racket[(quote d)] will also get parsed as a
-@racket[Lit].
-
-Things can get a little confusing here so let's look at some examples:
 @ex[
 (parse 5)
-(parse '5)
+(code:comment "This is quoting at the Racket-level and the parser sees 5")
+(parse '5) 
+(code:comment "This is quoting at the Hustle-level and the parser see '(quote 5)")
+(code:comment "which it parses at (Lit 5)")
+(parse ''5)
+(code:comment "This is quoting at the Racket-level and the parser see '(),")
+(code:comment "but () is not valid expression syntax, hence a parse error")
+(eval:error (parse '()))
+(code:comment "This is quoting at the Hustle-level and the parser sees '(quote ()),")
+(code:comment "which is parsed as the empty list.")
+(parse ''())
 ]
 
-Here, both examples are really the same.  When we write @racket['5],
-that @racket[read]s it as @racket[5], so this is really the same
-example and corresponds to an input program that just contains the
-number @racket[5] and we are calling @racket[parse] with an argument
-of @racket[5].
-
-If the input program contained a quoted @racket[5], then it would be
-@racket['5], which we would represent as an s-expression as
-@racket[''5].  Note that this reads as @racket['(quote 5)], i.e. a
-two-element list with the symbol @racket['quote] as the first element
-and the number @racket[5] as the second. So when writing examples
-where the input program itself uses @racket[quote] we will see this
-kind of double quotation, and we are calling @racket[parse] with
-a two-element list as the argument:
-
-@margin-note{FIXME: langs needs to be update to parse this correctly.}
+It's worth noting that while we have added pairs and boxes to our
+language, we have not added @emph{literal notation} for these things.
+(We will eventually.)  So things like @racket['(1 . 2)] are not valid
+syntax in Hustle:
 
 @ex[
-(eval:error (parse ''5))]
+(eval:error (parse ''(1 . 2)))
+]
 
-This is saying that the input program was @racket['5].  Notice that it
-gets parsed the same as @racket[5] by our parser.
-
-If we were to parse the empty list, this should be considered a parse
-error because it's like writing @racket[()] in Racket; it's not a valid
-expression form:
-
-@ex[
-(eval:error (parse '()))]
-
-However, if the empty list is quoted, i.e. @racket[''()], then we are
-talking about the expression @racket['()], so this gets parsed as
-@racket[(Lit '())]:
-
-@ex[
-(parse ''())]
-
-It works similarly for pairs:
-
-@margin-note{FIXME: langs needs to be update to parse second example correctly.}
-
-@ex[
-(eval:error (parse '(1 . 2)))
-(eval:error (parse ''(1 . 2)))]
-
-While these examples can be a bit confusing at first, implementing
-this behavior is pretty simple.  If the input is a
-@racket[self-quoting-datum?], then we parse it as a @racket[Lit]
-containing that datum.  If the the input is a two-element list of the
-form @racket[(list 'quote _d)] and @racket[_d] is a @racket[datum?],
-the we parse it as a @racket[Lit] containing @racket[_d].
-
-Note that @emph{if} the examples are confusing, the parser actually
-explains what's going on in Racket. Somewhere down in the code that
-implements @racket[read] is something equivalent to what we've done
-here in @racket[parse] for handling self-quoting and explicitly quoted
-datums.  Also note that after the parsing phase, self-quoting and
-quoted datums are unified as @racket[Lit]s and we no longer need to be
-concerned with any distinctions that existed in the concrete syntax.
-
-The only other changes to the parser are that we've added some new
-unary and binary primitive names that the parser now recognizes for
-things like @racket[cons], @racket[car], @racket[cons?], etc.
 
 @codeblock-include["hustle/parse.rkt"]
-
-
-
 
 @section[#:tag-prefix prefix]{Meaning of @this-lang programs, implicitly}
 
@@ -280,16 +195,12 @@ Using their Racket counterparts of course!
 
 @codeblock-include["hustle/interp-prim.rkt"]
 
-@margin-note{FIXME}
-
 We can try it out:
 
 @ex[
 (interp (parse '(cons 1 2)))
 (interp (parse '(car (cons 1 2))))
 (interp (parse '(cdr (cons 1 2))))
-(eval:error (interp (parse '(car '(1 . 2)))))
-(eval:error (interp (parse '(cdr '(1 . 2)))))
 (interp (parse '(let ((x (cons 1 2)))
                   (+ (car x) (cdr x)))))
 ]
@@ -527,49 +438,60 @@ the final answer from the result:
 
 @section[#:tag-prefix prefix]{Representing @this-lang values}
 
-The first thing do is make another distinction in the kind of values
-in our language.  Up until now, each value could be represented in a
-register.  We now call such values @bold{immediate} values.
+Since we have grown the set of values in our langauge, we have to
+address the issue of how this set of values can be represented at
+run-time.  The new values we've added are: the empty lists, pairs, and
+boxes.  Of these, the empty list is straightfoward: it can be
+represented like any of our other enumerated values: pick an unused
+bit pattern and designate it as representing the empty list.  Boxes
+and pairs will require some new mechanisms.
 
-We introduce a new category of values which are @bold{pointer} values.
-We will (for now) have two types of pointer values: boxes and pairs.
+@subsection{The need for memory}
 
-So we now have a kind of hierarchy of values:
+There's an obvious conundrum encountered as soon as you start thinking
+about representing Hustle values.  Remember that values have to fit in
+a register, i.e. we have at most 64 bits to represent all of our
+values.  We've gotten by so far by using some small number of bits to
+encode the type of the value and the remaining bits to represent the
+value itself.  We now have new kinds of values: pairs and boxes.
+These are distinct from the existing types of values, so we will need
+to devote some bits to indicating these new types.  But what about the
+value part?  Well a pair contains two values, e.g. @racket[(cons 1 2)]
+contains both the value @racket[1] and the value @racket[2].  How can
+we possibly fit both, which each may take up 64 bits, into a single
+64-bit register?  Even if we were to chop integers down to say 30 bits
+so that two could fit in a word with type tag bits left over, that
+only works for @emph{pairs of integers}, and even then it only works
+for small integers.  You might also be tempted to use more registers
+to represent values.  Perhaps we use two registers to store values.
+One is unused except in the case of pairs, then each register holds
+the elements of the pair.
 
-@verbatim{
-- values
-  + pointers (non-zero in last 3 bits)
-    * boxes
-    * pairs
-  + immediates (zero in last three bits)
-    * integers
-    * characters
-    * booleans
-    * ...
-}
+But the true power of these new kinds of values is the ability to
+construct @bold{arbitrarily large collections of data}.  That power
+comes from being able to construct a pair of @emph{any} two values,
+@emph{including other pairs}.  So while we might be able to find ways
+of encoding small collections, we have to face the fact that we might
+construct large collections and that no strategy that depends upon a
+fixed number of values will suffice.
 
-We will represent this hierarchy by shifting all the immediates over 3
-bits and using the lower 3 bits to tag things as either being
-immediate (tagged @code[#:lang "racket"]{#b000}) or a box or pair.
-To recover an immediate value, we just shift back to the right 3 bits.
 
-The pointer types will be tagged in the lowest three bits.  A box
-value is tagged @code[#:lang "racket"]{#b001} and a pair is tagged
-@code[#:lang "racket"]{#b010}.  The remaining 61 bits will hold a
-pointer, i.e. an integer denoting an address in memory.
+We need memory.  When creating a pair, just like in our explicit
+heap-based interpreter, we need to allocate memory and think of the
+pair value as having a @emph{pointer} to that memory.  In this way we
+can construct arbitrarily large collections of values, bound only by
+the available memory on our system.
 
-The idea is that the values contained within a box or pair will be
-located in memory at this address.  If the pointer is a box pointer,
-reading 64 bits from that location in memory will produce the boxed
-value.  If the pointer is a pair pointer, reading the first 64 bits
-from that location in memory will produce one of the value in the pair
-and reading the next 64 bits will produce the other.  In other words,
-constructors allocate and initialize memory.  Projections dereference
-memory.
 
-The representation of pointers will follow a slightly different scheme
-than that used for immediates.  Let's first talk a bit about memory
-and addresses.
+@subsection{Tagged pointer values}
+
+That idea that we can use pointers to memory to represent datatypes
+like boxes and pairs seems simple enough, but we also still have to
+deal with the other aspects of our value encoding.  Namely, we need to
+be able to distinguish all of the disjoint datatypes in our language.
+A pointer is seemingly just an arbitrary 64-bit integer.  How can we
+tell a pointer apart from other bit patterns that represent integers,
+booleans, characters, etc.?
 
 A memory location is represented (of course, it's all we have!) as a
 number.  The number refers to some address in memory.  On an x86
@@ -578,92 +500,349 @@ refers to a 1-byte (8-bit) segment of memory.  If you have an address
 and you add 1 to it, you are refering to memory starting 8-bits from the
 original address.
 
-We will make a simplifying assumption and always store things in
-memory in multiples of 64-bit chunks.  So to go from one memory
-address to the next @bold{word} of memory, we need to add 8 (1-byte
-times 8 = 64 bits) to the address.
+It's tempting to follow the approach we've already used: shift and
+tag.  In other words, take a pointer, shift it to the left some number
+of bits and tag the lower bits with a unique pattern to indicate the
+type as being either a pair or a box.
 
-What is 8 in binary?  @code[#:lang "racket"]{#b1000}
+This worked for things like booleans, characters, eof, void,
+etc. because we chould shift to the left without losing any
+information.  In the case of integers, we @emph{did} lose some
+information: we cut down the range of integer values that are
+representable in our language.  But the integers that were left still
+made sense.
 
-What's nice about this is that if we start from a memory location that
-is ``word-aligned,'' i.e. it ends in @code[#:lang "racket"]{#b000},
-then every 64-bit index also ends in @code[#:lang "racket"]{#b000}.
+Unfortunately pointers don't work that way.  If we shift a pointer and
+bits fall off, we're no longer pointing at the same memory location.
+So what are we to do?
 
-What this means is that @emph{every} address we'd like to represent
-has @code[#:lang "racket"]{#b000} in its least signficant bits.  We
-can therefore freely uses these three bits to tag the type of the
-pointer @emph{without needing to shift the address around}.  If we
-have a box pointer, we can simply zero out the box type tag to obtain
-the address of the boxes content.  Likewise with pairs.
+There are many options, but we adopt a simple approach.  It starts
+from the observation that we will always allocate memory in multiples
+of 8 bytes.  So if our memory starts out aligned to 8 bytes, then all
+of the addresses we will reprent will also be aligned to 8 bytes.
+That means addresses will always end in @binary[#b000 3].  We can
+therefore use these bits to store information @emph{without losing any
+information about the address itself}!
+
+The first thing to do is make another distinction in the kind of
+values in our language.  Up until now, each value could be represented
+in a register alone.  We now call such values @bold{immediate} values.
+
+We introduce a new category of values which are @bold{tagged pointer}
+values.  Tagged pointers also fit into registers, but they refer to memory
+so they cannot be understood by the contents of the register alone; we have to
+take the memory into consideration too.
+
+We will (for now) have two types of tagged pointer values: boxes and
+pairs.
+
+So we now have a kind of hierarchy of values:
+
+@itemlist[
+@item{Values
+  @itemlist[@item{Tagged pointers (non-zero in last three bits)
+               @itemlist[@item{Boxes} @item{Pairs}]}]
+  @itemlist[@item{Immediates (zero in last three bits)
+               @itemlist[@item{Integers} @item{Characters} @item{Booleans} @item{...}]}]}]
+
+We will represent this hierarchy by shifting all the immediates over
+@number->string[imm-shift] bits and using the lower
+@number->string[imm-shift] bits to tag things as either being
+immediate (tagged @binary[0 imm-shift]) or a box or pair.  To recover
+an immediate value, we just shift back to the right
+@number->string[imm-shift] bits.
+
+So for example:
+
+@(define (val-eg v)
+  @item{the value @racket[#,v] is represented by the bits @binary[(value->bits v) imm-shift], aka @racket[#,(value->bits v)].})
+
+@itemlist[
+  @val-eg[#t]
+  @val-eg[#f]
+  @val-eg[0]
+  @val-eg[1]  
+  @val-eg[5]
+  @val-eg[#\a]
+  @val-eg[#\b]
+]
+
+The pointer types will be tagged in the lowest
+@number->string[imm-shift] bits.  A box value is tagged
+@binary[type-box imm-shift] and a pair is tagged @binary[type-cons
+imm-shift].  The remaining @number->string[(- 64 imm-shift)] bits will
+hold a pointer, i.e. an integer denoting an address in memory.  To
+obtain the address, no shifting is done; instead we simply zero-out
+the tag.
+
+The idea is that the values contained within a box or pair will be
+located in memory at this address.  If the tagged pointer is a box
+pointer, reading 64 bits from that location in memory will produce the
+boxed value.  If the pointer is a pair pointer, reading the first 64
+bits from that location in memory will produce one of the value in the
+pair and reading the next 64 bits will produce the other.  In other
+words, constructors allocate and initialize memory.  Projections
+dereference memory.
+
+It's more difficult to construct examples of tagged pointer values
+because a value's representation now depends on what's in memory.
+Moveover, a value's representation is no longer unique.  We can no
+longer say things like ``the value @racket['(1 . 2)] is represented by
+the bits...'' because there are many possible bits that could
+represent this value.
+
+We can however say that if a memory address holds two consecutive
+values: 1 and 2, then a value @racket['(1 . 2)] may be represented by
+the bits you get when you tag that pointer as a pair.  Let's use this
+idea to write some representation examples.  These are all stated
+hypothetically based on what has to be in memory:
+
+@itemlist[
+@item{if address 0 holds the value @racket[#t] and address 8 holds the value @racket[#f],
+ then the value @racket['(#t . #f)] may be represented by the bits @binary[type-cons],
+ aka @racket[#,type-cons].}]
+
+This a perfectly valid, if somewhat unrealistic example.  Your
+operating system is likely not going to let you use address 0 (or 8
+for that matter).  That's OK.  We don't really care what the actual
+address is @emph{so long as it's always divisible by 8}.  That's the
+only thing our encoding scheme depends upon.
+
+Let's try another example:
+
+@itemlist[
+@item{if address 98760 holds the value @racket[#t] and address 98768 holds the
+ value @racket[#f], then the value @racket['(#t . #f)] may be represented by the
+ bits @binary[(+ 98760 type-cons)], aka @racket[#,(+ 98760 type-cons)].}]
+
+A couple things to notice in this example: (1) the address is
+divisible by 8, (2) the representation of the value @racket['(#t
+. #f)] @emph{is not}.  That's because we tacked on the cons type tag
+in unused bits of the pointer.  We haven't lost any information
+though: to recover the pointer, simply erase the tag (either by
+or-ing, xor-ing, or subtracting the tag from the tagged pointer; they
+are all equivalent if the address is divisible by 8 and the tag is
+less than 8, which it is).
+
+So in general, we have:
+
+@itemlist[
+
+@item{if address @racket[_a] is divisible by 8 and holds the value
+ @racket[_v₁] and address @racket[_a] + 8 holds the value @racket[_v₂],
+ then the value @racket[(cons _v₁ _v₂)] may be represented by the bits
+ @racket[(bitwise-xor _a #,(binary type-cons))].}
+
+@item{if address @racket[_a] is divisible by 8 and holds the value
+ @racket[_v],
+ then the value @racket[(box _v)] may be represented by the bits
+ @racket[(bitwise-xor _a #,(binary type-box))].}
+
+]
+
+@(define ra (+ (random 0 10000) 123456))
+
+We can also turn things around:
+
+@itemlist[ @item{if bits @binary[(+ ra type-cons)] (aka @racket[#,(+
+ra type-cons)]) represents a value, then at address @binary[ra] (aka
+@racket[#,ra]) there is some value @racket[_v₁] and at @binary[(+ ra
+8)] (aka @racket[#,(+ ra 8)]) there is some value @racket[_v₂].}]
+
+We know this because the bits end in the pair type tag, thus the value
+represented is a pair and it must be the case that there are two
+values at the address encoded in the bits.
+
+In general:
+
+@itemlist[ @item{if bits @racket[_b] represents a value and @racket[(=
+(bitwise-and _b #,(binary ptr-mask)) #,(binary type-cons))], then at
+address @racket[(bitwise-xor _b #,(binary type-cons))] there is some
+value @racket[_v₁] and at address @racket[(+ (bitwise-xor _b #,(binary
+type-cons)) 8)] there is some value @racket[_v₂].}
+@item{if bits @racket[_b] represents a value and @racket[(=
+(bitwise-and _b #,(binary ptr-mask)) #,(binary type-box))], then at
+address @racket[(bitwise-xor _b #,(binary type-box))] there is some
+value @racket[_v].}]
 
 
-We use a register, @racket['rbx], to hold the address of the next free
-memory location in memory.  To allocate memory, we simply increment
-the content of @racket['rbx] by a multiple of 8.  To initialize the
-memory, we just write into the memory at that location.  To construct a
-pair or box value, we just tag the unused bits of the address.
+OK, we now have a good model of how these new kinds of values
+can be @emph{represented}, but how can we actually construct
+and manipulate them?
 
 
-The generated code will have to coordinate with the run-time system to
-initialize @racket['rbx] appropriately, which we discuss in
-@secref["hustle-run-time"].
+@subsection{A source of free memory}
+
+We've established how we can use memory to represent boxes and
+pairs, but it remains to be seen where this memory comes from and how
+we can use it to construct these kinds of values.
+
+So far, our only ability to allocate memory has come from using the
+stack.  When we push variable bindings or the results of intermediate
+computations on the stack, we ``allocate'' memory by using more of the
+stack space.  When we pop these values off, we ``deallocate'' that
+memory by making it available to be overwritten by future stack
+pushes.
+
+Since it seems to be the only game in town, it's obviously tempting to
+use the stack to allocate pairs and boxes.  But here's the rub:
+variable bindings and intermediate results follow a straightforward
+stack discipline that we can read off from the text of a program.  For
+example, in @racket[(let ((_x _e₁)) _e₂)], we know that we can push
+@racket[_e₁]'s value on the stack before executing the code for
+@racket[_e₂] and then pop it off at the end of the instructions for
+the whole @racket[let].  Likewise in @racket[(+ _e₁ _e₂)], we can push
+@racket[_e₁]'s value on the stack while computing @racket[_e₂] and
+then pop it off to do the addition.  But with @racket[(cons _e₁ _e₂)],
+if pushed the values of @racket[_e₁] and @racket[_e₂] on the stack and
+then made a tagged pointer to that value, @emph{when} would we pop it
+off?  Definitely not at the end of the @racket[(cons _e₁ _e₂)]
+expression because after all we need to be able to access the parts of
+the pair after making it; deallocating then would construct and
+immediate destroy the pair.  On the other hand, @emph{not} popping at
+the end of the expression destroys one of our compiler invariants
+which is that, by the time we get to the end of the instructions for
+the compiled code of an expression, we have restored the stack to
+whatever state it was in at the start.  If we destroy that, how will
+variables and binary operations work?  Notice the shape of the stack
+could no longer be read off from the text of a program.  Consider:
+
+@racketblock[
+(let ((x (if (zero? (read-byte)) (cons 1 2) #f)))
+  x)
+]
+
+Where is @racket[x]'s value on the stack?  If we allocate pairs on the
+stack, there may or may not be a pair sitting before it @emph{and
+there's no way to know at compile-time}.  Good luck compiling that
+variable occurrence!
+
+So... the stack is out.  Mostly this is because the lifetime of
+pointer values is not lexical: it's not a property of the text of a
+program, but rather its execution.  So we will need another source
+of free memory; memory that can outlive elements on the stack.
+We'll call this memory the @bold{heap}.
+
+For this, we will turn to our run-time system.  Before it calls the
+compiled code of a program, we will have it allocate a chunk of memory
+and pass it as an argument to the compiled code.  The compiled code
+will then install that pointer into a designated register, much like
+how @racket[rsp] is designated to hold the stack pointer.  So instead
+of doing this in the @tt{main} entry point of the run-time:
+
+@verbatim|{
+  val_t result;
+  result = entry();
+  print_result(result);  
+}|
+
+We'll update it to:
+
+@verbatim|{
+  heap = malloc(8 * heap_size); // allocate heap
+  val_t result;
+  result = entry(heap);         // pass in pointer to heap
+  print_result(result);  
+}|
+
+Here we are allocating some number of words of memory (how many words
+is given by the constant @tt{heap_size}), via @tt{malloc} and then
+calling the compiled code with an argument which is the pointer to
+this freshly allocated memory.  The compiled code can hold on to a
+pointer to this memory and write into it in to allocate new pairs and
+boxes.
+
+We will designate the @racket[rbx] register as the heap pointer
+register.  This is an arbitrary choice, other than the fact that we
+selected a callee-saved (aka non-volatile) register.  This is useful
+for us because we need the heap pointer to be preserved across calls
+into the run-time system.  Had we designated a caller-save (volatile)
+register, we'd need to save and restore it ourselves before and after
+@emph{every} call.  Choosing a non-volatile register does mean we have
+to save and restore the @emph{caller's} @racket[rbx], but we do this
+just once at the beginning and end of the program.
+
+So our top-level compiler looks like this:
+
+@#reader scribble/comment-reader
+(racketblock
+;; ClosedExpr -> Asm
+(define (compile e)
+  (prog (Global 'entry)
+        (Label 'entry)
+	...
+        (Push rbx)        ; save the caller's register
+        (Mov rbx rdi)     ; install heap pointer
+        (compile-e e '()) ; run!
+        (Pop rbx)         ; restore caller's register
+	...
+        (Ret))))
+
+
+Now @racket[compile-e] can produce code that uses the heap pointer in
+register @racket[rbx].  If we want to use some of this memory we can
+write into it, adjust @racket[rbx] by the amount we just used, and
+then produce tagged pointers to the location we wrote to.
 
 So for example the following creates a box containing the value 7:
 
 @#reader scribble/comment-reader
 (racketblock
-(seq (Mov 'rax (value->bits 7))
-     (Mov (Offset 'rbx 0) 'rax) ; write '7' into address held by rbx
-     (Mov 'rax 'rbx)            ; copy pointer into return register
-     (Or 'rax type-box)         ; tag pointer as a box
-     (Add 'rbx 8))              ; advance rbx one word
+(seq (Mov rax (value->bits 7))
+     (Mov (Mem rbx 0) rax)     ; write '7' into address held by rbx
+     (Mov rax rbx)             ; copy pointer into return register
+     (Xor rax type-box)        ; tag pointer as a box
+     (Add rbx 8))              ; advance rbx one word
 )
 
-If @racket['rax] holds a box value, we can ``unbox'' it by erasing the
+
+
+
+If @racket[rax] holds a box value, we can ``unbox'' it by erasing the
 box tag, leaving just the address of the box contents, then
 dereferencing the memory:
 
 @#reader scribble/comment-reader
 (racketblock
-(seq (Xor 'rax type-box)         ; erase the box tag
-     (Mov 'rax (Offset 'rax 0))) ; load memory into rax
+(seq (Xor rax type-box)     ; erase the box tag
+     (Mov rax (Mem rax 0))) ; load memory into rax
+)
+
+As a slight optimization, instead of doing a run-time tag erasure, we
+can simply adjust the offset by the tag quantity so that reading the
+contents of a box (or any other pointer value) is a single
+instruction:
+
+@#reader scribble/comment-reader
+(racketblock
+(seq (Mov rax (Mem rax (- type-box)))) ; load memory into rax
 )
 
 Pairs are similar, only they are represented as tagged pointers to two
-words of memory.  Suppose we want to make @racket[(cons 3 4)]:
+words of memory.  Suppose we want to make @racket[(cons #t #f)]:
 
 @#reader scribble/comment-reader
 (racketblock
-(seq (Mov 'rax (value->bits 4))
-     (Mov (Offset 'rbx 0) 'rax) ; write '4' into address held by rbx
-     (Mov 'rax (value->bits 3))
-     (Mov (Offset 'rbx 8) 'rax) ; write '3' into word after address held by rbx
-     (Mov 'rax rbx)             ; copy pointer into return register
-     (Or 'rax type-cons)        ; tag pointer as a pair
-     (Add 'rbx 16))             ; advance rbx 2 words
+(seq (Mov rax (value->bits #t))
+     (Mov (Mem rbx 0) rax)      ; write '#t' into address held by rbx
+     (Mov rax (value->bits #f))
+     (Mov (Mem rbx 8) rax)      ; write '#f' into word after address held by rbx
+     (Mov rax rbx)              ; copy pointer into return register
+     (Xor rax type-cons)        ; tag pointer as a pair
+     (Add rbx 16))              ; advance rbx 2 words
 )
 
 This code writes two words of memory and leaves a tagged pointer in
-@racket['rax].  It's worth noting that we chose to write the
-@racket[cdr] of the pair into the @emph{first} word of memory and the
-@racket[car] into the @emph{second}.  This may seem like a strange
-choice, but how we lay out the memory is in some sense an arbitrary
-choice, so long as all our pair operations respect this layout.  We
-could have just as easily done the @racket[car] first and @racket[cdr]
-second.  The reason for laying out pairs as we did will make things
-slightly more convenient when implementing the @racket[cons] primitive
-as we'll see later.
+@racket[rax].
 
-
-If @racket['rax] holds a pair value, we can project out the elements
-by erasing the pair tag, leaving just the address of the pair contents,
-then dereferencing either the first or second word of memory:
+If @racket[rax] holds a pair value, we can project out the elements by
+erasing the pair tag (or adjusting our offset appropriately) and
+dereferencing either the first or second word of memory:
 
 @#reader scribble/comment-reader
 (racketblock
-(seq (Xor 'rax type-cons)         ; erase the pair tag
-     (Mov 'rax (Offset 'rax 8))   ; load car into rax
-     (Mov 'rax (Offset 'rax 0)))  ; or... load cdr into rax
+(seq (Mov rax (Mem rax (- 0 type-cons)))   ; load car into rax
+     (Mov rax (Mem rax (- 8 type-cons))))  ; or... load cdr into rax
 )
 
 From here, writing the compiler for @racket[box], @racket[unbox],
@@ -671,67 +850,519 @@ From here, writing the compiler for @racket[box], @racket[unbox],
 putting together pieces we've already seen such as evaluating multiple
 subexpressions and type tag checking before doing projections.
 
+@subsection{Making examples}
+
+It's more challenging to use @racket[asm-interp] to actually execute
+examples since we need some coordination between the run-time system
+and @racket[asm-interp] in order to allocate the heap, but for the
+moment, let's see how we can effectively work around this coordination
+to make examples that actually run without using the run-time system.
+
+
+An alternative to asking the run-time system to allocate memory (which
+in turn asks our operating system to allocate memory), we can instead
+bake some memory into the text of our assembly program itself.  This
+ends up as space @emph{in the object file} of our compiled and
+assembled program that also holds the instructions for our code.  To
+do this we can create a @bold{data section} in our code.  Up until now
+our assembly programs have lived in the @bold{text section}, which is
+the part that holds instructions to be executed.  In contrast, the
+data section just holds data, not instructions.  When the operating
+system runs our program, it loads the object file into memory, so
+anything we put into the data section (as well as all of our
+instructions) are in memory and we can use this memory.  Fundamentally
+it's no different from the memory allocated by @tt{malloc} in our
+run-time system.  The key difference is that this space comes from the
+object file and therefore has to be determine at compile-time rather
+than at run-time using @tt{malloc}.  Hence it is referred to as
+@bold{static memory}.
+
+When constructing an assembly program, we can switch the data section
+by using the @racket[(Data)] psuedo-instruction.  What this means is
+that the instructions that follow should be assembled into the data
+part of the file and not the text (code) part.  To switch back to the
+text section, use the @racket[(Text)] directive.  Within the data
+section we can use the @racket[Dq] ``instruction'' to designate one
+(64-bit) word of static memory.  It's not actually an instruction
+(hence the scare-quotes) because it doesn't execute; instead it says
+put these bits at this spot in the program.  So this sequence:
+
+@racketblock[
+(seq (Data)
+     (Dq 1)
+     (Dq 2)
+     (Dq 3))]
+
+is saying that in the data section there should be three words of
+memory containing the bits @racket[1], @racket[2], and @racket[3],
+respectively.
+
+If we want to get a pointer to this memory, we need to name the
+location with a label and then use the @racket[Lea] instruction to
+load it's address into a register at run-time:
+
+
+@racketblock[
+(seq (Data)
+     (Label 'd)
+     (Dq 1)
+     (Dq 2)
+     (Dq 3)
+     (Text)
+     (Lea rax 'd))]
+
+Let's try it out:
+
+@ex[
+(asm-interp
+  (prog (Global 'entry)
+        (Label 'entry)
+	(Data)
+	(Label 'd)
+	(Dq 1)
+	(Dq 2)
+	(Dq 3)
+	(Text)
+	(Lea rax 'd)
+	(Ret)))]
+
+Now, what we get back is the @emph{address} of that memory.  It's some
+arbitrary number (but notice what it is divisible by!).
+
+If we'd like we can dereference that memory to fetch the contents:
+
+@ex[
+(asm-interp
+  (prog (Global 'entry)
+        (Label 'entry)
+	(Data)
+	(Label 'd)
+	(Dq 1)
+	(Dq 2)
+	(Dq 3)
+	(Text)
+	(Lea rax 'd)
+	(Mov rax (Mem rax 0))
+	(Ret)))]
+
+
+@;{
+
+If we changed the offset to @racket[8], we'd get @racket[2];
+@racket[16] would get @racket[3].  We have essentially created a
+little static array.  We can also write into that array:
+
+@ex[
+(asm-interp
+  (prog (Global 'entry)
+        (Label 'entry)
+	(Data)
+	(Label 'd)
+	(Dq 1)
+	(Dq 2)
+	(Dq 3)
+	(Text)
+	(Lea rax 'd)
+	(Mov r8 100)
+	(Mov (Mem rax 0) r8)
+	(Mov rax (Mem rax 0))
+	(Ret)))]
+
+So we can use this as a basis for making little executable examples to
+run our compiler.  The idea is we can @emph{statically} allocate heap
+space and then use that to execute code.
+
+Here's a little helper function for (statically) allocating a given
+number of words and loading a pointer to it into a given register:
+
+@#reader scribble/comment-reader
+(ex
+;; Statically allocate i words of memory and
+;; set register r to its address
+;; Reg Nat -> Asm
+(define (alloc r i)
+  (let ((l (gensym 'data)))
+    (seq (Data)
+         (Label l)
+         (make-list i (Dq 0))
+         (Text)
+         (Lea r (Mem l)))))
+)
+
+}
+
+To do that, let's just call @tt{malloc} ourselves!
+
+@ex[
+(asm-interp
+  (prog (Global 'entry)
+  	(Extern 'malloc)
+        (Label 'entry)
+	(Sub rsp 8)
+	(Mov rdi (* 10 8))
+	(Call 'malloc)
+	(Add rsp 8)
+	(Ret)))]
+
+This sets up a call to @tt{malloc(8*10)}, which allocates 10 words and
+returns the pointer in @racket[rax].
+
+OK, let's make a pair:
+
+@#reader scribble/comment-reader
+(ex
+(eval:alts
+  (asm-interp
+    (prog (Global 'entry)
+    	  (Extern 'malloc)
+          (Label 'entry)
+          (Push rbx)
+	  (Mov rdi (* 10 8))
+	  (Call 'malloc)
+	  (Mov rbx rax)
+          (Mov rax (value->bits #t))
+          (Mov (Mem rbx 0) rax)      ; write #t
+          (Mov rax (value->bits #f))
+          (Mov (Mem rbx 8) rax)      ; write #f
+          (Mov rax rbx)              ; copy pointer
+          (Xor rax type-cons)        ; tag as pair
+          (Add rbx 16)               ; account for memory used
+	  (Pop rbx)
+          (Ret)))
+  (begin
+    (define this
+      (asm-interp
+        (prog (Global 'entry)
+	      (Extern 'malloc)
+              (Label 'entry)
+              (Push rbx)	      
+              (Mov rdi (* 10 8))
+              (Call 'malloc)
+	      (Mov rbx rax)
+              (Mov rax (value->bits #t))
+              (Mov (Mem rbx 0) rax)      ; write #t
+              (Mov rax (value->bits #f))
+              (Mov (Mem rbx 8) rax)      ; write #f
+              (Mov rax rbx)              ; copy pointer
+              (Xor rax type-cons)        ; tag as pair
+              (Add rbx 16)               ; account for memory used
+              (Pop rbx)
+              (Ret))))
+     this)))
+
+
+This @emph{should} create a pair that is represented in memory like
+this:
+
+@make-heap-diagram['((cons 0) #t #f)]
+
+What we get is @racket[#,(ev 'this)], which doesn't @emph{look} like a
+pair.  But remember, @racket[asm-interp] is just giving us back
+whatever is in the @racket[rax] register after calling this code: it's
+giving us back @emph{bits}, not @emph{values}.  But!  You should
+notice that these bits are encoding a pair value.  If we look at the
+three least significant bits, we see @binary[type-cons 3], aka
+@racket[#,type-cons]:
+
+@ex[(eval:alts (bitwise-and #,(ev 'this) #,(binary ptr-mask))
+               (bitwise-and this ptr-mask))]
+
+That tells us that @racket[#t] and @racket[#f] live at memory
+addresses @racket[(bitwise-xor #,(ev 'this) #,(binary type-cons 3))]
+and @racket[(+ (bitwise-xor #,(ev 'this) #,(binary type-cons 3)) 8)],
+respectively.
+
+@margin-note{This is not actually true.  Using Racket's
+@racketmodname[ffi/unsafe] library provides a way to cast integers to
+pointers and dereference arbitrary memory.  In fact,
+@racketmodname[ffi/unsafe] is the thing that makes @racket[asm-interp]
+possible. The memory safety guarantee only applies to programs that
+safely use @racketmodname[ffi/unsafe], which is easiest to do by not
+using it all!}
+
+Now, how can we fetch them?  On the Racket side of things, we just
+have an integer and an integer is not a pointer in Racket.  By design,
+the language does not give you a way to cast an arbitrary integer to
+some kind of pointer datatype that can be dereferenced.
+ This is important to
+guarantee memory safety.  Of course, @racket[asm-interp] offers a huge
+back-door to that safety, so we can whip up our own operation to
+dereference whatever memory address we'd like:
+
+@#reader scribble/comment-reader
+(ex
+;; Integer -> Integer
+;; Fetch the word at given address
+(define (mem-ref ptr)
+  (asm-interp
+    (prog (Global 'entry)
+          (Label 'entry)
+	  (Mov r8 ptr)
+          (Mov rax (Mem r8))
+          (Ret))))
+
+(eval:alts (mem-ref (bitwise-xor #,(ev 'this) type-cons))
+	   (mem-ref (bitwise-xor this type-cons)))
+(eval:alts (mem-ref (+ (bitwise-xor #,(ev 'this) type-cons) 8))
+           (mem-ref (+ (bitwise-xor this type-cons) 8)))
+)
+
+And while these also don't look like @racket[#t] and @racket[#f],
+remember:
+
+@ex[(value->bits #t)
+    (value->bits #f)]
+
+
+Aside: We should be very careful with this operation; you can do bad
+things with it:
+
+@ex[(eval:alts (mem-ref #,(hex #xDEADBEEF))
+	       (eval:error (mem-ref #xDEADBEEF)))]
+
+We're now in a position to actually reconstruct the pair value on
+the Racket side of things:
+
+@#reader scribble/comment-reader
+(ex
+;; Bits -> (cons Value Value)
+;; Constructs a pair from bits encoding a pair value
+(define (cons-bits->cons b)
+  (cons (bits->value (mem-ref (+ b (- 0 type-cons))))
+        (bits->value (mem-ref (+ b (- 8 type-cons))))))
+
+(eval:alts (cons-bits->cons #,(ev 'this))
+	   (cons-bits->cons this))
+)
+
+
+And this works great so long as the values in the pair aren't
+themselves tagged pointers, which of course, they could be!  What
+should we do in that case?  Well, figure out what kind of pointer they
+are, dereference their contents and construct the appropriate kind of
+Racket value (either a box or a pair).  We can do this recursively to
+complete convert from whatever encoding of a value we get back into
+the corresponding Racket value.  In other words, extending
+@racket[bits->value] to work in the presence of tagged pointer values
+involves just the kind of thing we've written:
+
+@codeblock-include["hustle/types.rkt"]
+
+You'll notice that instead of the @racket[mem-ref] we wrote, it uses
+Racket's own ``unsafe'' operations.  The only difference is that this
+is more efficient, bypassing the overhead of @racket[asm-interp].
+
+With @racket[bits->value] in place, we can now build up some utilities
+for running programs with the run-time system linked in and using
+@racket[bits->value] to construct the result value:
+
+@codeblock-include["hustle/run.rkt"]
+
+Let's make the list @racket['(1 2 3)].  Remember that @racket['(1 2
+3)] is just @racket[(cons 1 (cons 2 (cons 3 '())))].
+
+@#reader scribble/comment-reader
+(ex
+(run
+  (prog (Global 'entry)
+        (Label 'entry)
+        (Push rbx)
+        (Mov rbx rdi)
+        (Mov rax (value->bits 1))
+        (Mov (Mem rbx 0) rax)
+        (Mov rax rbx)
+        (Add rax (+ 16 type-cons))
+        (Mov (Mem rbx 8) rax)
+        (Mov rax (value->bits 2))
+        (Mov (Mem rbx 16) rax)
+        (Mov rax rbx)
+        (Add rax (+ 32 type-cons))
+        (Mov (Mem rbx 24) rax)          
+        (Mov (Mem rbx 24) rax)
+        (Mov rax (value->bits 3))
+        (Mov (Mem rbx 32) rax)
+        (Mov rax (value->bits '()))
+        (Mov (Mem rbx 40) rax)          
+        (Mov rax rbx)   
+        (Xor rax type-cons)
+        (Add rbx (* 8 6)) ; account for 6 words used
+        (Pop rbx)
+        (Ret))))
+
+
+These instructions create a list that is laid out in the heap like
+this:
+
+@make-heap-diagram[
+ '((cons 0)
+  1
+  (cons 2)
+  2
+  (cons 4)
+  3
+  '())]
+
+@margin-note{See if you can construct the list this way.}
+Of course there are many ways to make the same list.  We could, for
+example, write instructions that made exactly the same list but
+laid out like this:
+
+@make-heap-diagram[
+ '((cons 4)
+  3
+  '()  
+  2
+  (cons 0)
+  1
+  (cons 2))]
+
+Both of these would result in the same value from the perspective of
+@racket[bits->value].
+
+Now that we can make examples and have a good idea of how to write
+instructions to create boxes and pairs in memory, let's write the
+compiler.
+
+
 @section[#:tag-prefix prefix]{A Compiler for @this-lang}
 
-The compiler for @this-lang is essentially the same as for Fraud, although
-now with support for the new primitives: @racket[box], @racket[unbox],
-@racket[box?], @racket[cons], @racket[car], @racket[car],
-@racket[cdr], @racket[cons?], and @racket[empty?]:
+There aren't any new expression forms in @this-lang; all of the work
+is done in the implementation of the new primitives.  Predicates like
+@racket[box?], @racket[cons?], and @racket[empty?] are simple:
+@racket[box?] and @racket[cons?] mask the pointer tag bits and compare
+against the appropriate tag; @racket[empty?] tests whether the bits
+are equal the bits for @racket['()].
+
+For @racket[box], we know the argument to the @racket[box] constructor
+will be in @racket[rax] register and we need to emit code that will:
+write that value into memory at the current heap pointer location,
+move and tag a pointer to that memory into @racket[rax], and finally
+increment @racket[rbx] to account for the memory used:
+
+@ex[
+(compile-op1 'box)
+(exec (parse '(box 10)))]
+
+
+This creates a box value in memory that looks like this:
+
+@make-heap-diagram['((box 0) 10)]
+
+
+To @racket[unbox] a box value, again we have the argument in the
+@racket[rax] register.  We must check that the argument actually is a
+box by checking its tag, signalling a run-time type error if its not.
+If that succeeds, we can dereference the memory by reading the memory
+location pointed to by the tagged pointer.  When dereferencing, we
+account for the tag by subtracting it as an offset.
+
+@ex[
+(compile-op1 'unbox)
+(exec (parse '(unbox (box 10))))]
+
+For @racket[cons], which is a binary operator, we know the first
+argument will be the first element of the stack and that the second
+argument will be in the @racket[rax] register.  The compiler emits
+code that pops the argument from the stack, writes both to memory,
+creates a tagged pointer to the memory in @racket[rax], and increments
+@racket[rbx] by @racket[16] to account for the two words of memory
+used.
+
+@ex[
+(compile-op2 'cons)
+(exec (parse '(cons 1 2)))]
+
+In order to avoid using a temporary register, this code writes the
+@emph{second} argument first, but at offset @racket[8], then pops into
+@racket[rax], writing the first argument second at offset @racket[0].
+It copies @racket[rbx] into @racket[rax], tags it a pair, then
+increments @racket[rbx] appropriately.  It creates a pair in memory
+that looks like this:
+
+@make-heap-diagram['((cons 0) 1 2)]
+
+Accessing the parts of a pair is similar to @racket[unbox]: it checks
+the type, then reads the memory address at the appropriate offset.
+
+@ex[
+(compile-op1 'car)
+(compile-op1 'cdr)
+(exec (parse '(car (cons 1 2))))
+(exec (parse '(cdr (cons 1 2))))]
+
+
+Notice here that in @racket[car], the offset is @racket[#,(- 0
+type-cons)], which is @racket[(- 0 type-cons)], while in @racket[cdr]
+it is @racket[#,(- 8 type-cons)], which is @racket[(- 8 type-cons)].
+
+We now have all the pieces to make lists or nested lists.
+
+@ex[
+(exec (parse '(cons 1 (cons 2 (cons 3 '())))))]
+
+
+
+Putting it all together we get the compiler for the new primitives:
+@racket[box], @racket[unbox], @racket[box?], @racket[cons],
+@racket[car], @racket[car], @racket[cdr], @racket[cons?], and
+@racket[empty?]:
 
 @codeblock-include["hustle/compile-ops.rkt"]
 
-We can now confirm that the compiler generates code similar to what we
-wrote by hand above:
 
-@ex[
-(define (show e c)
-  (compile-e (parse e) c))
 
-(show '(box 7) '())
-]
-
-This moves the encoding of @racket[7] into @racket['rax], then writes
-it into the memory address pointed to by @racket['rbx], i.e. the next
-free memory location.  That address is then moved to @racket['rax] and
-tagged as a box, which is the result of the expression.  The final
-step is to increment @racket['rbx] by @racket[8] to advance the free
-memory pointer since one word of memory is now used.
-
-Suppose we have a box value bound to variable @racket[x], then this
-code will unbox the value:
-
-@ex[
-(show '(unbox x) '(x))
-]
-
-This loads @racket[x] from the stack into @racket['rax], then does tag
-checking to make sure it's a box pointer, after which it erases the
-tag to reveal the address and loads that memory address into
-@racket['rax], thereby retrieving the value in the box.
-
-The way that @racket[cons], @racket[car], and @racket[cdr] work are
-essentially the same, except that pairs hold two values instead of
-one:
-
-@ex[
-(show '(cons 7 5) '())
-(show '(car x) '(x))
-(show '(cdr x) '(x))
-]
-
-We can now see why we chose to layout pairs with the @racket[cdr]
-first and @racket[car] second.  Since @racket[cons] is a binary
-operation, the expression which produces the @racket[car] value will
-be evaluated first and pushed on the stack.  Then the expression that
-produces the @racket[cdr] value will execute with its result sitting
-in @racket[rax].  So at this point it's easiest to write out the
-@racket[cdr] since it's already sitting in a register.  Once we do
-that, we can pop the @racket[car] value into @racket['rax] and write
-that.  Hence our choice for the layout.
 
 @section[#:tag "hustle-run-time"]{A Run-Time for @this-lang}
 
-First, we extend our runtime system's view of values to include
+
+Our compiler relies on the fact that @racket[rbx] points to available
+memory, but where did this memory come from?  Well that will be the
+job of the run-time system: before it runs the code our compiler
+generated, it will ask the operating system to allocate a block of
+memory and then pass its address as an argument to the @racket[entry]
+function the compiler emits.
+
+
+To allocate memory, it uses @tt{malloc}.  It passes the pointer
+returned by @tt{malloc} to the @tt{entry} function.  The protocol for
+calling functions in the System V ABI says that the first argument
+will be passed in the @racket[rdi] register.  Since @tt{malloc}
+produces 16-byte aligned addresses on 64-bit machines, @racket[rdi] is
+initialized with an address that ends in @code[#:lang
+"racket"]{#b000}, satisfying our assumption about addresses.
+
+Once the runtime system has provided the heap address in
+@racket[rdi], it becomes our responsibility to keep track of that
+value. Because @racket[rdi] is used to pass arguments to C functions,
+we can't keep our heap pointer in @racket[rdi] and expect it to be
+saved. This leaves us with two options:
+
+@itemlist[
+ @item{We can ensure that we save @racket[rdi] somewhere safe whenever we
+       might call an external function}
+
+ @item{We can move the value away from @racket[rdi] as soon as possible and
+       never have to worry about @racket[rdi] being clobbered during a call
+       to a C function (as long as we pick a good place!)}
+]
+
+We decided to use the second option, which leaves the choice of
+@emph{where} to move the value once we receive it from the runtime
+system. As usual, we will consult the System V Calling Convention,
+which tells us that @racket[rbx] is a @emph{callee save} register,
+which means that any external function we might call is responsible
+for ensuring that the value in the register is saved and restored.  In
+other words: we, the caller, don't have to worry about it! Because of
+this we're going to use @racket[rbx] to store our heap pointer. You
+can see that we do this in the compiler with @racket[(Mov rbx rdi)] as
+part of our entry code.
+
+@filebox-include[fancy-c hustle "main.c"]
+
+
+@subsection{Updating the run-time system's notion of Values}
+
+We extend our runtime system's view of values to include
 pointers and use C @tt{struct} to represent them:
 
 @filebox-include[fancy-c hustle "values.h"]
@@ -741,61 +1372,29 @@ pointer types:
 
 @filebox-include[fancy-c hustle "values.c"]
 
-The rest of the run-time system for @this-lang is more involved for two
-main reasons:
 
-The first is that the compiler relies on a pointer to free memory
-residing in @racket['rbx].  The run-time system will be responsible
-for allocating this memory and initializing the @racket['rdi]
-register.  To allocate memory, it uses @tt{malloc}.  It passes the
-pointer returned by @tt{malloc} to the @tt{entry} function.  The
-protocol for calling functions in C says that the first argument will
-be passed in the @racket['rdi] register.  Since @tt{malloc} produces
-16-byte aligned addresses on 64-bit machines, @racket['rdi] is
-initialized with an address that ends in @code[#:lang
-"racket"]{#b000}, satisfying our assumption about addresses.
+@subsection{Printing Values}
 
-Once the runtime system has provided the heap address in
-@racket['rdi], it becomes our responsibility to keep track of that
-value. Because @racket['rdi] is used to pass arguments to C functions,
-we can't keep our heap pointer in @racket['rdi] and expect it to be
-saved. This leaves us with two options:
-
-@itemlist[
- @item{We can ensure that we save @racket['rdi] somewhere safe whenever we
-       might call a C function}
-
- @item{We can move the value away from @racket['rdi] as soon as possible and
-       never have to worry about @racket['rdi] being clobbered during a call
-       to a C function (as long as we pick a good place!)}
-]
-
-We've decided to use the second option, which leaves the choice of @emph{where}
-to move the value once we receive it from the runtime system. As usual, we will
-consult the System V Calling Convention, which tells us that @racket['rbx] is a
-@emph{callee save} register, which means that any C function we might call is
-responsible for ensuring that the value in the register is saved and restored.
-In other words: we, the caller, don't have to worry about it! Because of this
-we're going to use @racket['rbx] to store our heap pointer. You can see
-that we do this in the compiler with @racket[(Mov 'rbx 'rdi)] as part
-of our entry code.
-
-@filebox-include[fancy-c hustle "main.c"]
-
-The second complication comes from printing.  Now that values include
-inductively defined data, the printer must recursively traverse these
-values to print them.  It also must account for the wrinkle of how the
+Now that values include inductively defined data, the printer must
+recursively traverse these values to print them (this is exactly
+analogous to how @racket[bits->value] had to recursively construct
+values, too).  It also must account for the wrinkle of how the
 printing of proper and improper lists is different:
 
 @filebox-include[fancy-c hustle "print.c"]
 
 @section[#:tag-prefix prefix]{Correctness}
 
+
 The statement of correctness for the @|this-lang| compiler is the same
-as the previous one:
+as the previous one, although it is worth noting that it's use of
+@racket[bits->value] within @racket[exec/io] is hiding some subtleties
+since it recursively constructs the result value.
+
+@margin-note{FIXME: should this be defined in terms of Answers?}
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
-@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[v]
-@math{∈} @tt{Value}, if @racket[(interp/io e i)] equals @racket[(cons
-v o)], then @racket[(exec/io e i)] equals
-@racket[(cons v o)].}
+@tt{ClosedExpr}, @racket[i], @racket[o] @math{∈} @tt{String}, and @racket[a]
+@math{∈} @tt{Answer}, if @racket[(interp/io e i)] equals @racket[(cons
+a o)], then @racket[(exec/io e i)] equals
+@racket[(cons a o)].}
