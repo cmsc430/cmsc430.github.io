@@ -22,6 +22,11 @@
   (cb-superimpose (rectangle n n)
                   (code box)))
 
+(define (make-vect-cell)
+  (cb-superimpose (rectangle n n)
+                  (code vect)))
+
+
 
 (define (fwd-pts-to a b p)
   (pin-arrow-line 7 p
@@ -66,13 +71,14 @@
   (match v
     [`(cons ,_) (make-cons-cell)]
     [`(box ,_) (make-box-cell)]
+    [`(vect ,_) (make-vect-cell)]
     [_ (make-imm-cell v)]))
 
 (define (add-arrows spec cells p)
   ;(printf "~a~n" spec)
   (match spec
     ['() p]
-    [(cons `(cons ,i) s)
+    [(cons `(_ ,i) s)
      (add-arrows s
                  cells
                  (fwd-pts-to (list-ref cells (sub1 (- (length cells) (length s))))
