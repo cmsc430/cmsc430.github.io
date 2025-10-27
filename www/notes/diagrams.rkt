@@ -8,6 +8,17 @@
 
 (define n 40)
 
+(define (make-str-cells s)
+  (hc-append 
+   (foldl (λ (c p) 
+            (hc-append p 
+                       (cc-superimpose (rectangle (/ n 2) n) ((current-code-tt) (string c)))))
+          (cc-superimpose (rectangle n n) (code #,(string-length s)))
+          (string->list s))
+   (if (even? (string-length s))
+       (rectangle 0 n)
+       (cc-superimpose (rectangle (/ n 2) n) (code 0)))))                      
+
 (define (make-imm-cell i)
   (cc-superimpose
    (code #,i)
@@ -17,6 +28,9 @@
   (cb-superimpose (rectangle n n)
                   (code cons)))
 
+(define (make-str-cell)
+  (cb-superimpose (rectangle n n)
+                  (code str)))
 
 (define (make-box-cell)
   (cb-superimpose (rectangle n n)
@@ -72,13 +86,16 @@
     [`(cons ,_) (make-cons-cell)]
     [`(box ,_) (make-box-cell)]
     [`(vect ,_) (make-vect-cell)]
+    [`(str ,_) (make-str-cell)]
+    [(? string?) (make-str-cells v)]
     [_ (make-imm-cell v)]))
 
 (define (add-arrows spec cells p)
   ;(printf "~a~n" spec)
   (match spec
     ['() p]
-    [(cons `(_ ,i) s)
+    [(cons `(,_ ,(? integer? i)) s)
+     
      (add-arrows s
                  cells
                  (fwd-pts-to (list-ref cells (sub1 (- (length cells) (length s))))
@@ -99,17 +116,62 @@
                           heap)))
 
      (define heap/arrows/label
-       (vc-append 
-                  0
-                  heap/arrows
-                  (text "heap")))
+       (vc-append 10
+        (vc-append 
+         0
+         heap/arrows
+         (text "heap"))
+        (text "← lower addresses, higher addresses →")))
 
      (define rax/label
-       (vc-append 0 rax (text "rax")))
+       (vc-append 10 (vc-append 0 rax (text "rax"))
+                  (text " ")))
      
      (inset
-      (fwd-pts-to rax (list-ref heap i) (hc-append n rax/label heap/arrows/label))
-      (* n 2))]))
+      (fwd-pts-to rax (list-ref heap i)
+                  (hc-append n rax/label heap/arrows/label))
+      0 (* n 2) 0 0)]))
+
+#;
+(define cons-quiz
+  (list (make-heap-diagram
+         '((cons 4)
+           3
+           '()  
+           2
+           (cons 0)
+           1
+           (cons 2)))
+        (make-heap-diagram
+         '((cons 0)
+           1
+           (cons 2)
+           2
+           (cons 4)
+           3
+           '()))
+        (make-heap-diagram
+         '((cons 4)
+           '()
+           3
+           (cons 0)
+           2
+           (cons 2)
+           1))
+        (make-heap-diagram
+         '((cons 0)
+           (cons 2)
+           1
+           (cons 4)
+           2
+           '()
+           3))
+        ))
+
+
+
+;(text "← lower addresses, higher addresses →")
+
 #;
 (make-heap-diagram
  '((cons 0)

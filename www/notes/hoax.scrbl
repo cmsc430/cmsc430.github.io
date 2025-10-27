@@ -899,6 +899,18 @@ So, suppose we want to create the string @racket["abc"]:
     (Pop rbx)
     (Ret))))
 
+This creates a string in memory like this:
+
+@make-heap-diagram['((str 0) "abc")]
+
+
+In this diagram, we use half-sized boxes to indicate that only 4 bytes
+are used per codepoint.  Also the contents of the array are not
+values, but codepoints (shown as the letters the codepoint encodes).
+In odd length strings, we write @racket[0] for the padded element, but
+in reality there are arbitrary bits at that memory location, which is
+fine because they will never be read.
+
 At first glance, this looks remarkably similar to creating a vector,
 however there are some imporant things to notice:
 
@@ -925,6 +937,18 @@ comes at the cost of wasting 4-bytes per odd-lengthed string, which
 you are seeing here.}
 
 ]
+
+Notice that a string like @racket["fred"] is not represented the same
+as a vector of characters @racket[#(#\f #\r #\e #\d)], which uses more
+space.  Compare:
+
+@make-heap-diagram['((str 0) "fred")]
+
+versus:
+
+@make-heap-diagram['((vect 0) 4 #\f #\r #\e #\d)]
+
+
 
 Now let's set things up like we did before to be able to interactively
 write examples in order to arrive at the code for
