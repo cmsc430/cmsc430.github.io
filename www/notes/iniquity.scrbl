@@ -11,11 +11,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
-@(ev `(current-directory ,(path->string (build-path langs "iniquity"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+@(ev '(require rackunit a86 iniquity))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "iniquity")])
@@ -652,37 +648,32 @@ single list:
 Here's an example of the code this compiler emits:
 
 @ex[
-(asm-display
- (compile
-  (parse '(define (double x) (+ x x)) '(double 5))))
+(compile (parse '(define (double x) (+ x x))
+                '(double 5)))
 ]
 
 And we can confirm running the code produces results consistent with
 the interpreter:
 
 @ex[
-(current-objs '("runtime.o"))
-(define (run . p)
-  (bits->value (asm-interp (compile (apply parse p)))))
+(exec (parse '(define (double x) (+ x x))
+             '(double 5)))
 
-(run '(define (double x) (+ x x))
-     '(double 5))
+(exec (parse '(define (tri x)
+                (if (zero? x)
+                    0
+                    (+ x (tri (sub1 x)))))
+             '(tri 9)))
 
-(run '(define (tri x)
-        (if (zero? x)
-            0
-            (+ x (tri (sub1 x)))))
-     '(tri 9))
-
-(run '(define (even? x)
-        (if (zero? x)
-            #t
-            (odd? (sub1 x))))
-     '(define (odd? x)
-        (if (zero? x)
-            #f
-            (even? (sub1 x))))
-     '(even? 101))
+(exec (parse '(define (even? x)
+                (if (zero? x)
+                    #t
+                    (odd? (sub1 x))))
+             '(define (odd? x)
+                (if (zero? x)
+                    #f
+                    (even? (sub1 x))))
+             '(even? 101)))
 ]
 
 The complete compiler code:
