@@ -9,11 +9,7 @@
 
 @bold{Due: @assign-deadline[6]}
 
-@;{ All this to silence some Makefile output on Linux -- should probably be taken care of at the Makefile level }
-@(ev '(begin (define p (current-output-port))
-     	     (current-output-port (open-output-string))
-	     (require hoax-plus)
-	     (current-output-port p)))
+@(ev '(require hoax-plus))
 
 The goal of this assignment is to gain proficiency with our
 representation of memory-allocated values by implementing a number of
