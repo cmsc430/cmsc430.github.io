@@ -41,6 +41,11 @@ jobs:
         # raco pkg install --auto www/
         raco make www/main.scrbl
         make -C www main
+    - name: Download slides
+      run: |
+        gh api repos/cmsc430/slides/zipball/pdfs > pdfs.zip
+        mkdir -p www/main/slides
+        unzip -jq pdfs.zip '*.pdf' -d www/main/slides/
     - name: Upload www for GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
