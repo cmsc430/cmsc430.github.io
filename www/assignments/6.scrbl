@@ -3,6 +3,8 @@
 	  "../notes/ev.rkt")
 @title[#:tag "Assignment 6" #:style 'unnumbered]{Assignment 6: List and vector primitives}
 
+@src-code["hoax-plus"]
+
 @(require (for-label a86 (except-in racket ...)))
 
 @(require racket/port)
