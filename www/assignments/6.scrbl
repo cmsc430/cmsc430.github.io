@@ -1,7 +1,10 @@
 #lang scribble/manual
 @(require "../defns.rkt"
-	  "../notes/ev.rkt")
+	  "../notes/ev.rkt"
+	  "../notes/utils.rkt")
 @title[#:tag "Assignment 6" #:style 'unnumbered]{Assignment 6: List and vector primitives}
+
+@src-code["hoax-plus"]
 
 @(require (for-label a86 (except-in racket ...)))
 

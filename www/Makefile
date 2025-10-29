@@ -9,14 +9,24 @@ test: clean
 
 $(course): scribble zips
 
+
+langs = abscond blackmail con dupe dodger evildoer extort fraud hustle hoax iniquity iniquity-gc jig knock loot mug mountebank neerdowell outlaw
+assigns = hoax-plus
+
 zips:
 	mkdir -p $(course)/code/
-	cd `racket -e '(require pkg/lib) (display (path->string (pkg-directory "langs")))'` ; \
-		tar -c `git ls-files a86 abscond blackmail con dupe dodger evildoer extort fraud hustle hoax iniquity iniquity-gc jig knock loot mug mountebank neerdowell outlaw` | \
-		(cd ../www/main/code ; tar -x ; \
-			for f in abscond blackmail con dupe dodger evildoer extort fraud hustle hoax iniquity iniquity-gc jig knock loot mug mountebank neerdowell outlaw ; do \
+	(cd `racket -e '(require pkg/lib) (display (path->string (pkg-directory "langs")))'` ; \
+		tar -c `git ls-files $(langs)`) | \
+	(cd $(course)/code/ ; tar -x ; \
+		for f in $(langs) ; do \
 			zip $${f}.zip -r $${f}/ ; \
-			done )
+		done)
+	(cd `racket -e '(require pkg/lib) (display (path->string (pkg-directory "assignments")))'` ; \
+		tar -c `git ls-files $(assigns)`) | \
+	(cd $(course)/code/ ; tar -x ; \
+		for f in $(assigns) ; do \
+			zip $${f}.zip -r $${f}/ ; \
+		done)
 
 scribble:
 	raco scribble --htmls \
