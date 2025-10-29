@@ -72,19 +72,19 @@ We will extend the syntax by introducing a new syntactic category of
 followed by an expression:
 
 @racketblock[
-(define (_f0 _x00 ...) _e0)
-(define (_f1 _x10 ...) _e1)
+(define (_f₀ _x₀₀ ...) _e₀)
+(define (_f₁ _x₁₀ ...) _e₁)
 ...
-e
+_e
 ]
 
 And the syntax of expressions will be extended to include function calls:
 
 @racketblock[
-(_fi _e0 ...)
+(_fᵢ _e₀ ...)
 ]
 
-where @racket[_fi] is one of the function names defined in the program.
+where @racket[_fᵢ] is one of the function names defined in the program.
 
 Note that functions can have any number of parameters and,
 symmetrically, calls can have any number of arguments.  A program
