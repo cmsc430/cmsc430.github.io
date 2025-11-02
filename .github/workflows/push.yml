@@ -1,8 +1,8 @@
 name: Build and Deploy
 on:
   - push
-  - repository_dispatch:
-      types: [slides-updated]
+#  - repository_dispatch:
+#      types: [slides-updated]
 
 jobs:
   build:
@@ -11,12 +11,12 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
     # Show payload only for repository_dispatch
-    - name: Show dispatch payload
-      if: ${{ github.event_name == 'repository_dispatch' }}
-      run: |
-        echo "Event type: ${{ github.event.action || 'N/A' }}"
-        echo "Client payload (JSON):"
-        echo '${{ toJson(github.event.client_payload) }}'
+#    - name: Show dispatch payload
+#      if: ${{ github.event_name == 'repository_dispatch' }}
+#      run: |
+#        echo "Event type: ${{ github.event.action || 'N/A' }}"
+#        echo "Client payload (JSON):"
+#        echo '${{ toJson(github.event.client_payload) }}'
     - name: Set timezone
       uses: szenius/set-timezone@v2.0
       with:
