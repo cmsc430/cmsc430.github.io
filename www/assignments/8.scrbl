@@ -6,8 +6,9 @@
 @(require "../notes/ev.rkt"
           "../notes/utils.rkt")
 
-
 @bold{Due: @assign-deadline[8]}
+
+@(ev '(require knock-plus))
 
 The goal of this assignment is to extend a compiler with new pattern
 matching forms for matching lists, vectors, and predicates.
@@ -114,6 +115,30 @@ the name of a user defined function.
   [(? is-eight?) #t]
   [_ #f])
 ]
+
+@section[#:tag-prefix "a8-" #:style 'unnumbered]{Representing the syntax of patterns}
+
+The AST of patterns is extended as follows:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Pat  = ...
+;;           | (List [Listof Pat])
+;;           | (Vect [Listof Pat])
+;;           | (Pred Id)
+)
+
+The parser includes a @racket[parse-pattern] function that parses a
+single pattern:
+
+@ex[
+(parse-pattern 'x)
+(parse-pattern '(cons x y))
+(parse-pattern '(list x y z))
+(parse-pattern '(vector x y z))
+(parse-pattern '(? f?))
+]
+
 
 
 @section[#:tag-prefix "a8-" #:style 'unnumbered]{Submitting}
