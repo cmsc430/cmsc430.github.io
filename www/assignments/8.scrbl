@@ -58,7 +58,7 @@ same, but constructs a vector.
 These are not directly useful in implementing the patterns above, but
 do make it easier to write examples and tests.
 
-@section[#:tag-prefix "a5-" #:style 'unnumbered #:tag "list"]{List patterns}
+@section[#:tag-prefix "a8-" #:style 'unnumbered #:tag "list"]{List patterns}
 
 The @racket[(list _p1 ... _pn)] pattern matches a list of elements.  The
 pattern matches a list with as many elements as there are patterns
@@ -76,7 +76,7 @@ respective pattern.
   [(list (list x) (list 2)) x])
 ]
 
-@section[#:tag-prefix "a5-" #:style 'unnumbered #:tag "vector"]{Vector patterns}
+@section[#:tag-prefix "a8-" #:style 'unnumbered #:tag "vector"]{Vector patterns}
 
 The @racket[(vector _p1 ... _pn)] pattern matches a vector of elements.  The
 pattern matches a vector with as many elements as there are patterns
@@ -94,7 +94,7 @@ respective pattern.
   [(vector (vector x) (vector 2)) x])
 ]
 
-@section[#:tag-prefix "a5-" #:style 'unnumbered #:tag "vector"]{Predicate patterns}
+@section[#:tag-prefix "a8-" #:style 'unnumbered #:tag "vector"]{Predicate patterns}
 
 The @racket[(? _f)] pattern matches any value for which the predicate
 @racket[_f] returns a true value (any value other than @racket[#f])
@@ -116,7 +116,7 @@ the name of a user defined function.
 ]
 
 
-@section[#:tag-prefix "a5-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "a8-" #:style 'unnumbered]{Submitting}
 
 Submit a zip file containing your work to Gradescope.  Use @tt{make
 submit.zip} from within the @tt{knock-plus} directory to create a zip
