@@ -227,7 +227,7 @@ descendent of the Scheme programming language, and a close cousin of
 OCaml, which you've previously studied.  This is largely an arbitrary
 choice.  We could have picked any programming language to build a
 compiler for.  In choosing Racket, we get a mature, well-designed
-language with a minimal, easy to parse semantics and a well-understood
+language with a minimal, easy to parse syntax and a well-understood
 and clear semantics that has features representative of many modern
 high-level programming languages such as OCaml, Java, Python,
 JavaScript, Haskell, etc.  If you can write a compiler for Racket, you
