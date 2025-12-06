@@ -64,7 +64,7 @@ those issues have been resolved.  So another aspect of what a
 programming language "is" concerns the @emph{meaning} of the sentences
 in that language.  Every language has meaning.  In the context of
 programming language, the meaning is a computation.  This aspect of a
-langauge we its @bold{semantics}: it concerns the computational
+langauge we call its @bold{semantics}: it concerns the computational
 content of programs in the language.
 
 There are many ways we might define the meaning of a program, and
