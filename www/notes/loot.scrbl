@@ -12,10 +12,14 @@
 
 @(ev '(require rackunit a86))
 @(ev `(current-directory ,(path->string (build-path langs "loot"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(void (ev '(current-objs '("runtime.o"))))
+@(void (ev '(with-output-to-string (thunk (system "make -C runtime runtime.o")))))
+@(void (ev '(current-objects '("runtime/runtime.o"))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Loot")
 
@@ -413,7 +417,7 @@ functions, given in @racket[ds].
 
 The complete interpreter is:
 
-@codeblock-include["loot/interp.rkt"]
+@codeblock-include["loot/interpreter/interp.rkt"]
 
 We now have the full power of @racket[λ] expressions in our language.
 We can write recursive functions, using only anonymous functions, via
@@ -566,7 +570,7 @@ to be in the (Racket) function:
 We can give it a try:
 
 
-@(ev `(require (file ,(path->string (build-path langs "loot" "interp-defun.rkt")))))
+@(ev `(require (file ,(path->string (build-path langs "loot" "interpreter" "interp-defun.rkt")))))
 
 @ex[
 (define (run . p) (interp (parse p)))
@@ -772,7 +776,7 @@ as the first argument on stack before calling the function's code.
 To implement this, we will need to compute the free variables, which
 we do with the following function:
 
-@codeblock-include["loot/fv.rkt"]
+@codeblock-include["loot/syntax/fv.rkt"]
 
 We can now write the function that compiles a labelled
 @racket[λ]-expression into a function in assembly:
@@ -844,7 +848,7 @@ The compiler will need to generate one such function for each
 extracting all the @racket[λ]-expressions:
 
 
-@codeblock-include["loot/lambdas.rkt"]
+@codeblock-include["loot/syntax/lambdas.rkt"]
 
 And another for compiling each of them:
 
@@ -1235,4 +1239,4 @@ of all the closures and adjusts @racket['rbx] appropriately:
 
 Putting all the pieces together, we have the complete compile for Loot:
 
-@codeblock-include["loot/compile.rkt"]
+@codeblock-include["loot/compiler/compile.rkt"]

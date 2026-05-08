@@ -7,19 +7,20 @@
           "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"
-	  extort/types
-	  extort/semantics
+	  extort/runtime/types
+	  "extort-semantics.rkt"
 	  "../utils.rkt")
 
 
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 extort extort/compile-ops extort/correct))
+@(ev '(require rackunit a86 extort extort/compiler/compile-ops extort/correct extort/compiler/compile extort/executor/run))
+@(ev '(define (exec e) (run (compile e))))
 
 @;{Hack to get un-provided functions from compile-ops}
 @(ev '(require (only-in rackunit require/expose)))
-@(ev '(require/expose extort/compile-ops [assert-integer assert-char assert-byte assert-codepoint]))
+@(ev '(require/expose extort/compiler/compile-ops [assert-integer assert-char assert-byte assert-codepoint]))
 
 
 @(define this-lang "Extort")
@@ -140,7 +141,7 @@ shortcircuiting the remaining evaluation since as soon as we encounter
 an error, we know this is going to be the answer for the whole
 program.
 
-@codeblock-include["extort/interp-prim.rkt"]
+@codeblock-include["extort/interpreter/interp-prim.rkt"]
 
 Notice that the signature for these functions indicate that you get a
 value, or they raise an exception.  The functions for interpreting
@@ -159,7 +160,7 @@ this exception and returns the @racket['err] answer.  The
 @racket[interp-e] that does the work of recursively interpreting the
 meaning of an expression:
 
-@codeblock-include["extort/interp.rkt"]
+@codeblock-include["extort/interpreter/interp.rkt"]
 
 We can confirm the interpreter computes the right result for the
 examples given earlier:
@@ -184,7 +185,7 @@ This interpreter implicitly relies on the state of the input and
 output port, but we can define a pure interpreter like before,
 which we take as the specification of our language:
 
-@codeblock-include["extort/interp-io.rkt"]
+@codeblock-include["extort/interpreter/interp-io.rkt"]
 
 An important property of this semantics is that it provides a meaning
 for all possible expressions; in other words, @racket[interp/io] is a
@@ -348,12 +349,12 @@ value is not of the asserted type:
 @item{@racket[assert-codepoint] @tt{: Register -> Asm} produces code to check that the value in the given register is an integer and either in the range [0,55295] or [57344, 1114111].}
 ]
 
-@codeblock-include["extort/assert.rkt"]
+@codeblock-include["extort/compiler/assert.rkt"]
 
 The compiler for primitive operations is updated to include
 appropriate type assertions:
 
-@codeblock-include["extort/compile-ops.rkt"]
+@codeblock-include["extort/compiler/compile-ops.rkt"]
 
 @ex[
 (compile-op1 'add1)
@@ -366,7 +367,7 @@ external label @racket['raise_error] that will be defined by the
 run-time system and defines a label called @racket['err] that calls
 @tt{raise_error}:
 
-@codeblock-include["extort/compile.rkt"]
+@codeblock-include["extort/compiler/compile.rkt"]
 
 @ex[
 (compile-e (parse '(add1 #f)))
@@ -386,13 +387,13 @@ code that prints and exits in @tt{error_exit}; this is done so that
 the testing framework can intercede and replace the error function,
 but it can be ignored.}
 
-@filebox-include[fancy-c extort "main.c"]
+@filebox-include[fancy-c extort "runtime/main.c"]
 
 
 Linking in the run-time allows us to define the @racket[exec] and
 @racket[exec/io] functions:
 
-@codeblock-include["extort/exec.rkt"]
+@codeblock-include["extort/executor/exec.rkt"]
 
 We can run examples:
 
@@ -418,6 +419,6 @@ totality of the semantics:
 And again, we can randomly test the compiler by generating programs and inputs:
 
 @ex[
-(require extort/random)
+(require extort/syntax/random)
 (for ((i 100))
   (check-compiler (random-expr) (random-input)))]

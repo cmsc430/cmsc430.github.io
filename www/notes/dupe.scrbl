@@ -8,8 +8,9 @@
           "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"
-	  dupe/semantics
-          dupe/types
+	  "dupe-semantics.rkt"
+	  dupe/executor/decode
+	  dupe/runtime/types
 	  "../utils.rkt")
 
 
@@ -17,8 +18,10 @@
 @(define codeblock-include (make-codeblock-include #'h))
 
 @(ev '(require rackunit a86))
+@(ev '(require dupe/compiler/compile dupe/executor/decode dupe/executor/run))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "dupe" f))))))
-	   '("main.rkt" "random.rkt" "correct.rkt"))
+	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
+@(ev '(define (exec e) (run (compile e))))
 
 
 @title[#:tag "Dupe"]{Dupe: a duplicity of types}
@@ -50,11 +53,11 @@ Together this leads to the following grammar for concrete Dupe.
 
 And abstract Dupe:
 
-@codeblock-include["dupe/ast.rkt"]
+@codeblock-include["dupe/syntax/ast.rkt"]
 
 The s-expression parser is defined as follows:
 
-@codeblock-include["dupe/parse.rkt"]
+@codeblock-include["dupe/syntax/parse.rkt"]
 
 @ex[
 (parse '#t)
@@ -182,12 +185,12 @@ The interpreter follows a similar pattern to what we've done so far,
 although notice that the result of interpretation is now a @tt{Value}:
 either a boolean or an integer:
 
-@codeblock-include["dupe/interp.rkt"]
+@codeblock-include["dupe/interpreter/interp.rkt"]
 
 The interpretation of primitives is extended to account for the new
 @racket[zero?] primitive:
 
-@codeblock-include["dupe/interp-prim.rkt"]
+@codeblock-include["dupe/interpreter/interp-prim.rkt"]
 
 
 We can confirm the interpreter computes the right result for the
@@ -398,7 +401,7 @@ reprepresent booleans. Even numbers represent integers. Here
 are some functions to check our understanding of the
 encoding:
 
-@codeblock-include["dupe/types.rkt"]
+@codeblock-include["dupe/runtime/types.rkt"]
 
 @#reader scribble/comment-reader
 (ex
@@ -989,12 +992,12 @@ the time the assemble code executes (i.e. run-time) the
 @racket[value->bits] function (and indeed all Racket functions) no
 longer exists.
 
-@codeblock-include["dupe/compile.rkt"]
+@codeblock-include["dupe/compiler/compile.rkt"]
 
 The compilation of primitives, including the new @racket[zero?]
 primitive, can be accomplished with:
 
-@codeblock-include["dupe/compile-ops.rkt"]
+@codeblock-include["dupe/compiler/compile-ops.rkt"]
 
 We can try out the compiler with the help of @racket[asm-interp],
 but you'll notice the results are a bit surprising:
@@ -1022,7 +1025,7 @@ values:
 
 Which leads us to the following definition of @racket[exec]:
 
-@codeblock-include["dupe/exec.rkt"]
+@codeblock-include["dupe/executor/exec.rkt"]
 
 @ex[
 (exec (parse #t))
@@ -1050,7 +1053,7 @@ Dupe.
 We define the bit representations in a header file corresponding to
 the definitions given in @tt{types.rkt}:
 
-@filebox-include[fancy-c dupe "types.h"]
+@filebox-include[fancy-c dupe "runtime/types.h"]
 
 It uses an idiom of ``masking'' in order to examine on
 particular bits of a value. So for example if we want to
@@ -1066,18 +1069,18 @@ true.
 
 We use the following interface for values in the runtime system:
 
-@filebox-include[fancy-c dupe "values.h"]
-@filebox-include[fancy-c dupe "values.c"]
+@filebox-include[fancy-c dupe "runtime/values.h"]
+@filebox-include[fancy-c dupe "runtime/values.c"]
 
 The @tt{main} function remains largely the same although now we use
 @tt{val_t} in place of @tt{int64_t}:
 
-@filebox-include[fancy-c dupe "main.c"]
+@filebox-include[fancy-c dupe "runtime/main.c"]
 
 And finally, @tt{print_result} is updated to do a case analysis on the
 type of the result and print accordingly:
 
-@filebox-include[fancy-c dupe "print.c"]
+@filebox-include[fancy-c dupe "runtime/print.c"]
 
 @section{Correctness and testing}
 
@@ -1179,7 +1182,7 @@ have type errors in them, but with our revised version
 how well this is actually testing the compiler).
 
 @ex[
-(eval:alts (require "random.rkt") (void))
+(eval:alts (require "syntax/random.rkt") (void))
 (random-expr)
 (random-expr)
 (random-expr)
@@ -1189,4 +1192,3 @@ how well this is actually testing the compiler).
 (for ([i (in-range 10)])
   (check-compiler (random-expr)))
 ]
-

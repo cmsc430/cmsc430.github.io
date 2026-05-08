@@ -95,7 +95,7 @@ respective pattern.
   [(vector (vector x) (vector 2)) x])
 ]
 
-@section[#:tag-prefix "a8-" #:style 'unnumbered #:tag "vector"]{Predicate patterns}
+@section[#:tag-prefix "a8-" #:style 'unnumbered #:tag "predicate"]{Predicate patterns}
 
 The @racket[(? _f)] pattern matches any value for which the predicate
 @racket[_f] returns a true value (any value other than @racket[#f])

@@ -21,7 +21,8 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 fraud fraud/translate))
+@(ev '(require rackunit a86 fraud fraud/syntax/translate fraud/compiler/compile fraud/executor/run))
+@(ev '(define (exec e) (run (compile e))))
 
 @(define this-lang "Fraud")
 @(define prefix (string-append this-lang "-"))
@@ -214,7 +215,7 @@ add it to the set of free variables in the result.  When binding a
 variable, we add it to the set of bound variables before parsing the
 relevant part of the input where the variable is bound:
 
-@codeblock-include["fraud/parse.rkt"]
+@codeblock-include["fraud/syntax/parse.rkt"]
 
 
 @section[#:tag-prefix prefix]{Meaning of @this-lang programs}
@@ -341,7 +342,7 @@ It is defined by structural recursion on the expression.  Environments
 are represented as lists of associations between variables and values.
 There are two helper functions for @racket[ext] and @racket[lookup]:
 
-@codeblock-include["fraud/interp.rkt"]
+@codeblock-include["fraud/interpreter/interp.rkt"]
 
 We can confirm the interpreter computes the right result for the
 examples given earlier:
@@ -486,7 +487,7 @@ address of a variable occurrence is count of variable names that occur
 before it in the list.  When a variable is bound (via-@racket[let])
 the list grows:
 
-@codeblock-include["fraud/translate.rkt"]
+@codeblock-include["fraud/syntax/translate.rkt"]
 
 Notice that @racket[translate] is a kind of mini-compiler that
 compiles @tt{Expr}s to @tt{IExpr}s.  It's only job is to eliminate
@@ -509,7 +510,7 @@ lexical address of (what used to be a) variable indicates
 the position in this list. When a value is bound by a
 @racket[let], the list grows:
 
-@codeblock-include["fraud/interp-lexical.rkt"]
+@codeblock-include["fraud/interpreter/interp.rkt"]
 
 Try to convince yourself that the two version of @racket[interp]
 compute the same function.
@@ -823,7 +824,7 @@ bother with @racket[unpad-stack] because there's no coming back.
 Here is the compiler for primitives that incorporates all of these
 stack-alignment issues, but is otherwise the same as before:
 
-@filebox-include[codeblock fraud "compile-ops.rkt"]
+@filebox-include[codeblock fraud "compiler/compile-ops.rkt"]
 
 @section[#:tag-prefix prefix]{Complete @this-lang compiler}
 
@@ -832,7 +833,7 @@ the compile-time environment which is weaved through out the
 @racket[compile-e] function and its subsidiaries, which is critical in
 @racket[compile-variable] and extended in @racket[compile-let]. 
 
-@filebox-include[codeblock fraud "compile.rkt"]
+@filebox-include[codeblock fraud "compiler/compile.rkt"]
 
 Notice that the @racket[lookup] function computes a lexical
 address from an identifier and compile-time environment,
@@ -908,4 +909,3 @@ The check for correctness is the same as before, although the check should only 
 to elements of @tt{ClosedExpr}:
 
 @filebox-include[codeblock fraud "correct.rkt"]
-

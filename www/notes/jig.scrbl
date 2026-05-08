@@ -14,7 +14,11 @@
 @(ev `(current-directory ,(path->string (build-path langs "jig"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Jig")
 
@@ -171,7 +175,7 @@ Before addressing the issue of compiling proper tail calls, let's
 first think about the interpreter, starting from the interpreter we
 wrote for Iniquity:
 
-@codeblock-include["iniquity/interp.rkt"]
+@codeblock-include["iniquity/interpreter/interp.rkt"]
 
 What needs to be done to make it implement proper tail calls?
 
@@ -205,7 +209,7 @@ all about and how we can make them work.
 
 Here's what this code will compile to, roughly:
 
-@(void (ev '(current-objs '())))
+@(void (ev '(current-objects '())))
 
 @#reader scribble/comment-reader
 (ex
@@ -735,4 +739,4 @@ There are two important places where @racket[t?] is seeded to @racket[#t]:
 
 The complete compiler:
 
-@codeblock-include["jig/compile.rkt"]
+@codeblock-include["jig/compiler/compile.rkt"]

@@ -5,15 +5,17 @@
           redex/pict
 	  "../fancyverb.rkt"
 	  "../utils.rkt"
-	  blackmail/semantics
+	  "blackmail-semantics.rkt"
 	  "utils.rkt"
 	  "ev.rkt")
 
 @(define codeblock-include (make-codeblock-include #'here))
 
 @(ev '(require rackunit a86))
+@(ev '(require blackmail/compiler/compile blackmail/executor/run))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "blackmail" f))))))
-	   '("main.rkt" "random.rkt" "correct.rkt"))
+	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
+@(ev '(define (exec e) (run (compile e))))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "blackmail")])
@@ -79,7 +81,7 @@ An example concrete program:
 The datatype for abstractly representing expressions can be defined
 as:
 
-@codeblock-include["blackmail/ast.rkt"]
+@codeblock-include["blackmail/syntax/ast.rkt"]
 
 So, @racket[(Lit 0)], @racket[(Lit 120)], and
 @racket[(Lit -42)] are Blackmail AST expressions, but so are
@@ -90,7 +92,7 @@ So, @racket[(Lit 0)], @racket[(Lit 120)], and
 The parser is more involved than Abscond, but still
 straightforward:
 
-@codeblock-include["blackmail/parse.rkt"]
+@codeblock-include["blackmail/syntax/parse.rkt"]
 
 @ex[
 (parse '42)
@@ -162,14 +164,14 @@ an expression @math{e}, computes an integer @math{i}, such that
 To compute the meaning of an expression, the @racket[interp]
 function does a case analysis of the expression:
 
-@codeblock-include["blackmail/interp.rkt"]
+@codeblock-include["blackmail/interpreter/interp.rkt"]
 
 In the case of a @racket[(Prim1 p e)] expression, the interpreter
 first recursively computes the meaning of the subexpression @racket[e]
 and then defers to a helper function @racket[interp-prim1] which
 interprets the meaning of a given unary operation and value:
 
-@codeblock-include["blackmail/interp-prim.rkt"]
+@codeblock-include["blackmail/interpreter/interp-prim.rkt"]
 
 If the given operation is @racket['add1], the function adds 1;
 if it's @racket['sub1], it subtracts 1.
@@ -267,7 +269,7 @@ functions: the first, which is given a program, emits the entry point
 and return instructions, invoking another function to compile the
 expression:
 
-@codeblock-include["blackmail/compile.rkt"]
+@codeblock-include["blackmail/compiler/compile.rkt"]
 
 Notice that @racket[compile-e] is defined by structural
 recursion, much like the interpreter.
@@ -279,7 +281,7 @@ instructions that, when executed, will place @racket[e]'s value in the
 compiler emits instructions for carrying out the operation @racket[p],
 defering to a helper function @racket[compile-op1]:
 
-@codeblock-include["blackmail/compile-ops.rkt"]
+@codeblock-include["blackmail/compiler/compile-ops.rkt"]
 
 This function either emits an @racket[Add] or @racket[Sub]
 instruction, depending upon @racket[p].
@@ -310,7 +312,7 @@ what they each produce:
 Based on this, it's useful to define an @racket[exec] function that
 (should) behave like @racket[interp], just as we did for Abscond:
 
-@codeblock-include["blackmail/exec.rkt"]
+@codeblock-include["blackmail/executor/exec.rkt"]
 
 @ex[
 (exec (parse '(add1 (add1 40))))
@@ -364,7 +366,7 @@ which you can use, without needing the understand how it was
 implemented.
 
 @ex[
-(eval:alts (require "random.rkt") (void))
+(eval:alts (require "syntax/random.rkt") (void))
 (random-expr)
 (random-expr)
 (random-expr)

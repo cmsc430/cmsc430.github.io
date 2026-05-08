@@ -14,8 +14,10 @@
 @(define codeblock-include (make-codeblock-include #'h))
 
 @(ev '(require rackunit a86))
+@(ev '(require dodger/compiler/compile dodger/executor/run))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "dodger" f))))))
-	   '("main.rkt" "random.rkt" "correct.rkt"))
+	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
+@(ev '(define (exec e) (run (compile e))))
 
 
 @title[#:tag "Dodger"]{Dodger: addressing a lack of character}
@@ -49,11 +51,11 @@ We will also add the following operations:
 
 Abstract syntax is modelled with the following datatype definition:
 
-@codeblock-include["dodger/ast.rkt"]
+@codeblock-include["dodger/syntax/ast.rkt"]
 
 The s-expression parser is defined as follows:
 
-@codeblock-include["dodger/parse.rkt"]
+@codeblock-include["dodger/syntax/parse.rkt"]
 
 @ex[
 (parse #\a)
@@ -106,11 +108,11 @@ system, described below, takes care of printing them.
 
 The interpeter is much like that of Dupe, except we have a new base case:
 
-@codeblock-include["dodger/interp.rkt"]
+@codeblock-include["dodger/interpreter/interp.rkt"]
 
 And the interpretation of primitives is extended:
 
-@codeblock-include["dodger/interp-prim.rkt"]
+@codeblock-include["dodger/interpreter/interp-prim.rkt"]
 
 The meaning of characters and their operations are just lifted from Racket.
 
@@ -160,7 +162,7 @@ Notice that each kind of value is disjoint.
 
 We can write down functions for encoding into and decoding out of bits:
 
-@codeblock-include["dodger/types.rkt"]
+@codeblock-include["dodger/runtime/types.rkt"]
 
 @section{A Compiler for Dodger}
 
@@ -169,13 +171,13 @@ representation of values described earlier and uses logical operations
 to implement the bit manipulating operations.  Most of the work
 happens in the compilation of primitives:
 
-@codeblock-include["dodger/compile-ops.rkt"]
+@codeblock-include["dodger/compiler/compile-ops.rkt"]
 
 In fact the @racket[compile] is identical to its Dodger predecessor,
 since all the new work is done in @racket[value->bits] and
 @racket[compile-op1]:
 
-@codeblock-include["dodger/compile.rkt"]
+@codeblock-include["dodger/compiler/compile.rkt"]
 
 We can take a look at a few examples:
 
@@ -201,16 +203,16 @@ need to add run-time support for printing character literals.
 We extend the bit-encoding of values following the pattern we've
 already seen:
 
-@filebox-include[fancy-c dodger "types.h"]
+@filebox-include[fancy-c dodger "runtime/types.h"]
 
 And update the interface for values in the runtime system:
 
-@filebox-include[fancy-c dodger "values.h"]
-@filebox-include[fancy-c dodger "values.c"]
+@filebox-include[fancy-c dodger "runtime/values.h"]
+@filebox-include[fancy-c dodger "runtime/values.c"]
 
 The only other change is that @tt{print_result} is updated to handle
 the case of printing characters:
 
-@filebox-include[fancy-c dodger "print.c"]
+@filebox-include[fancy-c dodger "runtime/print.c"]
 
 @;{FIXME: examples should be creating executable at the command-line, not exec.}

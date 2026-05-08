@@ -1,8 +1,16 @@
 #lang racket
 (provide (all-defined-out))
-(require (for-syntax racket/runtime-path racket/base racket/file pkg/lib)
+(require (for-syntax racket/base
+                     racket/file
+                     racket/path
+                     racket/runtime-path
+                     pkg/lib)
          (for-meta 2 racket/base pkg/lib))
-(require scribble/manual racket/runtime-path pkg/lib)
+(require racket/file
+         racket/path
+         scribble/manual
+         racket/runtime-path
+         pkg/lib)
 (require (for-label (except-in racket compile) a86))
 (require images/icons/file)
 
@@ -18,15 +26,17 @@
   (syntax-case stx (a86)
     [(_ form lang fn)
      (parameterize ()
-       (let ((s (file->string (build-path (syntax-case #'lang (a86)
-                                            [a86 a86]
-                                            [_ (build-path langs (symbol->string (syntax->datum #'lang)))])
-                                          (syntax->datum #'fn)))))
+       (let* ((root (syntax-case #'lang (a86)
+                      [a86 a86]
+                      [_ (build-path langs (symbol->string (syntax->datum #'lang)))]))
+              (s (file->string
+                  (build-path root (syntax->datum #'fn)))))
          #`(filebox (link (string-append "code/" fn) (tt fn)) (form #,(datum->syntax #'form s)))))]))
 
 (define ((make-codeblock-include ctxt) fn)
    (filebox (link (string-append "code/" fn) (tt fn))
-            (typeset-code #:context ctxt (file->string (build-path langs fn)))))
+            (typeset-code #:context ctxt
+                          (file->string (build-path langs fn)))))
 
 (define-syntax (filebox-include-fake stx)
   (syntax-case stx ()

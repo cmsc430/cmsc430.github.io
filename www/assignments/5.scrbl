@@ -6,7 +6,8 @@
 
 @(require (for-label a86/ast (except-in racket ...)))
 
-@(ev '(require fraud-plus))
+@(ev '(require fraud-plus fraud-plus/compiler/compile fraud-plus/executor/run))
+@(ev '(define (exec e) (run (compile e))))
 
 @bold{Due: @assign-deadline[5]}
 

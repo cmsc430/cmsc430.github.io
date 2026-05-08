@@ -13,10 +13,18 @@
 
 @(ev '(require rackunit a86))
 @(ev `(current-directory ,(path->string (build-path langs "neerdowell"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(void (ev '(current-objs '("runtime.o"))))
+@(void (ev '(with-output-to-string (thunk (system "make -C runtime runtime.o")))))
+@(void (ev '(current-objects '("runtime/runtime.o"))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "compile-expr.rkt" "compile-literals.rkt" "compile-datum.rkt" "utils.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "compiler/compile-expr.rkt"
+             "compiler/compile-literals.rkt"
+             "compiler/compile-datum.rkt"
+             "compiler/utils.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Neerdowell")
 
@@ -394,7 +402,7 @@ The @racket[compile-make-struct] function is defined as follows:
 
 We can now see structures in action:
 
-@ex[
+@racketblock[
 (define (run . p)
   (bits->value (asm-interp (compile (parse p)))))
 
