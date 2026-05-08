@@ -40,7 +40,7 @@ jobs:
       run: |
         git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/a86.git
         git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/langs.git
-        git clone https://github.com/cmsc430/assignments.git
+        git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/assignments.git
         raco pkg install --auto a86/
         raco pkg install --auto langs/
         raco pkg install --auto assignments/
