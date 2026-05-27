@@ -11,7 +11,13 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 iniquity))
+@(ev '(require rackunit a86 iniquity iniquity/compiler/compile iniquity/executor/run))
+@(ev '(define (exec e) (run (compile e))))
+@(ev '(define (Offset a b)
+         (cond
+           [(symbol? a) (Mem a b)]
+           [(symbol? b) (Mem b a)]
+           [else (error 'Offset "expected register and offset; given ~e ~e" a b)])))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "iniquity")])
@@ -95,7 +101,7 @@ An example concrete @this-lang program is:
 To represent these kinds of programs, we extend the definition of ASTs
 as follows:
 
-@codeblock-include["iniquity/ast.rkt"]
+@codeblock-include["iniquity/syntax/ast.rkt"]
 
 The parser will need to be updated to parse programs, not just
 expressions.  Since a program is a sequence of forms, we will assume
@@ -105,14 +111,14 @@ of s-expressions.  There is also a new parse for function definitions,
 @racket[parse-definition].  The parser for expressions @racket[parse-e]
 is updated to include function applications.
 
-@codeblock-include["iniquity/parse.rkt"]
+@codeblock-include["iniquity/syntax/parse.rkt"]
 
 Because of the change from a program being a single expression to a
 sequence, we have to update the utilities that read program files,
 i.e. @tt{interp-stdin.rkt} and @tt{compile-stdin.rkt}:
 
-@codeblock-include["iniquity/interp-stdin.rkt"]
-@codeblock-include["iniquity/compile-stdin.rkt"]
+@codeblock-include["iniquity/interpreter/interp-stdin.rkt"]
+@codeblock-include["iniquity/compiler/compile-stdin.rkt"]
 
 
 
@@ -133,7 +139,7 @@ number of parameters as there are arguments in the call, the body of
 the function is interpreted in an enviorment that maps each parameter
 to to the corresponding argument.  That's it.
 
-@codeblock-include["iniquity/interp.rkt"]
+@codeblock-include["iniquity/interpreter/interp.rkt"]
 
 A couple of things to note:
 
@@ -245,7 +251,7 @@ That means that the argument will be in @racket[(Offset 'rsp 8)].
 
 So we can touch-up the example as follows and it will work:
 
-@(void (ev '(current-objs '())))
+@(void (ev '(current-objects '())))
 
 @#reader scribble/comment-reader
 (ex
@@ -678,4 +684,4 @@ the interpreter:
 
 The complete compiler code:
 
-@codeblock-include["iniquity/compile.rkt"]
+@codeblock-include["iniquity/compiler/compile.rkt"]

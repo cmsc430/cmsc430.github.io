@@ -4,6 +4,7 @@
 @(require redex/pict
 	  racket/runtime-path
 	  scribble/examples
+	  mug/executor/decode
 	  "utils.rkt"
 	  "ev.rkt"
 	  "../fancyverb.rkt"
@@ -11,12 +12,18 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
+@(ev '(require rackunit a86 mug/compiler/compile-literals mug/syntax/literals mug/executor/decode))
 @(ev `(current-directory ,(path->string (build-path langs "mug"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(void (ev '(current-objs '("runtime.o"))))
+@(void (ev '(with-output-to-string (thunk (system "make -C runtime runtime.o")))))
+@(void (ev '(current-objects '("runtime/runtime.o"))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "compile-expr.rkt" "compile-literals.rkt" "utils.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "compiler/compile-literals.rkt"
+             "compiler/compile-ops.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Mug")
 
@@ -70,7 +77,7 @@ Let's consider how strings were previously compiled.  Here's an assembly program
 that returns @racket["Hello!"]:
 
 @;{
-@ex[
+@racketblock[
 (require loot/compile)
 (seq (Label 'entry)
      (Mov 'rbx 'rdi)
@@ -80,7 +87,7 @@ that returns @racket["Hello!"]:
 
 We can run it just to make sure:
 
-@ex[
+@racketblock[
 (bits->value
  (asm-interp
   (seq (Global 'entry)
@@ -143,7 +150,7 @@ So to write a similar program that returns @racket["Hello!"] but
 @emph{statically} allocates the memory for the string, we could do the
 following:
 
-@ex[
+@racketblock[
 (bits->value
  (asm-interp
   (seq (Global 'entry)
@@ -193,7 +200,7 @@ Here is a version of the same program that avoids the @racket[Or]
 instruction, instead computing that type tagging at link time:
 
 
-@ex[
+@racketblock[
 (bits->value
  (asm-interp
   (seq (Global 'entry)
@@ -217,7 +224,7 @@ reduces the run-time memory that is allocated and makes is more
 efficient to evaluate string literals.  We could replace the old
 @racket[compile-string] function with the following:
 
-@ex[
+@racketblock[
 (define (compile-string s)
   (let ((l (gensym 'string)))
     (seq (Data)
@@ -226,7 +233,9 @@ efficient to evaluate string literals.  We could replace the old
 	 (map Dd (map char->integer (string->list s)))
 	 (Text)
 	 (Lea 'rax (|@| (+ l type-str))))))
+]
 
+@racketblock[
 (compile-string "Hello!")
 
 (bits->value
@@ -355,7 +364,7 @@ association needs to be maintained explicity.
 
 So here's how an occurrence of @racket["Hello!"] is compiled:
 
-@ex[
+@racketblock[
 (compile-string "Hello!")
 ]
 
@@ -393,10 +402,10 @@ returned.
 Using @racket[literals], we can write a function that compiles all of
 the string literals into static data as follows:
 
-@(ev '(require mug/compile-literals))
+@(ev '(require mug/compiler/compile-literals))
 
 @#reader scribble/comment-reader
-(ex
+(racketblock
 ;; Prog -> Asm
 (define (compile-literals p)
   (append-map compile-literal (literals p)))
@@ -465,9 +474,9 @@ So now we have accomplished our goal: string literals are statically
 allocated and different occurrence of the same string literal are
 considered @racket[eq?] to each other:
 
-@(ev '(require mug/compile))
+@(ev '(require mug/compiler/compile))
 
-@ex[
+@racketblock[
 (seq (compile-string "Hello!")
      (compile-string "Hello!")
      (compile-literal 'Hello!))
@@ -476,7 +485,7 @@ considered @racket[eq?] to each other:
 We can try it out to confirm some examples.
 
 
-@ex[
+@racketblock[
 (define (run . p)
   (bits->value (asm-interp (compile (parse p)))))
 
@@ -495,7 +504,7 @@ It's still worth noting that only string literals are interned.
 Dynamically created strings are not pointer-equal to structurally
 equal string literals:
 
-@ex[
+@racketblock[
 (run '(eq? "fff" (make-string 3 #\f)))
 ]
 
@@ -580,7 +589,7 @@ The key additions are a function for compiling symbol occurrences:
 
 Which works as follows:
 
-@ex[
+@racketblock[
 (compile-symbol 'Hello!)
 ]
 
@@ -606,7 +615,7 @@ chunk of memory is allocated to hold the character data @tt{H},
 symbol, while the string @racket["Hello"] is represent as the same
 pointer, but tagged as a string.  So this program compiles to:
 
-@ex[
+@racketblock[
 (seq (compile-string "Hello!")
      (compile-symbol 'Hello!)
      (compile-literal 'Hello!))
@@ -671,7 +680,7 @@ for alphabetic ordering.  If an entry is found, it returns the
 previously seen symbol, otherwise it adds the symbol to the table and
 returns it.
 
-@filebox-include[fancy-c mug "symbol.c"]
+@filebox-include[fancy-c mug "runtime/symbol.c"]
 
 The idea will be that every time a symbol is constructed, we call
 @tt{intern_symbol} to intern it.
@@ -691,7 +700,7 @@ To accomplish this, we'll design a function:
 
 Here's what it will produce for some example programs:
 
-@ex[
+@racketblock[
 (init-symbol-table (parse '['Hello!]))
 (init-symbol-table (parse '[(begin 'Hello! 'Hello!)]))
 (init-symbol-table (parse '["Hello!"]))
@@ -744,14 +753,14 @@ being a symbol.
 We can now confirm that dynamically created symbols are still
 pointer-equal to symbols that statically appear in the program:
 
-@ex[
+@racketblock[
 (run '(eq? 'fff (string->symbol (make-string 3 #\f))))
 ]
 
 Even creating two symbols dynamically will result in the same pointer
 so long as they are spelled the same:
 
-@ex[
+@racketblock[
 (run '(eq? (string->symbol (make-string 3 #\a))
 	   (string->symbol (make-string 3 #\a))))
 ]
@@ -799,13 +808,13 @@ heap pointer is incremented by that number of copied bytes.
 
 We can see that this works:
 
-@ex[
+@racketblock[
 (run '(symbol->string 'foo))
 ]
 
 To observe the copying behavior, notice:
 
-@ex[
+@racketblock[
 (run '(eq? (symbol->string 'foo) (symbol->string 'foo)))
 ]
 
@@ -855,7 +864,7 @@ avoid calling @tt{intern_symbol}:
 
 We can confirm this works as expected:
 
-@ex[
+@racketblock[
 (run '(string->uninterned-symbol "foo"))
 (run '(eq? 'foo (string->uninterned-symbol "foo")))
 (run '(eq? (string->uninterned-symbol "foo")
@@ -937,7 +946,7 @@ the same, so it works just as well to compare strings.)
 
 We can confirm some examples:
 
-@ex[
+@racketblock[
 (run '(match 'foo
         ['foo  1]
         ["foo" 2]))
@@ -963,9 +972,9 @@ expressions to its own module: @code-link{mug/compile-expr.rkt}.
 
 The top-level compiler is now:
 
-@filebox-include[codeblock mug "compile.rkt"]
+@filebox-include[codeblock mug "compiler/compile.rkt"]
 
 The work of compiling literals and emitting calls to initialize the
 symbol table is contained in its own module:
 
-@filebox-include[codeblock mug "compile-literals.rkt"]
+@filebox-include[codeblock mug "compiler/compile-literals.rkt"]

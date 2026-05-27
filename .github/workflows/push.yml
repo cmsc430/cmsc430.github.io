@@ -27,7 +27,6 @@ jobs:
       run: |
         curl -Ls https://github.com/jgm/pandoc/releases/download/2.11.2/pandoc-2.11.2-1-amd64.deb -o pandoc.deb
         sudo dpkg -i pandoc.deb
-        sudo apt-get install nasm
         sudo apt-get install fonts-stix
         sudo apt-get install libunistring-dev
     - name: Install Racket
@@ -39,9 +38,9 @@ jobs:
         version: '8.18'
     - name: Install a86, langs, and assignments
       run: |
-        git clone https://github.com/cmsc430/a86.git
-        git clone https://github.com/cmsc430/langs.git
-        git clone https://github.com/cmsc430/assignments.git
+        git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/a86.git
+        git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/langs.git
+        git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/assignments.git
         raco pkg install --auto a86/
         raco pkg install --auto langs/
         raco pkg install --auto assignments/

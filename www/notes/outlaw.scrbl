@@ -30,7 +30,7 @@
 @(ev '(require rackunit a86))
 @(ev `(current-directory ,(path->string (build-path langs "outlaw"))))
 @(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(void (ev '(current-objs '("runtime.o"))))
+@(void (ev '(current-objects '("runtime.o"))))
 @(for-each (λ (f) (ev `(require (file ,f))))
 	   '(#;"interp.rkt" "compile.rkt" "compile-expr.rkt" "compile-literals.rkt" "compile-datum.rkt" "utils.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
 
@@ -264,14 +264,14 @@ which would emit the following code:
 We can play around an make sure this assembly code is actually
 computing the length of the list in @racket['rax]:
 
-@(void (ev '(current-objs '())))
+@(void (ev '(current-objects '())))
 
 @#reader scribble/comment-reader
 (ex
-(require neerdowell/parse
-         neerdowell/compile-datum
-         neerdowell/compile-ops
-         neerdowell/types)
+(require neerdowell/syntax/parse
+         neerdowell/compiler/compile-datum
+         neerdowell/compiler/compile-ops
+         neerdowell/runtime/types)
 (require a86)
 
 ;; Datum -> Natural

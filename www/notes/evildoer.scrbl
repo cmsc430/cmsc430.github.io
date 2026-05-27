@@ -4,7 +4,7 @@
 @(require redex/pict
           racket/runtime-path
           scribble/examples
-	  evildoer/types
+	  evildoer/runtime/types
           "../fancyverb.rkt"
 	  "utils.rkt"
 	  "ev.rkt"	  
@@ -18,8 +18,10 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 evildoer evildoer/correct evildoer/compile-ops))
-@;{This is needed for the example that uses current-objs}
+@(ev '(require rackunit a86 evildoer evildoer/correct evildoer/compiler/compile-ops evildoer/compiler/compile evildoer/executor/run))
+@(ev '(define (exec e) (run (compile e))))
+@(ev '(define (exec/io e i) (run/io (compile e) i)))
+@;{This is needed for the example that uses current-objects}
 @(ev `(current-directory ,(path->string (build-path langs "evildoer"))))
 
 @(require (for-syntax racket/base))
@@ -146,11 +148,11 @@ Since we now have primitive operations that take 0 arguments,
 we split the @racket[Prim] constructor into @racket[Prim0]
 and @racket[Prim1].
 
-@codeblock-include["evildoer/ast.rkt"]
+@codeblock-include["evildoer/syntax/ast.rkt"]
 
 The s-expression parser is defined as follows:
 
-@codeblock-include["evildoer/parse.rkt"]
+@codeblock-include["evildoer/syntax/parse.rkt"]
 
 @ex[
 (parse 'eof)
@@ -307,14 +309,14 @@ can then use to assert the expected behavior:
 
 Here's an interpreter for Evildoer:
 
-@codeblock-include["evildoer/interp.rkt"]
+@codeblock-include["evildoer/interpreter/interp.rkt"]
 
 The interpretation of primitives relies on the
 underlying implementations @racket[read-byte],
 @racket[write-byte], etc. from Racket (just like it does
 for all the other operations):
 
-@codeblock-include["evildoer/interp-prim.rkt"]
+@codeblock-include["evildoer/interpreter/interp-prim.rkt"]
 
 Interpreting a program that reads and writes will itself
 read and write:
@@ -330,7 +332,7 @@ Using @racket[with-input-from-string] and
 @racket[with-output-to-string], we can also build a useful utility for
 interpreting programs with strings representing stdin and stdout:
 
-@codeblock-include["evildoer/interp-io.rkt"]
+@codeblock-include["evildoer/interpreter/interp-io.rkt"]
 
 @ex[
  (interp/io (parse '(write-byte 104)) "") 
@@ -376,7 +378,7 @@ new bit encodings. So we add new encodings for @racket[eof] and
 @binary[(value->bits eof)] and @binary[(value->bits (void))],
 respectively.
 
-@codeblock-include["evildoer/types.rkt"]
+@codeblock-include["evildoer/runtime/types.rkt"]
 
 @section[#:tag "calling-c"]{Detour: Calling external functions}
 
@@ -428,13 +430,13 @@ common divisor of two numbers.  We could of course write such a
 function in assembly, but it's convenient to be able to write it
 in a higher-level language like C:
 
-@filebox-include[fancy-c evildoer "gcd.c"]
+@filebox-include[fancy-c evildoer "runtime/gcd.c"]
 
 We can compile this into an object file:
 
 @(define format (if (eq? (system-type 'os) 'macosx) "macho64" "elf64"))
           
-@shellbox["gcc -c gcd.c -o gcd.o"]
+@shellbox["gcc -c runtime/gcd.c -o gcd.o"]
 
 Now, how can we call @tt{gcd} from aseembly code?  Just as there is a
 convention that a return value is communicated through @racket[rax],
@@ -499,7 +501,7 @@ there is a mechanism for linking in object files to the assembly
 interprer:
 
 @ex[
-(current-objs '("gcd.o"))
+(current-objects '("gcd.o"))
 (bits->value (asm-interp p))]
 
 We also could create an executable using the run-time system.
@@ -515,7 +517,7 @@ Now we can assemble it into an object file, link the objects together
 to make an executable, and then run it:
 
 @shellbox[(string-append "nasm -f " format " p.s -o p.o")
-          "gcc runtime.o gcd.o p.o -o p.run"
+          "gcc runtime/runtime.o gcd.o p.o -o p.run"
           "./p.run"]
 
 So now we've seen the essence of how to call functions from assembly
@@ -528,18 +530,18 @@ the compiled code.
 With new values comes the need to add new bit encodings. So
 we add new encodings for @racket[eof] and @racket[void]:
 
-@filebox-include[fancy-c evildoer "types.h"]
+@filebox-include[fancy-c evildoer "runtime/types.h"]
 
 The interface for the run-time system is extended to include
 file pointers for the input and output ports:
 
-@filebox-include[fancy-c evildoer "runtime.h"]
+@filebox-include[fancy-c evildoer "runtime/runtime.h"]
 
 The main entry point for the run-time sets up the input and output
 pointers to point to @tt{stdin} and @tt{stdout} and is updated
 to handle the proper printing of a void result:
 
-@filebox-include[fancy-c evildoer "main.c"]
+@filebox-include[fancy-c evildoer "runtime/main.c"]
 
 But the real novelty of the Evildoer run-time is that there
 will be new functions that implement @racket[read-byte],
@@ -547,7 +549,7 @@ will be new functions that implement @racket[read-byte],
 functions called @racket[read_byte], @racket[peek_byte] and
 @racket[write_byte]:
 
-@filebox-include[fancy-c evildoer "io.c"]
+@filebox-include[fancy-c evildoer "runtime/io.c"]
 
 This functionality is implemented in terms of standard C library
 functions @tt{getc}, @tt{ungetc}, @tt{putc} and the run-time system's
@@ -640,11 +642,11 @@ code.
 
 The top-level compiler:
 
-@codeblock-include["evildoer/compile.rkt"]
+@codeblock-include["evildoer/compiler/compile.rkt"]
 
 The primitive operation compiler:
 
-@codeblock-include["evildoer/compile-ops.rkt"]
+@codeblock-include["evildoer/compiler/compile-ops.rkt"]
 
 
 Notice how expressions like @racket[(read-byte)] and @racket[(write-byte)]
@@ -668,7 +670,7 @@ The first is that the @racket[asm-interp] utility doesn't know
 anything about the Evildoer run-time. Hence we need to tell
 @racket[asm-interp] to link it in when running an example; otherwise
 labels like @tt{byte_write} will be undefined.  We saw how to do this
-in @secref["calling-c"] using the @racket[current-objs] parameter to
+in @secref["calling-c"] using the @racket[current-objects] parameter to
 link in object files to @racket[asm-interp].  This time, the object
 file we want to link in is the Evildoer run-time.
 
@@ -681,8 +683,8 @@ linked objects define an @tt{in} and @tt{out} symbol, it will set
 these appropriately to read input from a given string and collect
 output into a string.
 
-@ex[
-(current-objs '("runtime.o"))
+@racketblock[
+(current-objects '("runtime/runtime.o"))
 (asm-interp/io (compile (parse '(write-byte (read-byte)))) "a")]
 
 Notice though, that @racket[asm-interp/io] gives back a pair
@@ -690,22 +692,22 @@ consisting of the @emph{bits} and the output string.  To match the
 return type of @racket[interp/io] we need to convert the bits to a
 value:
 
-@ex[
+@racketblock[
 (match (asm-interp/io (compile (parse '(write-byte (read-byte)))) "a")
   [(cons b o) (cons (bits->value b) o)])]
 
 Using these pieces, we can write a function that matches the type signature
 of @racket[interp/io]:
 
-@codeblock-include["evildoer/exec.rkt"]
+@codeblock-include["evildoer/executor/exec.rkt"]
 
-@ex[
+@racketblock[
 (exec/io (parse '(write-byte (read-byte))) "z")]
 
 Note that we still provide an @racket[exec] function, but it
 assumes there is no input and it prints all output:
 
-@ex[
+@racketblock[
 (exec (parse '(eof-object? (read-byte))))
 (exec (parse '(write-byte 97)))]
 
@@ -723,7 +725,7 @@ stream:
 
 @codeblock-include["evildoer/correct.rkt"]
 
-@ex[
+@racketblock[
 (check-compiler (parse '(void)) "")
 (check-compiler (parse '(read-byte)) "a")
 (check-compiler (parse '(write-byte 97)) "")]
@@ -734,8 +736,8 @@ guaranteed to be well-defined, as usual.  Additionally, the
 @racket[random-input] function produces a random string that can be
 used as the input.
 
-@ex[
-(require "random.rkt")
+@racketblock[
+(require "syntax/random.rkt")
 (random-expr)
 (random-well-defined-expr)
 (random-input)]
@@ -743,7 +745,7 @@ used as the input.
 Together, these can be used to randomly test the correctness of the
 compiler:
 
-@ex[
+@racketblock[
 (for ((i 100))
   (check-compiler (random-expr) (random-input)))
 (for ((i 100))

@@ -4,7 +4,7 @@
 @(require redex/pict
 	  racket/runtime-path
 	  scribble/examples
-	  hoax/types
+	  hoax/runtime/types
 	  ; (except-in "../../langs/hustle/semantics.rkt" ext lookup)
 	  ; (prefix-in sem: (only-in "../../langs/hustle/semantics.rkt" ext lookup))
 	  "../fancyverb.rkt"
@@ -15,7 +15,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 hoax hoax/compile-ops hoax/assert))
+@(ev '(require rackunit a86 hoax hoax/compiler/compile-ops hoax/compiler/assert))
      
 @(define this-lang "Hoax")
 
@@ -111,7 +111,7 @@ The @this-lang interpreter is essentially the same as for Hustle,
 although with the addition of ternary primitives, plus an extension of
 the @racket[interp-prim] module:
 
-@codeblock-include["hoax/interp-prim.rkt"]
+@codeblock-include["hoax/interpreter/interp-prim.rkt"]
 
 Vectors are easy to model in the interpreter because we can rely on
 vectors in the meta-level of Racket.
@@ -1148,7 +1148,7 @@ Using this idea we can formulate a compiler for string literals:
 Most of the work for the @this-lang compiler is done in the
 compilation of the new operations:
 
-@codeblock-include["hoax/compile-ops.rkt"]
+@codeblock-include["hoax/compiler/compile-ops.rkt"]
 
 We can now confirm that the compiler generates code similar to what we
 wrote by hand above:
@@ -1168,15 +1168,15 @@ wrote by hand above:
 
 First, we extend the value interface to include vectors:
 
-@filebox-include[fancy-c hoax "values.h"]
+@filebox-include[fancy-c hoax "runtime/values.h"]
 
 The implementation of @tt{val_typeof} is extended to handle
 another pointer type:
 
-@filebox-include[fancy-c hoax "values.c"]
+@filebox-include[fancy-c hoax "runtime/values.c"]
 
 Printing is updated to handle vectors and strings.  Note that printing
 of strings seems complicated by this code is actually auto-generated
 from the Unicode specification.
 
-@filebox-include[fancy-c hoax "print.c"]
+@filebox-include[fancy-c hoax "runtime/print.c"]

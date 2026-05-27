@@ -3,20 +3,30 @@
 @(require (for-label (except-in racket compile ...) a86/ast))
 @(require redex/pict
 	  racket/runtime-path
+	  racket/file
+	  racket/string
 	  scribble/examples
+	  mountebank/executor/decode
 	  "utils.rkt"
 	  "ev.rkt"
 	  "../fancyverb.rkt"
 	  "../utils.rkt")
 
+@(define-runtime-path simple-interp-file "mountebank-simple-interp.rkt")
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86))
+@(ev '(require rackunit a86 mountebank/executor/decode))
 @(ev `(current-directory ,(path->string (build-path langs "mountebank"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(void (ev '(current-objs '("runtime.o"))))
+@(void (ev '(with-output-to-string (thunk (system "make -C runtime runtime.o")))))
+@(void (ev '(current-objects '("runtime/runtime.o"))))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "compile-expr.rkt" "compile-literals.rkt" "compile-datum.rkt" "utils.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "compiler/compile-literals.rkt"
+             "compiler/compile-datum.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Mountebank")
 
@@ -128,13 +138,13 @@ string are redundant, we remove all of the literal constructors.
 
 Here is the new AST definition:
 
-@filebox-include[codeblock mountebank "ast.rkt"]
+@filebox-include[codeblock mountebank "syntax/ast.rkt"]
 
 The parser is updated to parse things like booleans, numbers, etc. as
 @racket[Quote] nodes now and also to support the ability to write
 arbitrary datum value under a quote:
 
-@filebox-include[codeblock mountebank "parse.rkt"]
+@filebox-include[codeblock mountebank "syntax/parse.rkt"]
 
 
 @section[#:tag-prefix "mountebank"]{Quotes are constants}
@@ -185,7 +195,7 @@ that appear in @racket[quote]d datums are interned as usual:
 Interpreting a quoted datum is trivial---it evaluates to the datum
 itself:
 
-@filebox-include[codeblock mountebank "interp.rkt"]
+@filebox-include[codeblock mountebank "interpreter/interp.rkt"]
 
 The proper treatment of datums as constants is inherited from Racket,
 so our interpreter does the right thing on these examples:
@@ -218,7 +228,7 @@ The latter is achieved by extending the @racket[literals] function
 from Mug to traverse the datum in a @racket[quote] to extract any
 string or symbol occurrences.
 
-@filebox-include[codeblock mountebank "compile-literals.rkt"]
+@filebox-include[codeblock mountebank "compiler/compile-literals.rkt"]
 
 The static allocation of compound datums is achieved use the same
 static memory allocation mechanism we saw when allocating the string
@@ -241,7 +251,7 @@ contain its data and a tagged address of that memory.}
 
 Let's see some examples:
 
-@ex[
+@racketblock[
 
 (compile-datum 0)
 
@@ -267,7 +277,7 @@ Datums can be built up arbitrarily large, so in order to compound
 datums, we need to recursive traverse their structure to emit the
 static data section of their construction.  Here's a larger example:
 
-@ex[
+@racketblock[
 (compile-datum '((3) fred #(x y z) (("wilma"))))
 ]
 
@@ -278,7 +288,7 @@ appropriately tagged, to those labels.
 Here is a simple example of a nested datum: a box containing a box
 containing zero.
 
-@ex[
+@racketblock[
 (compile-datum '#&#&0)
 ]
 
@@ -290,13 +300,13 @@ address of the outer box into @racket['rax].
 
 Here is the complete code for @racket[compile-datum]:
 
-@filebox-include[codeblock mountebank "compile-datum.rkt"]
+@filebox-include[codeblock mountebank "compiler/compile-datum.rkt"]
 
 Now we've succsefully implemented @racket[quote] and can confirm are
 examples behave as expected:
 
-@ex[
-(current-objs '("runtime.o"))
+@racketblock[
+(current-objects '("runtime/runtime.o"))
 (define (run . p)
   (bits->value (asm-interp (compile (parse p)))))
 
@@ -324,36 +334,39 @@ kind of data in a way that may seem familiar.
 For example, here's a program that interprets a little language that
 has elements of the ones we've been building:
 
-@filebox-include[codeblock mountebank "simple-interp.rkt"]
+@(filebox (link "code/mountebank/simple-interp.rkt" (tt "mountebank/simple-interp.rkt"))
+          (codeblock (file->string simple-interp-file)))
 
 
 Now of course this is a Racket program, which we can run.  Running it
 will run the interpreter we defined on the input program, computing
 the 36th triangular number:
 
-@(define (shellbox . s)
-   (parameterize ([current-directory (build-path langs "mountebank")])
-     (filebox (emph "shell")
-              (fancyverbatim "fish" (apply shell s)))))
+@(define (shellbox-static . ss)
+   (filebox (emph "shell")
+            (fancyverbatim "fish" (string-join ss "\n"))))
 
-@shellbox[
-"racket simple-interp.rkt"
-]
+@shellbox-static{
+racket simple-interp.rkt
+666
+}
 
 But of course, this is also a Mountebank program!  So we can interpret
 it with our Mountenank interpreter:
 
-@shellbox[
-"racket -t interp-file.rkt -m simple-interp.rkt"
-]
+@shellbox-static{
+racket -t interp-file.rkt -m simple-interp.rkt
+666
+}
 
 And since it's a Mountebank program, we can also compile it and then
 running the resulting executable:
 
-@shellbox[
-"make simple-interp.run"
-"./simple-interp.run"
-]
+@shellbox-static{
+make simple-interp.run
+./simple-interp.run
+666
+}
 
 We are moving ever closer to the point where our compiler can compile
 the source code of itself.

@@ -19,10 +19,14 @@
 
 @(ev '(require rackunit a86))
 @(ev `(current-directory ,(path->string (build-path langs "knock"))))
-@(void (ev '(with-output-to-string (thunk (system "make runtime.o")))))
-@(ev '(current-objs '("runtime.o")))
+@(void (ev '(with-output-to-string (thunk (system "make -C runtime runtime.o")))))
+@(ev '(current-objects '("runtime/runtime.o")))
 @(for-each (λ (f) (ev `(require (file ,f))))
-	   '("interp.rkt" "compile.rkt" "ast.rkt" "parse.rkt" "types.rkt"))
+	   '("interpreter/interp.rkt"
+             "compiler/compile.rkt"
+             "syntax/ast.rkt"
+             "syntax/parse.rkt"
+             "runtime/types.rkt"))
 
 @(define this-lang "Knock")
 
@@ -66,7 +70,7 @@ matching parts of @racket[_e]'s value.  If no patterns match
 
 The syntax is extended as follows:
 
-@codeblock-include["knock/ast.rkt"]
+@codeblock-include["knock/syntax/ast.rkt"]
 
 
 @section[#:tag-prefix "knock"]{Match by Example}
@@ -330,7 +334,7 @@ It's fairly straightforward:
 
 The complete interpreter:
 
-@codeblock-include["knock/interp.rkt"]
+@codeblock-include["knock/interpreter/interp.rkt"]
 
 
 We can now see it in action:
@@ -677,7 +681,7 @@ expression:
 
 We can check that the compiler works for a complete example:
 
-@ex[
+@racketblock[
 (define (run . p)
   (bits->value (asm-interp (compile (apply parse p)))))
 
@@ -693,4 +697,4 @@ We can check that the compiler works for a complete example:
 
 With these pieces in place, here's the complete compiler:
 
-@codeblock-include["knock/compile.rkt"]
+@codeblock-include["knock/compiler/compile.rkt"]

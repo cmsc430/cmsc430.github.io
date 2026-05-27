@@ -5,8 +5,7 @@ These are the course notes for CMSC 430. They can be a bit
 rough around the edges in places, but please keep in mind
 this is a @emph{living} document. If you spot errors,
 confusing prose, missing parts, or generally have
-suggestions for improving the material, @bold{please},
-@bold{please}, @bold{please} submit an
+suggestions for improving the material, submit an
 @link["https://github.com/cmsc430/www"]{issue on Github}.
 
 @local-table-of-contents[#:style 'immediate-only]
@@ -36,3 +35,4 @@ suggestions for improving the material, @bold{please},
 @include-section{notes/neerdowell.scrbl}
 @include-section{notes/outlaw.scrbl}
 @;include-section{notes/shakedown.scrbl}
+@index-section[]

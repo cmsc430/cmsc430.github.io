@@ -220,7 +220,7 @@ work from our compiler by simply linking them against this new runtime:
 
 @#reader scribble/comment-reader
 (ex
-(current-objs '("runtime-plus-length.o"))
+(current-objects '("runtime-plus-length.o"))
 (unload/free
   (asm-interp
     (seq (Extern (symbol->label 'length))
@@ -250,4 +250,3 @@ Before addressing these issues, let's instead turn to another, closely
 related issue: supporting the compilation of multi-module programs.
 
 @section[#:tag-prefix "knock"]{Modules}
-

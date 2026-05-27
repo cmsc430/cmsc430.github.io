@@ -9,11 +9,20 @@
 	  "ev.rkt"
 	  "../utils.rkt"
 	  "diagrams.rkt"
-	  hustle/types)
+	  hustle/runtime/types)
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 hustle hustle/unload hustle/heap hustle/interp-prims-heap hustle/compile-ops))
+@(ev '(require rackunit
+               a86
+               hustle
+               hustle/interpreter/unload
+               hustle/interpreter/heap
+               hustle/interpreter/interp-prims-heap
+               hustle/compiler/compile-ops
+               hustle/compiler/compile
+               hustle/executor/run))
+@(ev '(define (exec e) (run (compile e))))
 
 @(define this-lang "Hustle")
 @(define prefix (string-append this-lang "-"))
@@ -173,7 +182,7 @@ syntax in Hustle:
 ]
 
 
-@codeblock-include["hustle/parse.rkt"]
+@codeblock-include["hustle/syntax/parse.rkt"]
 
 @section[#:tag-prefix prefix]{Meaning of @this-lang programs, implicitly}
 
@@ -193,7 +202,7 @@ primitives to account for our new primitives such as @racket[cons],
 @racket[car], etc.  And how should these primitives be interpreted?
 Using their Racket counterparts of course!
 
-@codeblock-include["hustle/interp-prim.rkt"]
+@codeblock-include["hustle/interpreter/interp-prim.rkt"]
 
 We can try it out:
 
@@ -353,11 +362,11 @@ same thing:
 In fact, we can reconstruct a @tt{Value} from a @tt{Value*} and
 @tt{Heap}:
 
-@codeblock-include["hustle/unload.rkt"]
+@codeblock-include["hustle/interpreter/unload.rkt"]
 
 Which relies on our interface for heaps:
 
-@codeblock-include["hustle/heap.rkt"]
+@codeblock-include["hustle/interpreter/heap.rkt"]
 
 Try it out:
 
@@ -407,7 +416,7 @@ pointed to by the given @racket[cons-ptr] value.
 
 Much of the work is handled in the new @tt{interp-prims-heap} module:
 
-@codeblock-include["hustle/interp-prims-heap.rkt"]
+@codeblock-include["hustle/interpreter/interp-prims-heap.rkt"]
 
 
 @ex[
@@ -427,7 +436,7 @@ function that modelled memory implicitly, calls
 @racket[interp-env-heap] with an initially empty heap and the unloads
 the final answer from the result:
 
-@codeblock-include["hustle/interp-heap.rkt"]
+@codeblock-include["hustle/interpreter/interp-heap.rkt"]
 
 
 
@@ -1146,7 +1155,7 @@ the corresponding Racket value.  In other words, extending
 @racket[bits->value] to work in the presence of tagged pointer values
 involves just the kind of thing we've written:
 
-@codeblock-include["hustle/types.rkt"]
+@codeblock-include["hustle/runtime/types.rkt"]
 
 You'll notice that instead of the @racket[mem-ref] we wrote, it uses
 Racket's own ``unsafe'' operations.  The only difference is that this
@@ -1156,7 +1165,7 @@ With @racket[bits->value] in place, we can now build up some utilities
 for running programs with the run-time system linked in and using
 @racket[bits->value] to construct the result value:
 
-@codeblock-include["hustle/run.rkt"]
+@codeblock-include["hustle/executor/run.rkt"]
 
 Let's make the list @racket['(1 2 3)].  Remember that @racket['(1 2
 3)] is just @racket[(cons 1 (cons 2 (cons 3 '())))].
@@ -1307,7 +1316,7 @@ Putting it all together we get the compiler for the new primitives:
 @racket[car], @racket[car], @racket[cdr], @racket[cons?], and
 @racket[empty?]:
 
-@codeblock-include["hustle/compile-ops.rkt"]
+@codeblock-include["hustle/compiler/compile-ops.rkt"]
 
 
 
@@ -1357,7 +1366,7 @@ this we're going to use @racket[rbx] to store our heap pointer. You
 can see that we do this in the compiler with @racket[(Mov rbx rdi)] as
 part of our entry code.
 
-@filebox-include[fancy-c hustle "main.c"]
+@filebox-include[fancy-c hustle "runtime/main.c"]
 
 
 @subsection{Updating the run-time system's notion of Values}
@@ -1365,12 +1374,12 @@ part of our entry code.
 We extend our runtime system's view of values to include
 pointers and use C @tt{struct} to represent them:
 
-@filebox-include[fancy-c hustle "values.h"]
+@filebox-include[fancy-c hustle "runtime/values.h"]
 
 The implementation of @tt{val_typeof} is extended to handle
 pointer types:
 
-@filebox-include[fancy-c hustle "values.c"]
+@filebox-include[fancy-c hustle "runtime/values.c"]
 
 
 @subsection{Printing Values}
@@ -1381,7 +1390,7 @@ analogous to how @racket[bits->value] had to recursively construct
 values, too).  It also must account for the wrinkle of how the
 printing of proper and improper lists is different:
 
-@filebox-include[fancy-c hustle "print.c"]
+@filebox-include[fancy-c hustle "runtime/print.c"]
 
 @section[#:tag-prefix prefix]{Correctness}
 

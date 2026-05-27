@@ -13,7 +13,8 @@
 
 @(define codeblock-include (make-codeblock-include #'here))
 
-@(ev '(require rackunit a86 abscond abscond/correct))
+@(ev '(require rackunit a86 abscond abscond/correct abscond/compiler/compile abscond/executor/run))
+@(ev '(define (exec-expr e) (run (compile e))))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "abscond")])
@@ -162,13 +163,13 @@ For each category, we will have an appropriate constructor.  In the case of Absc
 all expressions are integers, so we have a single constructor, @racket[Lit].
 A datatype for representing expressions can be defined as:
 
-@codeblock-include["abscond/ast.rkt"]
+@codeblock-include["abscond/syntax/ast.rkt"]
 
 
 The parser for Abscond checks that a given s-expression is
 an integer and constructs an instance of the AST datatype if
 it is, otherwise it signals an error:
-@codeblock-include["abscond/parse.rkt"]
+@codeblock-include["abscond/syntax/parse.rkt"]
 
 @ex[
 (parse 5)
@@ -184,7 +185,7 @@ The meaning of an Abscond program is simply the number itself.  So
 We can write an ``interpreter'' that consumes an expression and
 produces it's meaning:
 
-@codeblock-include["abscond/interp.rkt"]
+@codeblock-include["abscond/interpreter/interp.rkt"]
 
 @#reader scribble/comment-reader
 (examples #:eval ev
@@ -203,7 +204,7 @@ but this will change as the langauge grows.
 We can add a command line wrapper program for interpreting Abscond
 programs from stdin:
 
-@codeblock-include["abscond/interp-stdin.rkt"]
+@codeblock-include["abscond/interpreter/interp-stdin.rkt"]
 
 The details here aren't important (and you won't be asked to write
 this kind of code), but this program @racket[read]s the contents of a
@@ -310,14 +311,14 @@ So our compiler will emit x86 assembly code.  To make our lives a bit
 easier, we will write the run-time system in C.  Let's start with the
 Abscond runtime:
 
-@filebox-include[fancy-c abscond "main.c"]
+@filebox-include[fancy-c abscond "runtime/main.c"]
 
 This C program provides the main entry point for running an Abscond
 program.  It relies upon a function @tt{print_result} which is defined
 as follows:
 
-@filebox-include[fancy-c abscond "print.h"]
-@filebox-include[fancy-c abscond "print.c"]
+@filebox-include[fancy-c abscond "runtime/print.h"]
+@filebox-include[fancy-c abscond "runtime/print.c"]
 
 Separating out @tt{print_result}, which at this point is just a simple
 @tt{printf} statement, seems like overkill, but it will be useful in
@@ -433,7 +434,7 @@ So the AST representation of our example is:
 
 Writing the @racket[compile] function is easy:
 
-@codeblock-include["abscond/compile.rkt"]
+@codeblock-include["abscond/compiler/compile.rkt"]
 
 @#reader scribble/comment-reader
 (examples #:eval ev 
@@ -456,7 +457,7 @@ Putting it all together, we can write a command line compiler much
 like the command line interpreter before, except now we emit assembly
 code:
 
-@codeblock-include["abscond/compile-stdin.rkt"]
+@codeblock-include["abscond/compiler/compile-stdin.rkt"]
 
 Example:
 
@@ -518,15 +519,16 @@ What does that even mean, to be correct?
 
 First, let's formulate an alternative implementation of
 @racket[interp] that composes our compiler and a86 interpreter to define
-a (hopefully!) equivalent function to @racket[interp]:
+a lower-level execution wrapper for assembled programs:
 
-@codeblock-include["abscond/exec.rkt"]
+@codeblock-include["abscond/executor/exec.rkt"]
 
-This function can be used as a drop-in replacement to @racket[interp]:
+For source expressions, we can recover the old behavior by composing
+@racket[compile] with @racket[run]:
 
 @ex[
-(exec (Lit 42))
-(exec (Lit 19))]
+(exec-expr (Lit 42))
+(exec-expr (Lit 19))]
 
 It captures the idea of a phase-distinction in that you can first
 compile a program into a program in another language---in this case
@@ -535,7 +537,7 @@ If the compiler is correct, the result should be the same:
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
 @tt{Expr} and @racket[i] @math{∈} @tt{Integer}, if @racket[(interp e)]
-equals @racket[i], then @racket[(exec e)] equals
+equals @racket[i], then @racket[(exec-expr e)] equals
 @racket[i].}
 
 One thing that is nice about specifying our language with an
@@ -549,9 +551,9 @@ compilation within Racket:
 
 
 @ex[
-(exec (Lit 42))
-(exec (Lit 37))
-(exec (Lit -8))]
+(exec-expr (Lit 42))
+(exec-expr (Lit 37))
+(exec-expr (Lit -8))]
 
 This of course agrees with what we will get from the interpreter:
 
@@ -605,5 +607,3 @@ of a valid input (i.e. some integer) that might refute the correctness
 claim?
 
 Think on it.  In the meantime, let's move on.
-
-

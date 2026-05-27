@@ -11,7 +11,7 @@
 @(define codeblock-include (make-codeblock-include #'h))
 
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path notes "mug" f))))))
-	   '("interp.rkt" "interp-env.rkt" #;"compile.rkt" "syntax.rkt" "pat.rkt" #;"asm/interp.rkt" #;"asm/printer.rkt"))
+	   '("interpreter/interp.rkt" "interpreter/env.rkt" #;"compile.rkt" "syntax.rkt" "pat.rkt" #;"asm/interp.rkt" #;"asm/printer.rkt"))
 
 @title[#:tag "Mug"]{Mug: matching, throwing, quoting}
 
@@ -44,7 +44,7 @@ extensions considered in the various assignments up through
 @seclink["Assignment 7"]{Assignment 7}.
 
 
-@codeblock-include["mug/interp-env.rkt"]
+@codeblock-include["mug/interpreter/env.rkt"]
 
 @section[#:tag-prefix "mug"]{A bit more sugar}
 

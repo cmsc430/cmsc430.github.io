@@ -8,7 +8,7 @@
 	  #;(prefix-in sem: (only-in "con/semantics.rkt" ext lookup))
 	  "utils.rkt"
 	  "ev.rkt"
-	  con/semantics
+	  "con-semantics.rkt"
 	  "../utils.rkt")
 
 
@@ -17,8 +17,10 @@
 
 
 @(ev '(require rackunit a86))
+@(ev '(require con/compiler/compile con/executor/run))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "con" f))))))
-	   '("main.rkt" "random.rkt" "correct.rkt"))
+	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
+@(ev '(define (exec e) (run (compile e))))
 
 
 @title[#:tag "Con"]{Con: branching with conditionals}
@@ -44,7 +46,7 @@ This leads to the following grammar for concrete Con:
 
 And abstract grammar:
 
-@codeblock-include["con/ast.rkt"]
+@codeblock-include["con/syntax/ast.rkt"]
 
 @;{
  We will also need a predicate for well-formed Con expressions, but
@@ -53,7 +55,7 @@ let's return to this after considering the semantics and interpreter.
 
 The parser is similar to what we've seen before:
 
-@codeblock-include["con/parse.rkt"]
+@codeblock-include["con/syntax/parse.rkt"]
 
 @ex[
 (parse '(if (zero? 42) 1 2))
@@ -167,7 +169,7 @@ The semantics is defined by extending the interpreter to add a case
 for if-expressions, which recursively evaluates the test expression
 and branches based on its value.
 
-@codeblock-include["con/interp.rkt"]
+@codeblock-include["con/interpreter/interp.rkt"]
 
 We can confirm the interpreter computes the right result for the
 examples given earlier (using @racket[parse] to state the examples
@@ -257,7 +259,7 @@ instructions.
 
 The complete compiler code is:
 
-@codeblock-include["con/compile.rkt"]
+@codeblock-include["con/compiler/compile.rkt"]
 
 Let's take a look at a few examples:
 @ex[
@@ -295,7 +297,7 @@ programs, and are provided in a @link["con/random.rkt"]{random.rkt}
 module.
 
 @ex[
-(eval:alts (require "random.rkt") (void))
+(eval:alts (require "syntax/random.rkt") (void))
 (random-expr)
 (random-expr)
 (random-expr)
