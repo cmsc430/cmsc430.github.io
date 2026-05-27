@@ -50,9 +50,6 @@ This course will make use of the following software:
  @item{Racket @tt{langs} package: a package containing utilities
   for this course.}
 
- @item{NASM: the Netwide Assembler, which we will use to
-  assemble x86 programs.}
-
  @item{GCC: the GNU compiler collection or a GCC-compatible
   system such as clang.}
 ]
@@ -66,9 +63,7 @@ If you have an ARM-based machine, you will need to use
 
 For x86-based Linux machines, you will need to
 @seclink["install-racket"]{install Racket} and the
-@seclink["langs-package"]{langs package}.  Finally, install @tt{nasm}.
-You can use your favorite package manager; they should all have
-@tt{nasm}.
+@seclink["langs-package"]{langs package}.
 
 
 @section[#:tag "mac"]{Using macOS}
@@ -83,10 +78,7 @@ a chip name containing either Intel or Apple.
 
 Intel-based Macs are fairly straightforward to set up.  You will need
 to @seclink["install-racket"]{install Racket} and the
-@seclink["langs-package"]{langs package}.  You will also need to
-install @tt{nasm}.  It's probably easiest to use a package manager
-such as @link["https://brew.sh/"]{Homebrew} to install with @tt{brew
-install nasm}.
+@seclink["langs-package"]{langs package}.
 
 You will also want to make sure your Racket installation is visible
 from your @tt{PATH} environment variable.  Assuming Racket was
@@ -124,10 +116,10 @@ Otherwise, follow the steps given above.
 
 For Windows users, using WSL for testing is highly recommended. Beyond
 the first few assignments, the projects will require generating and
-executing assembly code using the nasm package. Students in the past
-have had trouble trying to configure this in the Windows environment,
-so an easier workaround is simply to enable WSL and run your tests through
-some Linux Distribution. Here is a breakdown of the steps:
+executing assembly code. Students in the past have had trouble trying
+to configure this in the Windows environment, so an easier workaround
+is simply to enable WSL and run your tests through some Linux
+Distribution. Here is a breakdown of the steps:
 
 @itemlist[
  #:style 'ordered
@@ -143,8 +135,7 @@ some Linux Distribution. Here is a breakdown of the steps:
   etc.). Run @tt{sudo apt update} and follow with @tt{sudo apt
    upgrade}. These two may take some time. }
 
- @item{Run @tt{sudo apt install racket} and @tt{
-   sudo apt install nasm}. These two should cover the necessary
+ @item{Run @tt{sudo apt install racket}. This should cover the necessary
   installations for this course.}
 
  @item{Here is where to determine which IDE you would like to
@@ -215,22 +206,21 @@ The @tt{-Y} command line option sets up X11 forwarding, which lets you
 run GUI applications from GRACE.  If you leave this off, programs like
 DrRacket will fail to launch when started.
 
-Racket and @tt{nasm} are already installed, but you will
+Racket is already installed, but you will
 need to modify your @tt{PATH} environment variable so that you can
 execute them from the command-line.  You can do this with the
 following commands:
 
 @verbatim|{
    # CMSC 430 set up
-   set path = ( /cell_root/software/racket/8.4/sys/bin $path )
-   set path = ( /cell_root/software/nasm/2.15.05/sys/bin/ $path )}|
+   set path = ( /cell_root/software/racket/8.4/sys/bin $path )}|
 
 If you add these lines to the @tt{.path} file in your home directory, then you
 won't have to run this command manually every time you login; it will happen
 automatically.
 
-Once set, you should be able to run commands such as @tt{racket},
-@tt{raco}, and @tt{nasm}.  Other tools such as @tt{gcc} are already
+Once set, you should be able to run commands such as @tt{racket}
+and @tt{raco}.  Other tools such as @tt{gcc} are already
 available.
 
 Finally, you will need to install @secref{langs-package}.
@@ -301,137 +291,3 @@ If you'd like to use Emacs, there's a good
 @link["https://www.racket-mode.com/"]{Racket mode}, but we recommend
 using DrRacket for a while before switching to Emacs.  Using any other
 editor is fine, too.
-
-@;{
-@section{Detailed compatiblity list}
-
-The course software has been successfully tested with the
-following:
-
-@itemlist[
- @item{Operating systems:
-  @itemlist[@item{Ubuntu 20.04}
-            @item{Ubuntu 18.04}
-            @item{Red Hat Enterprise Linux 7.7}
-            @item{macOS 11.0 (Big Sur)}
-            @item{macOS 10.15 (Catalina)}]}
-
- @item{Racket:
-  @itemlist[@item{Racket 8.1 [cs]}
-            @item{Racket 8.1 [bc]}
-	    @item{Racket 8.0 [cs]}
-            @item{Racket 8.0 [bc]}
-	    @item{Racket 7.9 [cs]}
-            @item{Racket 7.9 [bc]}
-            @item{Racket 7.8 [cs]}
-            @item{Racket 7.8 [bc]}]}
-
- @item{NASM:
-  @itemlist[@item{NASM version 2.13.02}
-            @item{NASM version 2.15.05}]}
-
- @item{GCC:
-  @itemlist[@item{gcc 9.3.0}
-            @item{gcc 7.5.0}
-            @item{Clang/LLVM 12.0.0}]}]
-
-@; DVH: I'm not sure this is useful.  The OCaml to Racket notes are better.
-@;{
-
-@section{Grammar}
-
-A program is a sequence of definitions or expressions.
-
-@(define unquote "whatever") @;{Needed to make redex happy with unquote in grammar}
-@(define-language R0
-  (d ::= (define x e) (define (x x ...) e))
-  (e ::= (e e ...) (δ e ...) sv x (λ (x ...) e) (quasiquote qq) (match e [p e] ...))
-  (qq ::= (qq ...) sv x (unquote e))
-  (sv ::= b n s)
-  (p ::= (quasiquote r) b n x s (cons p p))
-  (r ::= b n x s (unquote p))
-  (s ::= string)
-  (b ::= #t #f)
-  (n ::= integer)
-  (x ::= variable)
-  (δ ::= add1 sub1 = * + - list cons))
-
-The grammar for the subset of Racket we will use is:
-
-@(with-unquote-rewriter
-  (lambda (lw)
-    (build-lw (list (build-lw "(" (lw-line lw) (lw-line-span lw) (lw-column lw) 1)
-                    (build-lw 'unquote (lw-line lw) (lw-line-span lw) (+ 1 (lw-column lw)) 7)
-                    (build-lw " " (lw-line lw) (lw-line-span lw) (+ 2 (lw-column lw)) 1)
-                    (build-lw (lw-e lw) (lw-line lw) (lw-line-span lw) (+ 3 (lw-column lw)) (lw-column-span lw))
-                    (build-lw ")" (lw-line lw) (lw-line-span lw) (lw-column lw) 1))
-               (lw-line lw)
-               (lw-line-span lw)
-               (lw-column lw)
-               (+ 8 (lw-column-span lw))))
-
-
-  (render-grammar R0))
-
-@section{Built-In Datatypes}
-
-We will use:
-
-@itemize[
-@item{Booleans}
-@item{Numbers}
-@item{Strings}
-@item{Symbols}
-@item{Pairs and Lists}
-]
-
-We will make extensive use of @link["https://docs.racket-lang.org/guide/quote.html"]{@tt{quote}}.
-
-@section{Definitions}
-
-A definition takes the form:
-
-@render-grammar/nts[R0 '(d)]
-
-A definition @render-term[R0 (define x e)] defines @render-term[R0 x]
-to stand for the value produced by evaluating @render-term[R0 e].
-
-The @render-term[R0 (define (x_0 x_1 ...) e)] form is shorthand for
-@render-term[R0 (define x_0 (λ (x_1 ...) e))].
-
-@;{
-@section{Style}
-
-TODO: write style guidelines.
-}
-
-@section{Examples}
-
-Here are some examples of writing various functions in our subset of Racket.
-
-@#reader scribble/comment-reader
-(ex
-
-;; compute the product of a list of numbers
-(define (prod xs)
-  (match xs
-    ['() 1]
-    [(cons x xs) (* x (prod xs))]))
-
-(prod '(1 2 3 4 5))
-
-;; reverse a list
-(define (rev xs)
-  (rev/acc xs '()))
-
-(define (rev/acc xs a)
-  (match xs
-    ['() a]
-    [(cons x xs) (rev/acc xs (cons x a))]))
-
-(rev '(1 2 3 4 5))
-)
-
-}
-
-}

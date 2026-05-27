@@ -50,22 +50,22 @@ characterize a language in a theory of computation course.  If we
 wanted to rigorously define this set, we could provide a formal
 recognizer such as a finite automaton or even a Turing-machine that
 given a string, determines membership in the set of programs.  This
-aspect of a language we call its @bold{syntax}: it concerns the rules
-governing the formation of phrases in the language.  While important,
-syntax is not the end-all of a programming language, in fact it really
-just the start of where the rubber meets the road.  For example, when
-writing a C program we mostly don't care about whether the thing we
-are writing is or is not in the set of C programs --- it being a C
-program is a prerequisite to thing we want to do, which is to
-@emph{compute}.  We write programs so that we run them.  Sure, you
-might make a syntax error, forget to put a semicolon here or mispell
-an identifier there, but the thing you really care about comes after
-those issues have been resolved.  So another aspect of what a
+aspect of a language we call its @index["syntax"]{@bold{syntax}}: it
+concerns the rules governing the formation of phrases in the language.
+While important, syntax is not the end-all of a programming language,
+in fact it really just the start of where the rubber meets the road.
+For example, when writing a C program we mostly don't care about
+whether the thing we are writing is or is not in the set of C programs
+--- it being a C program is a prerequisite to thing we want to do,
+which is to @emph{compute}.  We write programs so that we run them.
+Sure, you might make a syntax error, forget to put a semicolon here or
+mispell an identifier there, but the thing you really care about comes
+after those issues have been resolved.  So another aspect of what a
 programming language "is" concerns the @emph{meaning} of the sentences
 in that language.  Every language has meaning.  In the context of
 programming language, the meaning is a computation.  This aspect of a
-langauge we call its @bold{semantics}: it concerns the computational
-content of programs in the language.
+langauge we call its @index["semantics"]{@bold{semantics}}: it
+concerns the computational content of programs in the language.
 
 There are many ways we might define the meaning of a program, and
 therby define the semantics of the language.  We could give examples,
@@ -76,6 +76,15 @@ definitions, appealing to mathematical notation and concepts.  We
 could write a program (perhaps in a different language) that
 @emph{interprets} expressions and computes their meaning.  Typically
 some combination of all of these approaches are used.
+
+Putting it all together, we can concisely define a programming
+language as follows:
+
+@inset-flow{
+A programming language is a formal language for expressing
+computations, with rules for what programs look like (syntax), and
+rules for what those programs mean or do when run (semantics).}
+
 
 But all of this @emph{defines} what a programming language is, which
 is not the same as @emph{realizing} that definition.  For that we need
