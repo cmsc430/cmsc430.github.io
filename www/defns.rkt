@@ -30,7 +30,7 @@
 (define midterm-hours "24")
 (define final-date "July 10")
 (define final-end-time "11:59pm")
-(define elms-url "https://umd.instructure.com/")
+(define elms-url "https://umd.instructure.com/courses/1406982")
 
 
 (define racket-version "8.18")
@@ -41,7 +41,7 @@
 (define lecture-schedule1 "Weekdays, 10:00-11:15am")
 
 (define classroom1
-  (link "https://umd.zoom.us/j/96866654750?pwd=waCwaYYrltO0aemJbpfaXuaTb4xbpX.1" "Online"))
+  (link "https://umd.zoom.us/j/96210969737?pwd=K6Iz8IZNchyWEcV3UERCi6KPkawRDw.1" "Online"))
 
 ;(define discord "TBD")
 (define piazza "https://piazza.com/umd/summer2026/cmsc430/home")
