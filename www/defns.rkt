@@ -32,6 +32,7 @@
 (define final-end-time "11:59pm")
 (define elms-url "https://umd.instructure.com/courses/1406982")
 
+(define online? #t)
 
 (define racket-version "8.18")
 
@@ -45,7 +46,7 @@
 
 ;(define discord "TBD")
 (define piazza "https://piazza.com/umd/summer2026/cmsc430/home")
-(define gradescope "https://www.gradescope.com/")
+(define gradescope "https://www.gradescope.com/courses/1319905")
 
 (define feedback "https://forms.gle/99yTz7HVfopCaDMz9")
 

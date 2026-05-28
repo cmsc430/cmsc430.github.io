@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require scribble/core
-          "defns.rkt")
+	  "defns.rkt")
 
 @provide[exam-table]
 
@@ -9,8 +9,8 @@
 
 @(define (make-grade-component-table . entries)
   @tabular[#:style 'boxed
-	   #:sep @hspace[1] 
-           (list* (list @bold{Component} @bold{Percentage}) entries)])
+	   #:sep @hspace[1]
+	   (list* (list @bold{Component} @bold{Percentage}) entries)])
 
 
 @(define exam-table
@@ -117,14 +117,32 @@ of the course:
 
 @itemlist[
   @item{Overview of compilation}
-  @;item{Operational semantics}
-  @item{Interpreters}
-  @item{Intermediate representations and bytecode}
-  @item{Code generation}
-  @item{Run-time systems}
+  @item{Introduction to Racket Language}
+  @item{Introduction to a86 Assembly Code}
+  @item{Compiler specification}
+  @item{First compiler}
+  @item{Run-time type tagging}
+  @item{I/O}
+  @item{Run-time system calls}
+  @item{Errors}
+  @item{Variables, binding, and lexical addressing}
+  @item{Binary primitivives}
+  @item{Run-time stack and compile-time environments}
+  @item{Inductive heap-allocated data}
+  @item{Sequential heap-allocate data}
+  @item{Function definitions and calls}
+  @item{Tail calls}
+  @item{First-class functions}
+  @item{Letrec expressions}
+  @item{Pattern matching}
+  @item{Symbols and interned data}
+  @item{Structures}
+  @item{Static analysis}
+  @item{Compiler optimization}
   @item{Garbage collection}
   @item{Type systems, type soundness, type inference}
-  @item{Register allocation and optimization}
+  @item{Memory safety}
+  @item{Bootstrapping}
   @item{Language design}
   @item{Advanced topics in compilation}]
 
@@ -135,12 +153,11 @@ of the course:
 
 @section{Course Structure}
 
-The course will consist of in-person lectures, which will be recorded
-and available on ELMS immediately after each lecture.  There are two
-midterms, a final project, which counts as the final assessment for
-the class, several assignments, and several quizes and surveys.
-Midterms are take-home exams and completed online over a
-@|midterm-hours|-hour period.
+The course will consist of @if[online? @elem{synchronous on-line}
+@elem{in-person}] lectures.  Video recordings and slides will be
+posted immediately after each lecture.  There are three exams, several
+assignments, and several quizes and surveys. Exams are take-home and
+completed online over a @|midterm-hours|-hour period.
 
 
 @section{Tips for Success in this Course}
@@ -294,7 +311,7 @@ have it submitted well before the scheduled deadline.
 Any formal grade disputes must be submitted in writing and within one
 week of receiving the grade.  Final letter grades are assigned based
 on the percentage of total assessment points earned.  To be fair to
-everyone I have to establish clear standards and apply them
+everyone, there are clear established standards which are applied
 consistently, so please understand that being close to a cutoff is not
 the same as making the cut (89.99 ≠ 90.00).  It would be unethical to
 make exceptions for some and not others.
@@ -311,7 +328,7 @@ percentages:
 Final letter grades are assigned following this grading scheme:
 
 @tabular[#:style 'boxed @;#:sep @;"|" @;@hspace[1]
-         (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
+	 (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
 	       (list "A"  "(97,94]"   "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
 	       (list "A-" "(94,90]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
 
