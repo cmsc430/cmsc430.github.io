@@ -61,7 +61,6 @@ staff using this @link[feedback]{form}.
 @include-section{notes.scrbl}
 @include-section{slides.scrbl}
 @include-section{assignments.scrbl}
-@include-section{midterms.scrbl}
-@include-section{project.scrbl}
+@include-section{exams.scrbl}
 @include-section{software.scrbl}
 @include-section{colophon.scrbl}

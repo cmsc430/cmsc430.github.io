@@ -25,11 +25,12 @@
 (define office-hour-location "TBD")
 
 (define start-date "June 1")
-(define m1-date "June 16")
-(define m2-date "July 1")
-(define midterm-hours "24")
+(define exam1-date "June 16")
+(define exam2-date "July 1")
+(define exam3-date "July 10")
+(define exam-hours "24")
 (define final-date "July 10")
-(define final-end-time "11:59pm")
+(define exam-end-time "11:59pm")
 (define elms-url "https://umd.instructure.com/courses/1406982")
 
 (define online? #t)

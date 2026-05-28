@@ -1,35 +1,37 @@
 #lang scribble/manual
 
-@(require (for-label racket))
+@(require (for-label racket)
+          "../notes/ev.rkt")
+
 @(require "../defns.rkt")
 
-@title{Midterm 1}
+@title{Exam 2}
 
-@(define prefix "m1-")
+@(define prefix "exam2-")
 
-@bold{Due: @m1-date 11:59PM}
+@bold{Due: @exam2-date @exam-end-time}
 
-Midterm 1 will be released at least @midterm-hours hours prior to
+Exam 2 will be released at least @exam-hours hours prior to
 its due date.
 
 @section[#:tag-prefix prefix]{Practice}
 
-There is a practice midterm available on ELMS.  You may submit to the
-Practice Midterm 1 assignment on Gradescope to get feedback on your
-solution.  However during the real midterm, you will not get this
+There is a practice exam available on ELMS.  You may submit to the
+Practice Exam 2 assignment on Gradescope to get feedback on your
+solution.  However during the real exam, you will not get this
 level of feedback from the autograder.  @bold{Make sure you do not
-submit your practice midterm solution for the real midterm!  We will
+submit your practice exam solution for the real exam!  We will
 not allow late submissions if you submit the wrong work.}
 
 @section[#:tag-prefix prefix]{Instructions}
 
-The midterm will be released as a zip file on ELMS (see the
-description of Midterm 1 there for the link).
+The exam will be released as a zip file on ELMS (see the
+description of Exam 1 there for the link).
 
-There are several parts to this midterm.  Each part has its own
+There are several parts to this exam.  Each part has its own
 directory with a README and supplementary files.  Read the README in
 each part for instructions on how to complete that part of the
-midterm.
+exam.
 
 @section[#:tag-prefix prefix]{Communications}
 
@@ -43,7 +45,7 @@ If you have trouble reaching the course staff via Piazza, email
 @tt{@prof1-email}.
 
 You may not communicate with anyone outside of the course staff about
-the midterm.
+the exam.
 
 @section[#:tag-prefix prefix]{Submissions}
 
