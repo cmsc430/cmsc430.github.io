@@ -1,10 +1,12 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 3" #:style 'unnumbered]{Assignment 3: Primitives, conditionals}
+@title[#:tag "Assignment 2" #:style 'unnumbered]{Assignment 2: Primitives, conditionals}
 
 @(require (for-label a86/ast (except-in racket ...)))
 
-@bold{Due: @assign-deadline[3]}
+@bold{Due: @assign-deadline[2]}
+
+@bold{Starter code:} @link["code/dupe-plus.zip"]{@tt{dupe-plus.zip}}
 
 The goal of this assignment is to extend the language developed in
 @secref{Dupe} with some simple unary numeric and boolean operations
@@ -58,8 +60,8 @@ expression @racket[_e-an]'s value is the value of the @racket[cond].
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing Dupe+}
 
 You must extend the interpreter and compiler to implement Dupe+. (The
-parser for Dupe+ is given to you.)  You are given a file
-@tt{dupe-plus.zip} on ELMS with a starter compiler based on the
+parser for Dupe+ is given to you.)  Use the starter code in
+@link["code/dupe-plus.zip"]{@tt{dupe-plus.zip}}, which is based on the
 @secref{Dupe} language we studied in class.
 
 You may use any a86 instructions you'd like, however it is possible to

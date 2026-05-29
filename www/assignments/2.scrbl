@@ -1,18 +1,15 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 2" #:style 'unnumbered]{Assignment 2: Assembly primer}
+@title[#:tag "Practice 2" #:style 'unnumbered]{Practice 2: Assembly primer}
 
-@bold{Due: @assign-deadline[2]}
+@bold{Starter code:} @link["code/a86-basics.zip"]{@tt{a86-basics.zip}}
 
 The goal of this assignment is to gain practice programming in a86.
 
-@bold{This is a collaborative assignment.}  You may work with anyone
-you'd like on this assignment, but each person must submit their
-@tt{submit.zip} file on Gradescope.
-
-You are given a @tt{a86-basics.zip} file (in ELMS, linked in the
-description for Assignment 2), that contains a README, a Makefile, and
-a number of Racket modules.  In each module there are several
+Use the starter code in
+@link["code/a86-basics.zip"]{@tt{a86-basics.zip}}, which contains a
+README, a Makefile, and a number of Racket modules.  In each module
+there are several
 ``stubs,'' i.e. incomplete definitions with type signatures,
 descriptions, and a small set of tests.  Each definition has a bogus
 (but type correct) body marked with a ``TODO'' comment.  Your job is
