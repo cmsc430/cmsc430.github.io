@@ -80,6 +80,35 @@ HERE
 
 @table-of-contents[]
 
+As previously discussed, when implementing a compiler, we have three
+choice to make before getting started: source language, target
+language, and host language.  We've settled on Racket as both the
+source and host language.
+
+When choosing a target language we are essentially deciding on the
+underlying computational model of our language.  In order to run
+compiled programs, the machine must provide that computational model.
+So there's a tradeoff here.  If we target a high-level language, our
+lives as compiler writers is easy and we can delegate much of the work
+to the target language's facilities.  But then to run our programs, we
+require the machine support that target language.  If we target a
+low-level language, our lives as compiler writers is more difficult
+because we have to do the work of expressing the high-level
+abstractions the source language provides using only the low-level
+abstractions the target language provides.  But in doing so, we reduce
+the machine requirements, meaning we can run programs on a larger set
+of machines.
+
+In this course, we are going to target a very low-level language: x86
+assembly.  This means that our compiled programs can run on any
+computer that can run (or emulate) x86 instructions, which is a very
+large set.  It also means we will have to build our of our high-level
+language features out the primordial machinery of assembly code.
+
+In this chapter we cover a86, a library for representing and running
+x86 programs within Racket.  We will use a86 as the target language of
+our compilers.
+
 @section[#:tag "a86-Overview"]{Overview}
 
 x86 is an instruction set architecture (ISA), which is a
