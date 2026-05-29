@@ -1,6 +1,6 @@
 #lang scribble/manual
 
-@(require (for-label (except-in racket compile) a86/ast a86/printer a86/registers))
+@(require (for-label (except-in racket compile) a86/ast a86/printer a86/registers a86/interp))
 @(require scribble/examples
 	  redex/reduction-semantics	  
           redex/pict
@@ -13,8 +13,7 @@
 
 @(define codeblock-include (make-codeblock-include #'here))
 
-@(ev '(require rackunit a86 abscond abscond/correct abscond/compiler/compile abscond/executor/run))
-@(ev '(define (exec-expr e) (run (compile e))))
+@(ev '(require rackunit a86 abscond abscond/correct abscond/compiler/compile))
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "abscond")])
@@ -213,7 +212,7 @@ well-formed Abscond program, then it runs the intepreter and displays
 the result.
 
 For example, interpreting the program @tt{42.rkt} shown above:
-@shellbox["cat 42.rkt | racket -t interp-stdin.rkt -m"]
+@shellbox["cat 42.rkt | racket -t interpreter/interp-stdin.rkt -m"]
 
 @;{
 Even though the semantics is obvious, we can provide a formal
@@ -269,6 +268,7 @@ operational semantics and an interpreter, which is (obviously)
 correct.  Now let's write a compiler.
 }
 
+@;{
 @section[#:tag-prefix prefix]{Toward a Compiler for Abscond}
 
 A compiler, like an interpreter, is an implementation of a programming
@@ -286,6 +286,11 @@ So in general, the relationship between an interpreter and compiler is
 @verbatim{
 (source-interp e) = (target-interp (source-compile e))
 }
+
+We can even turn this specification into a property that we can check:
+
+HERE
+
 
 We can in principle choose any target language we'd like.  For this
 class, we will choose the @bold{x86-64} instruction set architecture.
@@ -409,162 +414,113 @@ This creates the file @tt{42.run}, an exectuable program:
 We now have a working example.  The remaining work will be to design a
 compiler that takes an Abscond program and emits a file like
 @tt{42.s}, but with the appropriate integer literal.
+}
 
 @section[#:tag-prefix prefix]{A Compiler for Abscond}
 
-We will now write a compiler for Abscond.  To heart of the compiler
-will be a function with the following signature:
 
-@#reader scribble/comment-reader
-(racketblock
-;; Expr -> Asm
-(define (compile e) ...)
-)
+Writing a compiler is essentially a problem of translation.  We want
+to translate programs in the source language into programs in the
+target language.  For the compiler to be correct, we want this translation
+to preserve the original meaning of the source language.
 
-Where @tt{Asm} is a data type for representing assembly programs,
-i.e. it will be the AST of x86-64 assembly.  
+This provides an alternative implementation of the language compared
+to the interpreter we wrote.  Rather than interpret programs, we
+compile them into another language and then use the interpreter of
+that language to run the program. 
 
-So the AST representation of our example is:
+For us, that target language is a86.  To run target programs, we
+simply have the CPU execute the code.  (In other words, the
+interpreter of our target language is implemented in hardware.)  As a
+convenience, we can use @racket[asm-interp] to carry out this
+execution from within Racket.  This will be very useful for stating
+the specification of our compiler's correctness and making examples.
+
+Let's say the Abscond program we have is @racket[42].  What would
+be an equivalent a86 program that, when run, would produce
+@racket[42]?  Well every a86 program needs to have a globally declared
+label where execution will start when called.  The result of running
+the program is communicated as whatever is in the @racket[rax]
+register when the program returns, using the @racket[Ret] instruction.
+
+So, a possible translation of the Abscond program @racket[42] is the
+a86 program:
 
 @racketblock[
-(list (Label 'entry)
-      (Mov rax 42)
-      (Ret))
+(prog
+ (Global 'entry)
+ (Label 'entry)
+ (Mov rax 42)
+ (Ret))
 ]
 
-Writing the @racket[compile] function is easy:
+To see that it is equivalent, i.e. that it produces @racket[42], we
+just have to run it:
+
+@ex[
+(asm-interp
+ (prog
+  (Global 'entry)
+  (Label 'entry)
+  (Mov rax 42)
+  (Ret)))]
+
+
+From this example of a single compilation, it's pretty easy to write a
+general compiler:
 
 @codeblock-include["abscond/compiler/compile.rkt"]
 
-@#reader scribble/comment-reader
-(examples #:eval ev 
-(compile (Lit 42))
-(compile (Lit 38))
-)
+If we compile @racket[(Lit 42)] we get exactly the code we wrote by
+hand:
 
-To convert back to the concrete NASM syntax, we use
-@racket[asm-display].
+@ex[
+(compile (Lit 42))]
 
-@margin-note{Note: the printer takes care of the macOS vs Linux label
-convention by detecting the underlying system and printing
-appropriately.}
+And we can now compile any Abscond program:
 
-@#reader scribble/comment-reader
-(examples #:eval ev
-(asm-display (compile (Lit 42))))
-                   
-Putting it all together, we can write a command line compiler much
-like the command line interpreter before, except now we emit assembly
-code:
+@ex[
+(compile (Lit 0))
+(compile (Lit 99))]
 
-@codeblock-include["abscond/compiler/compile-stdin.rkt"]
+If we compose the compiler with the parser, we can write examples
+using the symbolic concrete syntax:
 
-Example:
+@ex[
+(compile (parse '42))
+(compile (parse '0))
+(compile (parse '99))]
 
-@shellbox["cat 42.rkt | racket -t compile-stdin.rkt -m"]
+And by using @racket[asm-interp], we can confirm that these compiled
+programs mean the same thing as the original semantics according to
+@racket[interp]:
 
-Using a Makefile, we can capture the whole compilation dependencies as:
+@ex[
+(asm-interp (compile (parse '42)))
+(asm-interp (compile (parse '99)))]
 
-@margin-note{Note: the appropriate object file format is detected
-based on the operating system.}
-
-@filebox-include[fancy-make abscond "Makefile"]
-
-And now compiling Abscond programs is easy-peasy:
-
-@shellbox["make 42.run" "./42.run"]
-
-It's worth taking stock of what we have at this point, compared to the
-interpreter approach.  To run the interpreter requires all of Racket
-in the run-time system.  
-
-When running a program using the interpreter, we have to parse the
-Abscond program, check the syntax of the program (making sure it's an
-integer), then run the interpreter and print the result.
-
-When running a program using the compiler, we still have to parse the
-Abscond program and check its syntax, but this work happens @emph{at
-compile-time}.  When we @emph{run} the program this work will have
-already been done.  While the compiler needs Racket to run, at
-run-time, Racket does not need to be available.  All the run-time
-needs is our (very tiny) object file compiled from C.  Racket doesn't
-run at all -- we could delete it from our computer or ship the
-executable to any compatible x86-64 machine and run it there.  This
-adds up to much more efficient programs.  Just to demonstrate, here's
-a single data point measuring the difference between interpreting and
-compiling Abscond programs:
-
-@shellbox["cat 42.rkt | time -p racket -t interp-stdin.rkt -m"]
-
-Compiling:
-
-@shellbox["time -p ./42.run"]
-
-Because Abscond is a subset of Racket, we can even compare results
-against interpreting the program directly in Racket:
-
-@shellbox["touch 42.rkt # forces interpreter to be used"
-          "time -p racket 42.rkt"]
-
-Moreover, we can compare our compiled code to code compiled by Racket:
-
-@shellbox["raco make 42.rkt"
-	  "time -p racket 42.rkt"]
 
 
 @section[#:tag-prefix prefix]{But is it @emph{Correct}?}
 
 At this point, we have a compiler for Abscond.  But is it correct?
-What does that even mean, to be correct?
+What does that even mean, to be correct?  Since we have specified the
+meaning of Abscond with an interpreter and we can compose the
+compilation of Abscond programs with the running of a86 programs, we
+can state correctness as follows:
 
-First, let's formulate an alternative implementation of
-@racket[interp] that composes our compiler and a86 interpreter to define
-a lower-level execution wrapper for assembled programs:
-
-@codeblock-include["abscond/executor/exec.rkt"]
-
-For source expressions, we can recover the old behavior by composing
-@racket[compile] with @racket[run]:
-
-@ex[
-(exec-expr (Lit 42))
-(exec-expr (Lit 19))]
-
-It captures the idea of a phase-distinction in that you can first
-compile a program into a program in another language---in this case
-a86---and can then interpret @emph{that} program to get the result.
-If the compiler is correct, the result should be the same:
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
 @tt{Expr} and @racket[i] @math{∈} @tt{Integer}, if @racket[(interp e)]
-equals @racket[i], then @racket[(exec-expr e)] equals
+equals @racket[i], then @racket[(asm-interp (compile e))] equals
 @racket[i].}
 
 One thing that is nice about specifying our language with an
 interpreter is that we can run it. So we can @emph{test} the compiler
 against the interpreter.  If the compiler and interpreter agree on all
-possible inputs, then the compiler is correct.
-
-
-This is actually a handy tool to have for experimenting with
-compilation within Racket:
-
-
-@ex[
-(exec-expr (Lit 42))
-(exec-expr (Lit 37))
-(exec-expr (Lit -8))]
-
-This of course agrees with what we will get from the interpreter:
-
-@ex[
-(interp (Lit 42))
-(interp (Lit 37))
-(interp (Lit -8))]
-
-We can turn this in a @bold{property-based test}, i.e. a function that
-computes a test expressing a single instance of our compiler
-correctness claim:
+possible inputs, then the compiler is correct.  We can turn this in a
+@bold{property-based test}, i.e. a function that computes a test
+expressing a single instance of our compiler correctness claim:
 
 @codeblock-include["abscond/correct.rkt"]
 
@@ -606,4 +562,122 @@ correctness.  It's tempting to declare victory.  But... can you think
 of a valid input (i.e. some integer) that might refute the correctness
 claim?
 
-Think on it.  In the meantime, let's move on.
+
+@section[#:tag-prefix prefix]{Stand-alone execution}
+
+
+From a conceptual point of view, we have covered the major elements of
+the Abscond compiler.  We can translate programs into a86 and then
+execute them using @racket[asm-interp].  But from a pragmatic view,
+this approach requires Racket to be available at run-time in order to run
+@racket[asm-interp].  A more useful set-up here would be to use Racket
+at compile-time to generate a86 code, but then to produce a
+stand-alone executable that simply executes the code produced by the
+compiler.  In this way we don't need Racket around at all at run-time
+and we can more clearly see the phase distinction betwee compile- and
+run-time.
+
+In order to directly run the assembly code produced by compiler
+@emph{without} @racket[asm-interp], we will need a couple of things.
+
+@itemlist[
+@item{We need to be able to assemble a86 code into object code.}
+
+@item{We need to be able to link this object code with code that
+fills in for what @racket[asm-interp] was doing for us, namely:
+calling the compiled code and displaying the result when it returns.}]
+
+
+To handle the first issue we can rely on the 
+@racket[asm-display] function, which displays a86 code using
+standard notation for x86:
+
+@#reader scribble/comment-reader
+(examples #:eval ev
+(asm-display (compile (Lit 42))))
+
+@margin-note{Note: the printer takes care of the macOS vs Linux label
+convention by detecting the underlying system and printing
+appropriately.}
+
+We can turn this into a command-line utility that reads an Abscond
+program and prints out assembly code:
+
+@codeblock-include["abscond/compiler/compile-stdin.rkt"]
+
+@shellbox["cat 42.rkt | racket -t compiler/compile-stdin.rkt -m"]
+
+If we save this output to a file, we can then assemble it into an
+object file:
+
+@shellbox["cat 42.rkt | racket -t compiler/compile-stdin.rkt -m > 42.s"
+          "clang -c 42.s"
+	  "nm 42.o"]
+
+You can see that in @tt{42.o} we have an object file that defines a
+@tt{entry} label.
+
+To handle the second issue, we can write a small C helper program that
+will fulfill the role of what Racket's @racket[asm-interp] was doing
+for us.
+
+@filebox-include[fancy-c abscond "runtime/main.c"]
+
+Now we can use an existing C compiler to compile this into object code.
+
+@shellbox["clang -c runtime/main.c"
+          "nm main.o"]
+
+Here you can see we get an object with a @tt{main} label.
+
+Finally to produce an executable we just use an existing linker to
+link the two objects together into an executable.
+
+@shellbox["clang main.o 42.o"
+          "./a.out"]
+
+Running @tt{a.out} executes the code, first invoking the @tt{main}
+procedure originally written in C, which calls @tt{entry}, invoking
+the compiled code.  When the compiled code returns, the result is
+printed.
+
+
+
+It's worth taking stock of what we have at this point, compared to the
+interpreter approach.  To run the interpreter requires all of Racket
+in the run-time system.  
+
+When running a program using the interpreter, we have to parse the
+Abscond program, check the syntax of the program (making sure it's an
+integer), then run the interpreter and print the result.
+
+When running a program using the compiler, we still have to parse the
+Abscond program and check its syntax, but this work happens @emph{at
+compile-time}.  When we @emph{run} the program this work will have
+already been done.  While the compiler needs Racket to run, at
+run-time, Racket does not need to be available.  All the run-time
+needs is our (very tiny) object file compiled from C.  Racket doesn't
+run at all -- we could delete it from our computer or ship the
+executable to any compatible x86-64 machine and run it there.  This
+adds up to much more efficient programs.  Just to demonstrate, here's
+a single data point measuring the difference between interpreting and
+compiling Abscond programs:
+
+@shellbox["cat 42.rkt | time -p racket -t interpreter/interp-stdin.rkt -m"]
+
+Compiling:
+
+@shellbox["time -p ./a.out"]
+
+Because Abscond is a subset of Racket, we can even compare results
+against interpreting the program directly in Racket:
+
+@shellbox["touch 42.rkt # forces interpreter to be used"
+          "time -p racket 42.rkt"]
+
+Moreover, we can compare our compiled code to code compiled by Racket:
+
+@shellbox["raco make 42.rkt"
+	  "time -p racket 42.rkt"]
+
+
