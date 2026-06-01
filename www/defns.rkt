@@ -25,8 +25,8 @@
 (define office-hour-location "TBD")
 
 (define start-date "June 1")
-(define exam1-date "June 16")
-(define exam2-date "July 1")
+(define exam1-date "June 12")
+(define exam2-date "June 26")
 (define exam3-date "July 10")
 (define exam-hours "24")
 (define final-date "July 10")
