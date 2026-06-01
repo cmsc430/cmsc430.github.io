@@ -1,10 +1,12 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Case}
+@title[#:tag "Assignment 3" #:style 'unnumbered]{Assignment 3: Case}
 
 @(require (for-label a86/ast (except-in racket ...)))
 
-@bold{Due: @assign-deadline[4]}
+@bold{Due: @assign-deadline[3]}
+
+@bold{Starter code:} @link["code/dupe-plus-plus.zip"]{@tt{dupe-plus-plus.zip}}
 
 The goal of this assignment is to extend the language developed in
 @secref{a3-dupe-plus} with another new form of control flow expressions:
@@ -57,9 +59,10 @@ this is not true in general for Racket.  The parser will reject any
 
 @section[#:tag-prefix "a4-" #:style 'unnumbered]{Implementing Dupe++}
 
-You must extend the interpreter and compiler to implement Dupe++.  You
-are given a file @tt{dupe-plus-plus.zip} on ELMS with a starter
-compiler based on the @secref{Dupe} language we studied in class.
+You must extend the interpreter and compiler to implement Dupe++.  Use
+the starter code in
+@link["code/dupe-plus-plus.zip"]{@tt{dupe-plus-plus.zip}}, which is
+based on the @secref{Dupe} language we studied in class.
 
 You may use any a86 instructions you'd like, however it is possible to
 complete the assignment using @racket[Cmp], @racket[Je], @racket[Jg],

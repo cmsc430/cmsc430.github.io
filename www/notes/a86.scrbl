@@ -80,6 +80,35 @@ HERE
 
 @table-of-contents[]
 
+As previously discussed, when implementing a compiler, we have three
+choice to make before getting started: source language, target
+language, and host language.  We've settled on Racket as both the
+source and host language.
+
+When choosing a target language we are essentially deciding on the
+underlying computational model of our language.  In order to run
+compiled programs, the machine must provide that computational model.
+So there's a tradeoff here.  If we target a high-level language, our
+lives as compiler writers is easy and we can delegate much of the work
+to the target language's facilities.  But then to run our programs, we
+require the machine support that target language.  If we target a
+low-level language, our lives as compiler writers is more difficult
+because we have to do the work of expressing the high-level
+abstractions the source language provides using only the low-level
+abstractions the target language provides.  But in doing so, we reduce
+the machine requirements, meaning we can run programs on a larger set
+of machines.
+
+In this course, we are going to target a very low-level language: x86
+assembly.  This means that our compiled programs can run on any
+computer that can run (or emulate) x86 instructions, which is a very
+large set.  It also means we will have to build our of our high-level
+language features out the primordial machinery of assembly code.
+
+In this chapter we cover a86, a library for representing and running
+x86 programs within Racket.  We will use a86 as the target language of
+our compilers.
+
 @section[#:tag "a86-Overview"]{Overview}
 
 x86 is an instruction set architecture (ISA), which is a
@@ -129,10 +158,9 @@ This chapter describes the a86 language at a high-level.  See
 Before describing a86, let's take a brief look at x86.
 
 There are a few different human-readable formats for writing
-x86 assembly code, but we'll be using the one supported by
-@link["https://www.nasm.us/"]{the Netwide Assembler} (NASM).
+x86 assembly code, but we'll be using "Intel syntax."
 
-Here's an example x86 program, written using nasm syntax.
+Here's an example x86 program, written using Intel syntax.
 The program has one global label called @tt{entry}, which
 will be the main entry point for the program. This program
 computes the 36th triangular number, which will reside in
@@ -142,11 +170,7 @@ register @tt{rax} when the code returns.
 Linux systems.  On MacOS, you need to prefix all label names with an
 underscore, while on Linux you do not.  So on a Mac, you would use the
 names @tt{_entry}, @tt{_tri}, and @tt{_done}, while on Linux you would
-use @tt{entry}, @tt{tri}, and @tt{done}.
-
-Alternatively, you can impose the underscore naming convention by
-passing @tt{--gprefix _} to @tt{nasm}; this way you avoid having to
-write the underscores within the file.}
+use @tt{entry}, @tt{tri}, and @tt{done}.}
 
 @filebox-include[fancy-nasm a86 "tri.s"]
 
@@ -244,22 +268,32 @@ x86 code, which should not need to push anything to the
 stack or use the @tt{call} instruction.}
 
 We can compile the @tt{tri.s} assembly program to an object
-file with @tt{nasm}:
+file using @tt{clang} to assemble it:
 
-@margin-note{The format argument should be @tt{macho64} on macOS and
- @tt{elf64} on Linux.  The @tt{--gprefix _} argument should be given
- on macOS in order to follow the system's naming convention
- requirements.}
+@shellbox["clang -c tri.s"]
 
-@shellbox[
- (format "nasm -f ~a -o tri.o tri.s"
-         (if (eq? 'macosx (system-type 'os))
-             "macho64 --gprefix _"
-             "elf64"))]
+The @tt{-c} flag is telling @tt{clang} to compile and assemble, but
+not link.  Since the input file is an assembly file, there's no
+compiling to do, so it simply assembles the object file, which by
+default is named by replacing the suffix of the input file with
+@tt{.o}, so this command created @tt{tri.o}.
 
-To run the object file, we will need to link with a small C program
-that can call the @tt{entry} label of our assembly code and then
-print the result:
+We can use the @tt{nm} command to inspect the object file.
+
+@shellbox["nm tri.o"]
+
+The @tt{nm} command prints out the symbol table of the object file.
+You'll notice that there are three symbols defined, each corresponding
+to the labels we used in the source assembly program.  The @tt{t} and
+@tt{T} symbol codes indicate local and global visibility of the
+symbols, respectively, and the numbers indicate the byte offset of
+where the code for each label is found relative to the start of the
+code section of the object file.
+
+The object file itself is not executable, but we can link it with a
+small support file to build an executable program.  The support
+program will define the main entry point for the program and call our
+@tt{entry} function, then print the result.
 
 @filebox-include[fancy-c a86 "main.c"]
 
@@ -279,24 +313,32 @@ is part of a larger set of conventions known as the @bold{
  Application Binary Interface}. For a reference, see the
 @secref{Texts} section of the notes.
 
+We can assemble an object file using @tt{clang}.
 
-We can compile the @tt{main.c} C program to an object file with @tt{gcc}:
+@shellbox["clang -c main.c"]
 
-@shellbox[
- "gcc -c main.c -o main.o"
- ]
+Here @tt{clang} is compiling the C code into assembly, then
+assemblying (but not linking) to produce @tt{main.o}.
 
-Now we can make an executable by linking the two together:
+It's worth inspecting the symbol table for this program.
 
-@shellbox[
- "gcc main.o tri.o -o tri"
-]
+@shellbox["nm main.o"]
 
-Finally, we can run the executable:
+Notice that it defines a global symbol @tt{main} but it references
+undefined symbols @tt{printf} and @tt{entry}; the @tt{U} symbol code
+means undefined.  The idea is that we can link these two objects
+together, along with the standard C library for @tt{printf}, in order
+to get a complete executable that has no undefined symbols.
 
-@shellbox[
- "./tri"
-]
+@shellbox["clang main.o tri.o -o tri"]
+
+This will link together the object files into an executable.  By
+default that executable's name will be @tt{a.out}, but here we're
+choosing the name @tt{tri}.  Finally, we can run the executable.
+
+@shellbox["./tri"]
+
+
 
 There, of course, is a lot more to x86-64 than what's been
 shown here. If you want to dig deeper, check the references
@@ -307,7 +349,7 @@ in @secref{Texts}.  But now let's turn to a86.
 Here we will employ one of the great ideas in computer
 science: we will represent programs as data. Rather than
 toil away at the level of x86, writing programs directly in
-nasm syntax, compiling, and running them, we will instead
+Intel syntax, compiling, and running them, we will instead
 design a data type definition for representing x86 programs
 and @emph{compute} programs.
 
@@ -405,7 +447,7 @@ It's also easy to go from our data representation to its
 interpretation as an x86 program.
 
 There is a function provided for printing an a86 program as an x86
-program using nasm notation, called @racket[asm-display].  Calling
+program using Intel notation, called @racket[asm-display].  Calling
 this function prints to the current output port, but it's also
 possible to write the output to a file or convert it to a string.
 
@@ -428,7 +470,7 @@ us, which what the implementors of the a86 library have done:
 The @racket[asm-interp] function consumes an @tt{a86}
 program as input and produces the integer result the program
 computes, i.e. it is an @bold{Interpreter} for a86. Behind
-the scenes it does this by converting to nasm, assemblying,
+the scenes it does this by assemblying,
 compiling a thin C wrapper, executing the program, and
 reading the result. This will be a rather handy tool both in
 interactively exploring the a86 language (you can write

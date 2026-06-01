@@ -37,12 +37,51 @@
 
 @table-of-contents[]
 
+When implementing a compiler, we have three choices to make before
+getting started:
+
+@itemlist[
+
+@item{what is the language of programs that the compiler will compile?
+This is called the @bold{source language}.}
+
+@item{what is the language of programs that the compiler will
+translate source programs into?  This is called the @bold{target
+language}.}
+
+@item{what is the language that the compiler will be written in? This
+is called the @bold{host language} or @bold{implementation language}.}
+]
+
+We're going to be building a compiler for a modern, high-level, memory
+safe programming language with facilities for basic primitive types
+like integers and booleans, inductive types like lists and trees,
+array types like vectors, pattern matching, and first-class functions.
+Rather than design this language from scratch, we're going to choose
+an existing language that has these features and implement a compiler
+for (a subset of) it.  Our source language is Racket.
+
+When writing a compiler, it is often useful to take advantage of the
+mechanisms provided by modern, high-level, memory safe programming
+languages.  For example, we need facilities for basic primitive types
+like integers and booleans, inductive types like lists and trees,
+pattern matching, etc.  So we will choose an existing language that
+has these features suitable for writing compilers.  Our host language
+is Racket.
+
+We'll discuss our chosen target language in a bit, but already we have
+two reasons to learn Racket: we will need to know enough Racket to
+write a compiler and we will need to know the parts of Racket we plan
+to compile so that we build a correct compiler.
+
+Let's know look at Racket, starting from a familiar and close
+relative: OCaml.
+
 @section{Basic values}
 
-Let's start by looking at something you know: OCaml.  In OCaml,
-expressions can include literals for numbers, strings, booleans.  Here
-we are using the OCaml read-eval-print-loop (REPL) to type in examples
-and evaluate their results:
+In OCaml, expressions can include literals for numbers, strings,
+booleans.  Here we are using the OCaml read-eval-print-loop (REPL) to
+type in examples and evaluate their results:
 
 @ocaml-repl{
 # 8;;

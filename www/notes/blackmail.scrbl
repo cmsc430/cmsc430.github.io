@@ -12,10 +12,10 @@
 @(define codeblock-include (make-codeblock-include #'here))
 
 @(ev '(require rackunit a86))
-@(ev '(require blackmail/compiler/compile blackmail/executor/run))
+@(ev '(require blackmail/compiler/compile))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "blackmail" f))))))
 	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
-@(ev '(define (exec e) (run (compile e))))
+
 
 @(define (shellbox . s)
    (parameterize ([current-directory (build-path langs "blackmail")])
@@ -309,31 +309,16 @@ what they each produce:
 (asm-interp (compile (parse '(sub1 8))))
 (asm-interp (compile (parse '(add1 (add1 (sub1 (add1 -8)))))))]
 
-Based on this, it's useful to define an @racket[exec] function that
-(should) behave like @racket[interp], just as we did for Abscond:
 
-@codeblock-include["blackmail/executor/exec.rkt"]
-
-@ex[
-(exec (parse '(add1 (add1 40))))
-(exec (parse '(sub1 8)))
-(exec (parse '(add1 (add1 (sub1 (add1 -8))))))]
-
-This function will be the basis of our compiler correctness statement
-and a primary tool for testing the compiler.
-
-And give a command line wrapper for parsing, checking, and compiling
+We can write a command line wrapper for parsing, checking, and compiling
 in @link["code/blackmail/compile-stdin.rkt"]{@tt{compile-stdin.rkt}},
 we can compile files as follows:
 
-@shellbox["cat add1-add1-40.rkt | racket -t compile-stdin.rkt -m"]
+@shellbox["cat add1-add1-40.rkt | racket -t compiler/compile-stdin.rkt -m"]
 
-And using the same @link["code/blackmail/Makefile"]{@tt{Makefile}}
-setup as in Abscond, we capture the whole compilation process with a
-single command:
+And another for parsing, checking, compiling and executing:
 
-@void[(shellbox "touch add1-add1-40.rkt")]
-@shellbox["make add1-add1-40.run" "./add1-add1-40.run"]
+@shellbox["cat add1-add1-40.rkt | racket -t executor/run-stdin.rkt -m"]
 
 
 @section{Correctness and random testing}
@@ -342,12 +327,12 @@ We can state correctness similarly to how it was stated for Abscond:
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
 @tt{Expr} and @racket[i] @math{∈} @tt{Integer}, if @racket[(interp e)]
-equals @racket[i], then @racket[(exec e)] equals
+equals @racket[i], then @racket[(asm-interp (compile e))] equals
 @racket[i].}
 
 (This statement is actually identical to the statement of correctness
 for Abscond, however, it should be noted that the meaning of
-@tt{Expr}, @racket[interp], @racket[exec] refer to their Blackmail
+@tt{Expr}, @racket[interp], @racket[compile] refer to their Blackmail
 definitions.)
 
 And we can test this claim by comparing the results of running
@@ -402,10 +387,10 @@ x86 does.  Let's see:
 @ex[
 (define max-int (sub1 (expt 2 63)))
 (define min-int (- (expt 2 63)))
-(exec (Lit max-int))
-(exec (Prim1 'add1 (Lit max-int)))
-(exec (Lit min-int))
-(exec (Prim1 'sub1 (Lit min-int)))]
+(asm-interp (compile (Lit max-int)))
+(asm-interp (compile (Prim1 'add1 (Lit max-int))))
+(asm-interp (compile (Lit min-int)))
+(asm-interp (compile (Prim1 'sub1 (Lit min-int))))]
 
 Now there's a fact you didn't learn in grade school: in the
 first example, adding 1 to a number made it smaller; in the
@@ -438,14 +423,14 @@ literals:
 But the compiler will produce the wrong result:
 
 @ex[
-(exec (Lit (add1 max-int)))]
+(asm-interp (compile (Lit (add1 max-int))))]
 
 It's also possible to exceed the bounds so thoroughly, that the
 program can't even be compiled:
 
 @ex[
 (interp (Lit (expt 2 64)))
-(eval:error (exec (Lit (expt 2 64))))]
+(eval:error (asm-interp (compile (Lit (expt 2 64)))))]
 
 The issue here being that a @racket[Mov] instruction can only take an
 argument that can be represented in 64-bits.

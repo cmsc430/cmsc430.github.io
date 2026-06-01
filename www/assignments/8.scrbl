@@ -8,14 +8,17 @@
 
 @bold{Due: @assign-deadline[8]}
 
+@bold{Starter code:} @link["code/knock-plus.zip"]{@tt{knock-plus.zip}}
+
 @(ev '(require knock-plus))
 
 The goal of this assignment is to extend a compiler with new pattern
 matching forms for matching lists, vectors, and predicates.
 
-You are given a file @tt{knock-plus.zip} on ELMS with a starter
-compiler similar to the @seclink["Knock"]{Knock} language we studied
-in class.  You are tasked with:
+Use the starter code in
+@link["code/knock-plus.zip"]{@tt{knock-plus.zip}}, which is similar to
+the @seclink["Knock"]{Knock} language we studied in class.  You are
+tasked with:
 
 @itemlist[
 

@@ -1,22 +1,16 @@
 #lang scribble/manual
 @(require scribble/core
-          "defns.rkt")
+	  "defns.rkt")
 
-@provide[exam-table]
+@;provide[exam-table]
 
-@(define grades:m1 (list @elem{Midterm, @m1-date} "10%"))
-@(define grades:f  (list @elem{Final Exam, @final-date} "20%"))
+@(define ELMS (link elms-url "ELMS"))
+@(define Piazza (link piazza "Piazza"))
 
 @(define (make-grade-component-table . entries)
   @tabular[#:style 'boxed
-	   #:sep @hspace[1] 
-           (list* (list @bold{Component} @bold{Percentage}) entries)])
-
-
-@(define exam-table
-  @make-grade-component-table[
-    @grades:m1
-    @grades:f])
+	   #:sep @hspace[1]
+	   (list* (list @bold{Component} @bold{Percentage}) entries)])
 
 @title[#:style 'unnumbered]{Syllabus}
 
@@ -30,7 +24,7 @@
 
 @bold{Email:} @prof1-email
 
-@bold{Office Hours:} By appointment.  Send email or ELMS message to set
+@bold{Office Hours:} By appointment.  Send email or @ELMS message to set
 up.
 
 @bold{Credits:} 3
@@ -117,14 +111,32 @@ of the course:
 
 @itemlist[
   @item{Overview of compilation}
-  @;item{Operational semantics}
-  @item{Interpreters}
-  @item{Intermediate representations and bytecode}
-  @item{Code generation}
-  @item{Run-time systems}
+  @item{Introduction to Racket Language}
+  @item{Introduction to a86 Assembly Code}
+  @item{Compiler specification}
+  @item{First compiler}
+  @item{Run-time type tagging}
+  @item{I/O}
+  @item{Run-time system calls}
+  @item{Errors}
+  @item{Variables, binding, and lexical addressing}
+  @item{Binary primitivives}
+  @item{Run-time stack and compile-time environments}
+  @item{Inductive heap-allocated data}
+  @item{Sequential heap-allocate data}
+  @item{Function definitions and calls}
+  @item{Tail calls}
+  @item{First-class functions}
+  @item{Letrec expressions}
+  @item{Pattern matching}
+  @item{Symbols and interned data}
+  @item{Structures}
+  @item{Static analysis}
+  @item{Compiler optimization}
   @item{Garbage collection}
   @item{Type systems, type soundness, type inference}
-  @item{Register allocation and optimization}
+  @item{Memory safety}
+  @item{Bootstrapping}
   @item{Language design}
   @item{Advanced topics in compilation}]
 
@@ -135,12 +147,11 @@ of the course:
 
 @section{Course Structure}
 
-The course will consist of in-person lectures, which will be recorded
-and available on ELMS immediately after each lecture.  There are two
-midterms, a final project, which counts as the final assessment for
-the class, several assignments, and several quizes and surveys.
-Midterms are take-home exams and completed online over a
-@|midterm-hours|-hour period.
+The course will consist of @if[online? @elem{synchronous on-line}
+@elem{in-person}] lectures.  Video recordings and slides will be
+posted immediately after each lecture.  There are three exams, several
+assignments, and several quizes and surveys. Exams are take-home and
+completed online over a @|exam-hours|-hour period.
 
 
 @section{Tips for Success in this Course}
@@ -222,14 +233,14 @@ and we ask you to do the same for all of your fellow Terps.
 @bold{Communication with Instructor:}
 Email: If you need to reach out and communicate with @prof1,
 please email at @|prof1-email|. Please DO NOT email
-questions that are easily found in the syllabus or on ELMS (i.e. When
+questions that are easily found in the syllabus or on @ELMS (i.e. When
 is this assignment due?  How much is it worth? etc.) but please DO
 reach out about personal, academic, and intellectual
 concerns/questions.
 
-ELMS: IMPORTANT announcements will be sent via ELMS messaging. You
+ELMS: IMPORTANT announcements will be sent via @ELMS messaging. You
 must make sure that your email & announcement notifications (including
-changes in assignments and/or due dates) are enabled in ELMS so you do
+changes in assignments and/or due dates) are enabled in @ELMS so you do
 not miss any messages.  You are responsible for checking your email
 and Canvas/ELMS inbox with regular frequency.
 
@@ -286,7 +297,7 @@ can easily see what issues are being brought up.}
 @section{Grades}
 
 All assessment scores will be posted on the course
-@link[elms-url]{ELMS} page.
+@ELMS page.
 
 Late work will not be accepted for course credit so please plan to
 have it submitted well before the scheduled deadline.
@@ -294,7 +305,7 @@ have it submitted well before the scheduled deadline.
 Any formal grade disputes must be submitted in writing and within one
 week of receiving the grade.  Final letter grades are assigned based
 on the percentage of total assessment points earned.  To be fair to
-everyone I have to establish clear standards and apply them
+everyone, there are clear established standards which are applied
 consistently, so please understand that being close to a cutoff is not
 the same as making the cut (89.99 ≠ 90.00).  It would be unethical to
 make exceptions for some and not others.
@@ -303,15 +314,16 @@ Your final course grade will be determined according to the following
 percentages:
 
 @make-grade-component-table[
-  (list "Assignments" "45%")
-  (list @elem{Quizzes & surveys}    "15%")
-  (list "Midterms (2)" "25%")
-  (list "Final project" "15%")]
+  (list "Assignments" "30%")
+  (list @elem{Quizzes & surveys}    "20%")
+  (list "Exam 1" "15%")
+  (list "Exam 2" "15%")
+  (list "Exam 3" "20%")]
 
 Final letter grades are assigned following this grading scheme:
 
 @tabular[#:style 'boxed @;#:sep @;"|" @;@hspace[1]
-         (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
+	 (list (list "A+" "[100,97]"  "B+" "(90,87]" "C+" "(80,77]" "D+" "(70,67]" " " " ")
 	       (list "A"  "(97,94]"   "B"  "(87,84]" "C"  "(77,74]" "D"  "(67,64]" "F" "(60,0]")
 	       (list "A-" "(94,90]"   "B-" "(84,80]" "C-" "(74,70]" "D-" "(64,60]" " " " "))]
 
@@ -321,7 +333,7 @@ number less than @math{x} and greater than or equal to @math{y}.
 
 @section[#:tag "syllabus-videos"]{Videos}
 
-Lectures will be recorded and posted to ELMS shortly after every
+Lectures will be recorded and posted to @ELMS shortly after every
 class.  There are also prepared videos available covering the
 material. These videos will be made available as the course
 progresses. If there is ever any issue with accessing these videos,
@@ -338,44 +350,35 @@ otherwise noted).  Assignments will be submitted through
 
 @section[#:tag "syllabus-quiz"]{Quizzes & surveys}
 
-There will be @bold{many} quizzes and surveys. These will be administered
-through ELMS.  Completed surveys receive full credit.  Instructors reserve the
-right to reject survey responses that are not considered thoughtful.
+There will be @bold{many} quizzes and surveys. These will be
+administered through @|ELMS|.  Completed surveys receive full credit.
+Instructors reserve the right to reject survey responses that are not
+considered thoughtful.
 
-@section[#:tag "syllabus-midterms"]{Midterms}
+@section[#:tag "syllabus-exams"]{Exams}
 
-There will be two @secref{Midterms}, which will be @bold{take-home}
-exams.  Exams will be distributed at least @|midterm-hours| hours
-before the due date of the midterm.
-
-@itemlist[
-  @item{Midterm 1: @bold{@m1-date}}
-  @item{Midterm 2: @bold{@m2-date}}
-]
-
-@section[#:tag "syllabus-project"]{Project}
-
-There will be a course @secref{Project} that will be assessed during
-the final exam period for the course:
+There will be three @secref{Exams}, which will be @bold{take-home}
+exams.  Exams will be distributed at least @|exam-hours| hours
+before the due date of the exam.
 
 @itemlist[
-  @item{Final Project Assessment: @bold{@final-date}}
+  @item{Exam 1: @bold{@exam1-date}}
+  @item{Exam 2: @bold{@exam2-date}}
+  @item{Exam 3: @bold{@exam3-date}}
 ]
 
-The project description will be distributed approximately 3 weeks
-before the due date.
 
 @section{Computing Resources}
 
-Programming projects can be developed on your own system and subitted
+Programming assignments can be developed on your own system and subitted
 via @link[gradescope]{Gradescope}, which will provide virtual machines
-suitably configured for running your code.  All project submissions
-@bold{must} work correctly on the Gradescope VMs, and your projects
+suitably configured for running your code.  All assignment submissions
+@bold{must} work correctly on the Gradescope VMs, and your assignment
 will be graded solely based on their results on those
 machines. Because language and library versions may vary with the
 installation, in unfortunate circumstances a program might work
 perfectly on your system but not work at all on the VMs. Thus we
-strongly recommend that as you develop any project, you should run it
+strongly recommend that as you develop any assignment, you should run it
 @bold{several days early} on Gradescope to have time to address any
 compatibility problems.
 
@@ -384,7 +387,7 @@ compatibility problems.
 
 Course staff will interact with students outside of class in primarily
 two ways: office hours, and electronically via e-mail.  The use of
-@link[piazza]{Piazza} and/or other classroom forums is allowed, and
+@Piazza and/or other classroom forums is allowed, and
 discussion amongst the students is encouraged, as long as the discuss
 is @italic{about the concepts} and not @italic{the solutions}. @;{The
 majority of communication should be via office hours.}
@@ -394,7 +397,7 @@ will be provided during office hours.  Office hours for the
 instructional staff will be posted on the course web page.
 
 Additional assistance will provided via discussion on
-@link[piazza]{Piazza}. You may use this forum to ask general
+@|Piazza|. You may use this forum to ask general
 questions of interest to the class as a whole, e.g., administrative
 issues or problem set clarification questions. The course staff will
 monitor it on a daily basis, but do not expect immediate answers to
@@ -410,7 +413,7 @@ Personal e-mail to TAs should be reserved for issues
 that cannot be handled by the above methods.
 
 Important announcements will be made in class or on the class web
-page, and via Piazza.
+page, and via @|Piazza|.
 
 @section{Excused Absences}
 
@@ -438,16 +441,16 @@ relative's funeral) will be excused so long as the absence is
 requested in writing at least @bold{2 days} in advance and the student
 includes documentation that shows the absence qualifies as excused;
 @bold{a self-signed note} is not sufficient as exams are Major
-Scheduled Grading Events. For this class, such events are the final
-project assessment and midterms, which will be due on the following
+Scheduled Grading Events. For this class, such events are the exams,
+which will be due on the following
 dates:
 
 @itemlist[
-  @item{Midterm 1: @bold{@m1-date}}
-  @item{Midterm 2: @bold{@m2-date}}
-  @item{Final Project Assessment: @bold{@final-date}}]
+  @item{Exam 1: @bold{@exam1-date}}
+  @item{Exam 2: @bold{@exam2-date}}
+  @item{Exam 3: @bold{@exam3-date}}]
 
-The final exam is scheduled according to the University Registrar.
+@;{The final exam is scheduled according to the University Registrar.}
 
 For medical absences, you must furnish documentation from the health
 care professional who treated you. This documentation must verify
@@ -473,13 +476,13 @@ discuss the circumstances. We are not obligated to offer a substitute
 assignment or to provide a makeup exam unless the failure to perform
 was due to an excused absence.
 
-The policies for excused absences @bold{do not} apply to project
-assignments. Projects will be assigned with sufficient time to be
+The policies for excused absences @bold{do not} apply to
+assignments. Assignments will be assigned with sufficient time to be
 completed by students who have a reasonable understanding of the
 necessary material and begin promptly. In cases of @bold{extremely
 serious} documented illness of @bold{lengthy duration} or other
 protracted, severe emergency situations, the instructor may consider
-extensions on project assignments, depending upon the specific
+extensions on assignments, depending upon the specific
 circumstances.
 
 Besides the policies in this syllabus, the University's policies apply
@@ -516,22 +519,22 @@ exam and assignment. Please also carefully read the Office of Information
 Technology's @link["http://www.nethics.umd.edu/aup/"]{policy}
 regarding acceptable use of computer accounts.
 
-Assignments and projects are to be completed @bold{individually},
-therefore cooperation with others or use of unauthorized materials on
-assignment or projects is a violation of the University's Code of
-Academic Integrity. Both the person receiving assistance @bold{and the
-person providing assistance} are in violation of the honor
-code. @bold{Any evidence} of this, or of unacceptable use of computer
-accounts, use of unauthorized materials or cooperation on exams or
-quizzes, or other possible violations of the Honor Code, @bold{will be
-submitted} to the Student Honor Council, which could result in an XF
-for the course, suspension, or expulsion.
+Assignments are to be completed @bold{individually}, therefore
+cooperation with others or use of unauthorized materials on assignment
+is a violation of the University's Code of Academic Integrity. Both
+the person receiving assistance @bold{and the person providing
+assistance} are in violation of the honor code. @bold{Any evidence} of
+this, or of unacceptable use of computer accounts, use of unauthorized
+materials or cooperation on exams or quizzes, or other possible
+violations of the Honor Code, @bold{will be submitted} to the Student
+Honor Council, which could result in an XF for the course, suspension,
+or expulsion.
 
 @itemlist[
 
 @item{For learning the course concepts, students are welcome to study
 together or to receive help from anyone else. You may discuss with
-others the assignment or project requirements, the features of the
+others the assignment requirements, the features of the
 programming languages used, what was discussed in class and in the
 class web forum, and general syntax errors. Examples of questions that
 would be allowed are "Does a cond expression always end with an
@@ -559,10 +562,9 @@ section of the program. }
 ]
 
 @bold{AI tool disclosure:} If a student chooses to use an AI tool to
-assist in any course work (e.g. assignments, programs, projects,
-reports, etc), they must disclose this information to the
-instructor. This disclosure should include the name of the AI tool and
-explain how it was used.
+assist in any course work (e.g. assignments, programs, reports, etc),
+they must disclose this information to the instructor. This disclosure
+should include the name of the AI tool and explain how it was used.
 
 Failure to adhere to this policy may result in a zero on the
 particular course work where the AI tool is used.  In addition the
@@ -575,21 +577,21 @@ are not limited to:}
 
 @itemlist[
 
-@item{Failing to do all or any of the work on a project by yourself,
+@item{Failing to do all or any of the work on a assignment by yourself,
     other than assistance from the instructional staff.}
 
-@item{Using any ideas or any part of another person's project, or copying any other individual's work in any way.}
+@item{Using any ideas or any part of another person's assignment, or copying any other individual's work in any way.}
 
-@item{Giving any parts or ideas from your project, including test
+@item{Giving any parts or ideas from your assignment, including test
 data, to another student.}
 
 @item{Allowing any other students access to your program on any
 computer system.}
 
-@item{Posting solutions to your projects to publicly-accessible sites,
+@item{Posting solutions to your assignment to publicly-accessible sites,
 e.g., on github.}
 
-@item{Transferring any part of an assignment or project to or from another
+@item{Transferring any part of an assignment to or from another
 student or individual by any means, electronic or otherwise.}]
 
 If you have any question about a particular situation or source then

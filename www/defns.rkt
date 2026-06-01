@@ -25,13 +25,15 @@
 (define office-hour-location "TBD")
 
 (define start-date "June 1")
-(define m1-date "June 16")
-(define m2-date "July 1")
-(define midterm-hours "24")
+(define exam1-date "June 16")
+(define exam2-date "July 1")
+(define exam3-date "July 10")
+(define exam-hours "24")
 (define final-date "July 10")
-(define final-end-time "11:59pm")
+(define exam-end-time "11:59pm")
 (define elms-url "https://umd.instructure.com/courses/1406982")
 
+(define online? #t)
 
 (define racket-version "8.18")
 
@@ -45,19 +47,26 @@
 
 ;(define discord "TBD")
 (define piazza "https://piazza.com/umd/summer2026/cmsc430/home")
-(define gradescope "https://www.gradescope.com/")
+(define gradescope "https://www.gradescope.com/courses/1319905")
 
 (define feedback "https://forms.gle/99yTz7HVfopCaDMz9")
 
+(define (practice-deadline i)
+  (list-ref '("Thursday, June 4, 11:59PM"
+              "Friday, June 5, 11:59PM")
+            (sub1 i)))
+
 (define (assign-deadline i)
   (list-ref '("Thursday, June 4, 11:59PM"
-              "Friday, June 5, 11:59PM"
-              "Friday, June 12, 11:59PM"
+              "Monday, June 8, 11:59PM"
+              "Thursday, June 11, 11:59PM"
+              "Monday, June 15, 11:59PM"
+              "Thursday, June 18, 11:59PM"
               "Monday, June 22, 11:59PM"
+              "Thursday, June 25, 11:59PM"
               "Monday, June 29, 11:59PM"
-              "Monday, July 6, 11:59PM"
-              "Wednesday, July 8, 11:59PM"
-              "Thursday, July 9, 11:59PM")
+              "Thursday, July 2, 11:59PM"
+              "Monday, July 6, 11:59PM")
             (sub1 i)))
 
 (define office-hours
