@@ -22,10 +22,9 @@
 @(define codeblock-include (make-codeblock-include #'h))
 
 @(ev '(require rackunit a86))
-@(ev '(require dupe/compiler/compile dupe/executor/decode dupe/executor/run))
+@(ev '(require dupe/compiler/compile dupe/executor/decode dupe/executor/exec))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "dupe" f))))))
 	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
-@(ev '(define (exec e) (run (compile e))))
 
 
 @title[#:tag "Dupe"]{Dupe: a duplicity of types}
