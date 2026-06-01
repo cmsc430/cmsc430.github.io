@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 9" #:style 'unnumbered]{Assignment 9: Patterns}
+@title[#:tag "Assignment 9" #:style 'unnumbered]{Assignment 9}
 
 @(require (for-label a86 (except-in racket ...)))
 

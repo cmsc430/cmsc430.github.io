@@ -1,18 +1,15 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Assignment 1" #:style 'unnumbered]{Assignment 1: Racket primer}
+@title[#:tag "Practice 1" #:style 'unnumbered]{Practice 1: Racket primer}
 
-@bold{Due: @assign-deadline[1]}
+@bold{Starter code:} @link["code/racket-basics.zip"]{@tt{racket-basics.zip}}
 
 The goal of this assignment is to gain practice programming in Racket.
 
-@bold{This is a collaborative assignment.}  You may work with anyone
-you'd like on this assignment, but each person must submit their
-@tt{submit.zip} file on Gradescope.
-
-You are given a @tt{racket-basics.zip} file (in ELMS, linked in the
-description for Assignment 1) that contains a README, a Makefile, and
-a number of Racket modules.  In each module there are several function
+Use the starter code in
+@link["code/racket-basics.zip"]{@tt{racket-basics.zip}}, which contains
+a README, a Makefile, and a number of Racket modules.  In each module
+there are several function
 ``stubs,'' i.e. incomplete function definitions with type signatures,
 descriptions, and a small set of tests.  Each function has a bogus
 (but type correct) body marked with a ``TODO'' comment.  Your job is

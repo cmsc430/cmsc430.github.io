@@ -2,23 +2,25 @@
 @(require "../defns.rkt"
 	  "../notes/ev.rkt")
 
-@title[#:tag "Assignment 5" #:style 'unnumbered]{Assignment 5: Let There Be (Many) Variables}
+@title[#:tag "Assignment 4" #:style 'unnumbered]{Assignment 4: Let There Be (Many) Variables}
 
 @(require (for-label a86/ast (except-in racket ...)))
 
 @(ev '(require fraud-plus fraud-plus/compiler/compile fraud-plus/executor/run))
 @(ev '(define (exec e) (run (compile e))))
 
-@bold{Due: @assign-deadline[5]}
+@bold{Due: @assign-deadline[4]}
+
+@bold{Starter code:} @link["code/fraud-plus.zip"]{@tt{fraud-plus.zip}}
 
 The goal of this assignment is to extend a compiler with binding forms
 that can take any number of arguments.
 
 @section[#:tag-prefix "a5-" #:style 'unnumbered]{Overview}
 
-For this assignment, you are given a @tt{fraud-plus.zip} file on ELMS
-with a starter compiler similar to the @seclink["Fraud"]{Fraud}
-language we studied in class.
+For this assignment, use the starter code in
+@link["code/fraud-plus.zip"]{@tt{fraud-plus.zip}}, which is similar to
+the @seclink["Fraud"]{Fraud} language we studied in class.
 
 @section[#:tag-prefix "a5-" #:style 'unnumbered]{Fraud+}
 
@@ -27,7 +29,7 @@ new features:
 
 @itemlist[
 
-@item{The features added in @seclink["Assignment 4"]{Assignment 4}, namely:
+@item{The features added in @seclink["Assignment 3"]{Assignment 3}, namely:
 
   @itemlist[
 
@@ -49,7 +51,7 @@ new features:
 
 Implement the @racket[abs], unary @racket[-], and @racket[not] operations and
 the @racket[cond] and @racket[case] forms from
-@seclink["Assignment 4"]{Assignment 4} by modifying @tt{interp.rkt},
+@seclink["Assignment 3"]{Assignment 3} by modifying @tt{interp.rkt},
 @tt{interp-prim.rkt}, @tt{compile.rkt}, and @tt{compile-ops.rkt}. You can
 start from your previous code, but you will need to update it to work for the
 code you are given. What's essentially left for you to do is to make sure to

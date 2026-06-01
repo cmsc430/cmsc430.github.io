@@ -13,6 +13,10 @@
 	  dupe/runtime/types
 	  "../utils.rkt")
 
+@(define (shellbox . s)
+   (parameterize ([current-directory (build-path langs "dupe")])
+     (filebox (emph "shell")
+              (fancyverbatim "fish" (apply shell s)))))
 
 
 @(define codeblock-include (make-codeblock-include #'h))
@@ -210,13 +214,11 @@ examples given earlier:
 Viewed as a specification, what is this interpreter saying about programs that
 do nonsensical things like @racket[(add1 #f)]?
 
-First, let's revise the statement of compiler correctness to reflect
-the fact that @racket[interp] can return different kinds of values:
+Consider the beginning of the correctness statement:
 
 @bold{Compiler Correctness}: @emph{For all @racket[e] @math{∈}
 @tt{Expr} and @racket[v] @math{∈} @tt{Value}, if @racket[(interp e)]
-equals @racket[v], then @racket[(exec e)] equals
-@racket[v].}
+equals @racket[v], then ...}
 
 Now, the thing to notice here is that this specification only
 obligates the compiler to produce a result consistent with the
@@ -240,7 +242,7 @@ undefined may not be a great choice.  As a compiler implementor,
 however, it makes our life easier: we simply don't need to worry about
 what happens on these kinds of programs.)
 
-This will, however complicate testing the correctness of the compiler,
+This will, however, complicate testing the correctness of the compiler,
 which is addressed in @secref["Correctness_and_testing"].
 
 Let's now turn to the main technical challenge introduced by the Dupe
@@ -249,22 +251,22 @@ langauge.
 @section{Ex uno plures: Out of One, Many}
 
 Before getting in to the compiler, let's first address the issue of
-representation of values in the setting of x86.
+representation of values in the setting of a86.
 
-So far we've had a single type of value: integers.  Luckily, x86 has a
-convenient datatype for representing integers: it has 64-bit signed
-integers.  (There is of course the problem that this representation is
+So far we've had a single type of value: integers.  Luckily, a86 has a
+convenient datatype for representing integers: it has 64-bit integers.
+(There is of course the problem that this representation is
 @bold{inadequate}; there are many (Con) integers we cannot represent
 as a 64-bit integer.  But we put off worrying about this until later.)
 
 The problem now is how to represent integers @emph{and} booleans,
 which should be @bold{disjoint} sets of values.  Representing these
-things in the interpreter as Racket values was easy: we Racket
+things in the interpreter as Racket values was easy: we used Racket
 booleans to represent Dupe booleans; we used Racket integers to
 represent Dupe integers.  Since Racket booleans and integers are
 disjoint types, everything was easy and sensible.
 
-Representing this things in x86 will be more complicated.  x86 doesn't
+Representing this things in a86 will be more complicated.  a86 doesn't
 have a notion of ``boolean'' per se and it doesn't have a notion of
 ``disjoint'' datatypes.  There is only one data type and that is:
 bits.
@@ -286,7 +288,7 @@ instruction that moves ``@racket[#t]'' into @racket[rax], but the
 We have to move some 64-bit integer into @racket[rax], but the
 question is: which one?
 
-The immediate temptation is to just pick a couple of integers, one for
+The immediate temptation is to just pick a couple of integers: one for
 representing @racket[#t] and one for @racket[#f].  We could follow the
 C tradition and say @racket[#f] will be @racket[0] and @racket[#t]
 will be 1.  So compiling @racket[#t] would emit:
@@ -1042,46 +1044,6 @@ incorporate the new representation.  The run-time system is
 essentially playing the role of @racket[bits->value]: it determines
 what is being represented and prints it appropriately.
 
-@section{Updated Run-time System for Dupe}
-
-Any time there's a change in the representation or set of values,
-there's going to be a required change in the run-time system.  From
-Abscond through Con, there were no such changes, but now we have to
-udpate our run-time system to reflect the changes made to values in
-Dupe.
-
-We define the bit representations in a header file corresponding to
-the definitions given in @tt{types.rkt}:
-
-@filebox-include[fancy-c dupe "runtime/types.h"]
-
-It uses an idiom of ``masking'' in order to examine on
-particular bits of a value. So for example if we want to
-know if the returned value is an integer, we do a
-bitwise-and of the result and @tt{1}. This produces a single
-bit: 0 for integer and 1 for boolean. In the case of an
-integer, to recover the number being represented, we need to
-divide by 2, which can be done efficiently with a
-right-shift of 1 bit. Likewise with a boolean, if we shift
-right by 1 bit there are two possible results:
-@racket[#,(value->bits #f)] for false and @racket[#,(value->bits #t)] for
-true.
-
-We use the following interface for values in the runtime system:
-
-@filebox-include[fancy-c dupe "runtime/values.h"]
-@filebox-include[fancy-c dupe "runtime/values.c"]
-
-The @tt{main} function remains largely the same although now we use
-@tt{val_t} in place of @tt{int64_t}:
-
-@filebox-include[fancy-c dupe "runtime/main.c"]
-
-And finally, @tt{print_result} is updated to do a case analysis on the
-type of the result and print accordingly:
-
-@filebox-include[fancy-c dupe "runtime/print.c"]
-
 @section{Correctness and testing}
 
 We already established our definition of correctness:
@@ -1192,3 +1154,68 @@ how well this is actually testing the compiler).
 (for ([i (in-range 10)])
   (check-compiler (random-expr)))
 ]
+
+@section{Updated stand-alone run-time system}
+
+We saw in @secref{Abscond} that if want to make a stand-alone
+executable, i.e. if we want to compile programs into executables that
+do not depend on the host language, we need to provide a small support
+library that is linked with every compiled program.  This is called
+the @bold{run-time system}.
+
+Any time there's a change in the representation or set of values,
+there's going to be a required change in the run-time system.  From
+Abscond through Con, there were no such changes, but now we have to
+udpate our run-time system to reflect the changes made to values in
+Dupe.
+
+One of the responsibilities of the run-time system is printing the
+final result of computation, so the run-time system, like
+@racket[bits->value], needs to be able to determine the kind of value
+the return bits represent so it can print appropriately.
+
+We define the bit representations in a header file corresponding to
+the definitions given in @tt{types.rkt}:
+
+@filebox-include[fancy-c dupe "runtime/types.h"]
+
+It uses an idiom of ``masking'' in order to examine on
+particular bits of a value. So for example if we want to
+know if the returned value is an integer, we do a
+bitwise-and of the result and @tt{1}. This produces a single
+bit: 0 for integer and 1 for boolean. In the case of an
+integer, to recover the number being represented, we need to
+divide by 2, which can be done efficiently with a
+right-shift of 1 bit. Likewise with a boolean, if we shift
+right by 1 bit there are two possible results:
+@racket[#,(value->bits #f)] for false and @racket[#,(value->bits #t)] for
+true.
+
+We use the following interface for values in the runtime system:
+
+@filebox-include[fancy-c dupe "runtime/values.h"]
+@filebox-include[fancy-c dupe "runtime/values.c"]
+
+The @tt{main} function remains largely the same although now we use
+@tt{val_t} in place of @tt{int64_t}:
+
+@filebox-include[fancy-c dupe "runtime/main.c"]
+
+And finally, @tt{print_result} is updated to do a case analysis on the
+type of the result and print accordingly:
+
+@filebox-include[fancy-c dupe "runtime/print.c"]
+
+We can now make an example and compile it into a standalone executable.
+
+@shellbox["printf \"#lang racket\\n#t\" | \\\n
+  racket -t compiler/compile-stdin.rkt -m > true.s"
+          "clang -c true.s"
+          "make -C runtime"
+          "clang true.o runtime/runtime.o -o true"]
+
+Here we are taking advantage of a Makefile provided to build the
+runtime system.  Then we link it with the object code for the Racket
+program.  Finally we can run the executable:
+
+@shellbox["./true"]

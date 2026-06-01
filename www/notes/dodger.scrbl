@@ -9,6 +9,10 @@
 	  "ev.rkt"	  
 	  "../utils.rkt")
 
+@(define (shellbox . s)
+   (parameterize ([current-directory (build-path langs "dodger")])
+     (filebox (emph "shell")
+              (fancyverbatim "fish" (apply shell s)))))
 
 
 @(define codeblock-include (make-codeblock-include #'h))
@@ -215,4 +219,15 @@ the case of printing characters:
 
 @filebox-include[fancy-c dodger "runtime/print.c"]
 
-@;{FIXME: examples should be creating executable at the command-line, not exec.}
+We can now make stand-alone executable examples:
+
+@shellbox["printf \"#lang racket\\n(integer->char 955)\" > lambda-char.rkt"
+          "cat lambda-char.rkt | racket -t compiler/compile-stdin.rkt -m > lambda-char.s"
+	  "clang -c lambda-char.s"
+	  "make -C runtime"
+	  "clang lambda-char.o runtime/runtime.o -o lambda-char"]
+
+And we can run it:
+
+@shellbox["./lambda-char"]
+

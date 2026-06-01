@@ -2,7 +2,7 @@
 @(require "../defns.rkt"
 	  "../notes/ev.rkt"
 	  "../notes/utils.rkt")
-@title[#:tag "Assignment 6" #:style 'unnumbered]{Assignment 6: List and vector primitives}
+@title[#:tag "Assignment 5" #:style 'unnumbered]{Assignment 5: List and vector primitives}
 
 @src-code["hoax-plus"]
 
@@ -10,7 +10,9 @@
 
 @(require racket/port)
 
-@bold{Due: @assign-deadline[6]}
+@bold{Due: @assign-deadline[5]}
+
+@bold{Starter code:} @link["code/hoax-plus.zip"]{@tt{hoax-plus.zip}}
 
 @(ev '(require hoax-plus))
 
@@ -20,9 +22,9 @@ list and vector primitives.
 
 @section[#:tag-prefix "a6-" #:style 'unnumbered]{Overview}
 
-For this assignment, you are given a @tt{hoax-plus.zip} file on ELMS
-with a starter compiler similar to the @seclink["Hoax"]{Hoax}
-language we studied in class.
+For this assignment, use the starter code in
+@link["code/hoax-plus.zip"]{@tt{hoax-plus.zip}}, which is similar to
+the @seclink["Hoax"]{Hoax} language we studied in class.
 
 
 @section[#:tag-prefix "a6-" #:style 'unnumbered]{Hoax+}
