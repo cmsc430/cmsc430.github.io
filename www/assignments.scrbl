@@ -3,16 +3,18 @@
 
 @local-table-of-contents[#:style 'immediate-only]
 
-@include-section{assignments/0.scrbl}
-@include-section{assignments/3.scrbl}
-@include-section{assignments/4.scrbl}
-@include-section{assignments/5.scrbl}
-@include-section{assignments/6.scrbl}
-@include-section{assignments/7.scrbl}
-@include-section{assignments/7-overloading.scrbl}
-@include-section{assignments/8.scrbl}
-@include-section{assignments/9.scrbl}
-@include-section{assignments/10.scrbl}
+Assignments will be released soon.
+
+@;include-section{assignments/0.scrbl}
+@;include-section{assignments/3.scrbl}
+@;include-section{assignments/4.scrbl}
+@;include-section{assignments/5.scrbl}
+@;include-section{assignments/6.scrbl}
+@;include-section{assignments/7.scrbl}
+@;include-section{assignments/7-overloading.scrbl}
+@;include-section{assignments/8.scrbl}
+@;include-section{assignments/9.scrbl}
+@;include-section{assignments/10.scrbl}
 
 
 @;{assignment 9: quote in general, and quasiquote}
