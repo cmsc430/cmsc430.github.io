@@ -1,58 +1,116 @@
 #lang scribble/manual
 @(require "../defns.rkt")
-@title[#:tag "Practice 1" #:style 'unnumbered]{Practice 1: Racket primer}
+@title[#:tag "Assignment 1" #:style 'unnumbered]{Assignment 1: Getting started}
 
-@bold{Starter code:} @link["code/racket-basics.zip"]{@tt{racket-basics.zip}}
+@(require (for-label a86/ast (except-in racket ...)))
 
-The goal of this assignment is to gain practice programming in Racket.
+@bold{Due: @assign-deadline[1]}
 
-Use the starter code in
-@link["code/racket-basics.zip"]{@tt{racket-basics.zip}}, which contains
-a README, a Makefile, and a number of Racket modules.  In each module
-there are several function
-``stubs,'' i.e. incomplete function definitions with type signatures,
-descriptions, and a small set of tests.  Each function has a bogus
-(but type correct) body marked with a ``TODO'' comment.  Your job is
-to replace each of these expressions with a correct implementation of
-the function.
+@bold{Starter code:} @link["code/blackmail-plus.zip"]{@tt{blackmail-plus.zip}}
 
-The last section of problems deals with functions that operate over a
-representation of expressions in a lambda-calculus-like language and
-asks you to compute a few simple facts about the given expression.
+The goal of this assignment is to extend the language developed in
+@secref{Blackmail} with another simple unary numeric operation.  This
+is a conceptually straightforward assignment, designed primarily to
+make you familiar with the structure of the Blackmail language
+implementation and the tools we will be using for the remainder of the
+course.  It should not take long to complete, but may involve working
+out some set-up issues.
 
-Make sure you do not rename any files.  Also make sure not to change
-the name or signature of any function given to you.  You may add any
-additional functions that help you solve the overall problem you're
-tackling.
+@section[#:tag "a1-blackmail-plus" #:style 'unnumbered]{Blackmail+}
 
-@section[#:tag-prefix "a1-" #:style 'unnumbered]{Testing}
+The Blackmail+ language extends Blackmail in the following ways:
 
-You can test your code in several ways:
+@itemlist[
+@item{adding a new primitive operation @racket[add2].}
+]
+
+Note: typically all of our languages are subsets of Racket, but this
+is one of the exceptions since Racket doesn't actually have a built-in
+@racket[add2] function.
+
+@subsection[#:tag-prefix "a1-" #:style 'unnumbered]{Primitives}
+
+The following new primitive is included in Blackmail+:
+
+@itemlist[
+@item{@racket[(add2 _e)]: add 2 to the value of @racket[_e].}
+]
+
+@section[#:tag-prefix "a1-" #:style 'unnumbered]{Implementing Blackmail+}
+
+You must extend the interpreter and compiler to implement Blackmail+. (The
+parser for Blackmail+ is given to you.)  Use the starter code in
+@link["code/blackmail-plus.zip"]{@tt{blackmail-plus.zip}}, which is based on the
+@secref{Blackmail} language we studied in class.
+
+You may use any a86 instructions you'd like, however it is possible to
+complete the assignment using just @racket[Add].
+
+@section[#:tag-prefix "a1-" #:style 'unnumbered #:tag "parse"]{Parsing Blackmail+}
+
+The AST type and parser for Blackmail+ are given to you.
+
+Here's the AST definition for the added primitive:
+
+@#reader scribble/comment-reader
+(racketblock
+;; type Expr =
+;; ...
+
+;; type Op = 
+;; ...
+;; | 'add2
+)
+
+There are no new kinds of expression constructors, but there
+is a new @tt{Op} construtor: @racket['add2].
+
+Here are some examples of how concrete expressions are parsed into
+ASTs using this representation:
 
 @itemlist[
 
- @item{Running the code in DrRacket will (by default) run the
-  test submodule and print out a report of any test failures.
-  This is actually a configurable preference, but it is on by
-  default.}
+@item{@racket[(add2 1)] parses as @racket[(Prim1 'add2 (Lit 1))],}
 
- @item{Using the command line @tt{raco test <filename.rkt>} from
-  the same directory as your Racket code will test the module
-  in @tt{<filename.rkt>}.  If you run @tt{raco test .}, it will
-  test all of the Racket files in the current directory.}]
+@item{@racket[(add2 (add2 1))] parses as @racket[(Prim1 'add2 (Prim1 'add2 (Lit 1)))],}
 
-Note: running @tt{racket <filename.rkt>} will @bold{not} test the
-file; you need to use @tt{raco} or DrRacket.
+@item{@racket[(add2 (add1 1))] parses as @racket[(Prim1 'add2 (Prim1 'add1 (Lit 1)))].}
+]
 
-@section[#:tag-prefix "a1-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "a1-" #:style 'unnumbered]{Steps toward Blackmail+}
 
-Use the included Makefile to run @tt{make submit.zip} (or simply
-@tt{make}) to generate an appropriate @tt{submit.zip} file for
-submitting to Gradescope.
+Implement the new forms as described earlier, both for the interpreter
+and compiler.
 
-@section[#:tag-prefix "a1-" #:style 'unnumbered]{Grading}
+To do this, you should:
 
-Your submission will be graded for correctness.  Passing the unit
-tests included in the file is necessary but @bold{not sufficient} to
-receive a perfect score.  You are strongly encouraged to add your own
-tests to ensure the correctness of your solutions.
+@itemlist[
+@item{Study @tt{syntax/ast.rkt} to understand how these new forms of
+expression are represented.}
+
+@item{Add test cases to @tt{test/define-tests.rkt}.  These will be
+tested with both the interpreter and compiler.}
+
+@item{Update @tt{interpreter/interp-prim.rkt} to correctly interpret
+the new primitives.  (You don't need to update
+@tt{interpreter/interp.rkt}, but it would be a good idea to
+familiarize yourself with this file.)}
+
+@item{Test your interpreter with @tt{raco test
+test/run-interp-tests.rkt}.}
+
+@item{Make examples of the new primitive expressions and
+potential translations of them to assembly.}
+
+@item{Update @tt{compiler/compile-ops.rkt} to correctly compile these
+expressions based on your examples. (You don't need to update
+@tt{compiler/compile.rkt}, but again, it would be good to study this
+file.)}
+
+@item{Test your compiler with @tt{raco test test/run-compile-tests.rkt}.}
+]
+
+@section[#:tag-prefix "a3-" #:style 'unnumbered]{Submitting}
+
+To submit, use @tt{make} from within the @tt{blackmail-plus} directory to
+create a zip file containing your work and submit it to Gradescope.

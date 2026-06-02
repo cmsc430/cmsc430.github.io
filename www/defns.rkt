@@ -35,7 +35,7 @@
 
 (define online? #t)
 
-(define racket-version "8.18")
+(define racket-version "9.2")
 
 (define staff
   (list (list "Pierce Darragh" "pdarragh@umd.edu")))

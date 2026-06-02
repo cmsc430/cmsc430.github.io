@@ -1,12 +1,14 @@
 #lang scribble/manual
 @title[#:style '(toc unnumbered)]{Assignments}
 
+More assignments will be released later in the semester.
+
+
 @local-table-of-contents[#:style 'immediate-only]
 
-Assignments will be released soon.
+@include-section{assignments/1.scrbl}
+@include-section{assignments/2.scrbl}
 
-@;include-section{assignments/0.scrbl}
-@;include-section{assignments/3.scrbl}
 @;include-section{assignments/4.scrbl}
 @;include-section{assignments/5.scrbl}
 @;include-section{assignments/6.scrbl}
