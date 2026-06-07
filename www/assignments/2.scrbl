@@ -12,7 +12,7 @@ The goal of this assignment is to extend the language developed in
 @secref{Dupe} with some simple unary numeric and boolean operations
 and a new form of control flow expressions: @racket[cond]-expressions.
 
-@section[#:tag "a3-dupe-plus" #:style 'unnumbered]{Dupe+}
+@section[#:tag "p2-dupe-plus" #:style 'unnumbered]{Dupe+}
 
 The Dupe+ language extends Dupe in the follow ways:
 
@@ -21,7 +21,7 @@ The Dupe+ language extends Dupe in the follow ways:
 @item{adding @racket[cond].}
 ]
 
-@subsection[#:tag-prefix "a3-" #:style 'unnumbered]{Primitives}
+@subsection[#:tag-prefix "p2-" #:style 'unnumbered]{Primitives}
 
 The following new primitives are included in Dupe+:
 
@@ -31,14 +31,15 @@ The following new primitives are included in Dupe+:
 @item{@racket[(not _e)]: compute the logical negation of @racket[_e]; note that the negation of @emph{any} value other than @racket[#f] is @racket[#f] and the negation of @racket[#f] is @racket[#t].}
 ]
 
-@subsection[#:tag-prefix "a3-" #:style 'unnumbered]{Conditional expressions}
+@subsection[#:tag-prefix "p2-" #:style 'unnumbered]{Conditional expressions}
 
 The following new conditional form is included in Dupe+:
 
 @racketblock[
-(cond [_e-p1 _e-a1]
-      ...
-      [else _e-an])
+(cond
+  [_e-p1 _e-a1]
+  ...
+  [else _e-an])
 ]
 
 A @racket[cond] expression has any number of clauses @racket[[_e-pi
@@ -57,7 +58,7 @@ does not evaluate to @racket[#f] is found, in which case, the corresponding expr
 expression @racket[_e-an]'s value is the value of the @racket[cond].
 
 
-@section[#:tag-prefix "a3-" #:style 'unnumbered]{Implementing Dupe+}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Implementing Dupe+}
 
 You must extend the interpreter and compiler to implement Dupe+. (The
 parser for Dupe+ is given to you.)  Use the starter code in
@@ -68,7 +69,7 @@ You may use any a86 instructions you'd like, however it is possible to
 complete the assignment using @racket[Cmp], @racket[Je], @racket[Jg],
 @racket[Jmp], @racket[Label], @racket[Mov], and @racket[Sub].
 
-@section[#:tag-prefix "a3-" #:style 'unnumbered #:tag "parse"]{Parsing Dupe+}
+@section[#:tag-prefix "p2-" #:style 'unnumbered #:tag "parse"]{Parsing Dupe+}
 
 The AST type and parser for Dupe+ are given to you.
 
@@ -112,7 +113,7 @@ ASTs using this representation:
 (Lit 4)) (Lit 5))].}
 ]
 
-@section[#:tag-prefix "a3-" #:style 'unnumbered]{Steps toward Dupe+}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Steps toward Dupe+}
 
 Implement the new expression forms as described earlier, both for the
 interpreter and compiler.
@@ -143,7 +144,7 @@ based on your examples.}
 @item{Test your compiler with @tt{raco test test/run-compile-tests.rkt}.}
 ]
 
-@section[#:tag-prefix "a3-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Submitting}
 
 To submit, use @tt{make} from within the @tt{dupe-plus} directory to
 create a zip file containing your work and submit it to Gradescope.

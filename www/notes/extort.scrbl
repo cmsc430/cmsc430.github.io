@@ -15,8 +15,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 extort extort/compiler/compile-ops extort/correct extort/compiler/compile extort/executor/run))
-@(ev '(define (exec e) (run (compile e))))
+@(ev '(require rackunit a86 extort extort/compiler/compile-ops extort/correct extort/compiler/compile extort/executor/exec))
 
 @;{Hack to get un-provided functions from compile-ops}
 @(ev '(require (only-in rackunit require/expose)))

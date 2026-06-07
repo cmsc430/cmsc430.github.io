@@ -11,8 +11,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 iniquity iniquity/compiler/compile iniquity/executor/run))
-@(ev '(define (exec e) (run (compile e))))
+@(ev '(require rackunit a86 iniquity iniquity/compiler/compile iniquity/executor/exec))
 @(ev '(define (Offset a b)
          (cond
            [(symbol? a) (Mem a b)]

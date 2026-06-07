@@ -21,8 +21,8 @@
                hustle/interpreter/interp-prims-heap
                hustle/compiler/compile-ops
                hustle/compiler/compile
-               hustle/executor/run))
-@(ev '(define (exec e) (run (compile e))))
+               hustle/executor/exec
+	       hustle/executor/host))
 
 @(define this-lang "Hustle")
 @(define prefix (string-append this-lang "-"))
@@ -1165,10 +1165,11 @@ With @racket[bits->value] in place, we can now build up some utilities
 for running programs with the run-time system linked in and using
 @racket[bits->value] to construct the result value:
 
-@codeblock-include["hustle/executor/run.rkt"]
+@codeblock-include["hustle/executor/exec.rkt"]
 
 Let's make the list @racket['(1 2 3)].  Remember that @racket['(1 2
 3)] is just @racket[(cons 1 (cons 2 (cons 3 '())))].
+
 
 @#reader scribble/comment-reader
 (ex
@@ -1197,7 +1198,6 @@ Let's make the list @racket['(1 2 3)].  Remember that @racket['(1 2
         (Add rbx (* 8 6)) ; account for 6 words used
         (Pop rbx)
         (Ret))))
-
 
 These instructions create a list that is laid out in the heap like
 this:
@@ -1231,7 +1231,6 @@ Both of these would result in the same value from the perspective of
 Now that we can make examples and have a good idea of how to write
 instructions to create boxes and pairs in memory, let's write the
 compiler.
-
 
 @section[#:tag-prefix prefix]{A Compiler for @this-lang}
 

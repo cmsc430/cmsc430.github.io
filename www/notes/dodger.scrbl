@@ -18,10 +18,10 @@
 @(define codeblock-include (make-codeblock-include #'h))
 
 @(ev '(require rackunit a86))
-@(ev '(require dodger/compiler/compile dodger/executor/run))
+@(ev '(require dodger/compiler/compile dodger/executor/exec))
 @(for-each (λ (f) (ev `(require (file ,(path->string (build-path langs "dodger" f))))))
 	   '("main.rkt" "syntax/random.rkt" "correct.rkt"))
-@(ev '(define (exec e) (run (compile e))))
+
 
 
 @title[#:tag "Dodger"]{Dodger: addressing a lack of character}

@@ -21,8 +21,7 @@
 
 @(define codeblock-include (make-codeblock-include #'h))
 
-@(ev '(require rackunit a86 fraud fraud/syntax/translate fraud/compiler/compile fraud/executor/run))
-@(ev '(define (exec e) (run (compile e))))
+@(ev '(require rackunit a86 fraud fraud/syntax/translate fraud/compiler/compile fraud/executor/exec))
 
 @(define this-lang "Fraud")
 @(define prefix (string-append this-lang "-"))
