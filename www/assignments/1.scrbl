@@ -16,7 +16,7 @@ implementation and the tools we will be using for the remainder of the
 course.  It should not take long to complete, but may involve working
 out some set-up issues.
 
-@section[#:tag "p1-blackmail-plus" #:style 'unnumbered]{Blackmail+}
+@section[#:tag "a1-blackmail-plus" #:style 'unnumbered]{Blackmail+}
 
 The Blackmail+ language extends Blackmail in the following ways:
 
@@ -28,7 +28,7 @@ Note: typically all of our languages are subsets of Racket, but this
 is one of the exceptions since Racket doesn't actually have a built-in
 @racket[add2] function.
 
-@subsection[#:tag-prefix "p1-" #:style 'unnumbered]{Primitives}
+@subsection[#:tag-prefix "a1-" #:style 'unnumbered]{Primitives}
 
 The following new primitive is included in Blackmail+:
 
@@ -36,7 +36,7 @@ The following new primitive is included in Blackmail+:
 @item{@racket[(add2 _e)]: add 2 to the value of @racket[_e].}
 ]
 
-@section[#:tag-prefix "p1-" #:style 'unnumbered]{Implementing Blackmail+}
+@section[#:tag-prefix "a1-" #:style 'unnumbered]{Implementing Blackmail+}
 
 You must extend the interpreter and compiler to implement Blackmail+. (The
 parser for Blackmail+ is given to you.)  Use the starter code in
@@ -46,7 +46,7 @@ parser for Blackmail+ is given to you.)  Use the starter code in
 You may use any a86 instructions you'd like, however it is possible to
 complete the assignment using just @racket[Add].
 
-@section[#:tag-prefix "p1-" #:style 'unnumbered #:tag "parse"]{Parsing Blackmail+}
+@section[#:tag-prefix "a1-" #:style 'unnumbered #:tag "parse"]{Parsing Blackmail+}
 
 The AST type and parser for Blackmail+ are given to you.
 
@@ -77,7 +77,7 @@ ASTs using this representation:
 @item{@racket[(add2 (add1 1))] parses as @racket[(Prim1 'add2 (Prim1 'add1 (Lit 1)))].}
 ]
 
-@section[#:tag-prefix "p1-" #:style 'unnumbered]{Steps toward Blackmail+}
+@section[#:tag-prefix "a1-" #:style 'unnumbered]{Steps toward Blackmail+}
 
 Implement the new forms as described earlier, both for the interpreter
 and compiler.
@@ -110,7 +110,7 @@ file.)}
 @item{Test your compiler with @tt{raco test test/run-compile-tests.rkt}.}
 ]
 
-@section[#:tag-prefix "p1-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "a1-" #:style 'unnumbered]{Submitting}
 
 To submit, use @tt{make} from within the @tt{blackmail-plus} directory to
 create a zip file containing your work and submit it to Gradescope.

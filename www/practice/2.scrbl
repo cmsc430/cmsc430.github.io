@@ -21,7 +21,7 @@ the name or signature of any definition given to you.  You may add any
 additional functions that help you solve the overall problem you're
 tackling.
 
-@section[#:tag-prefix "a2-" #:style 'unnumbered]{Software}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Software}
 
 You will need to install the @seclink["langs-package"]{@tt{langs}
 package}, which includes the
@@ -31,7 +31,7 @@ you encounter any problems getting things set up.  If you run into any
 issues, please seek help at office hours or on @link[@piazza]{Piazza}.
 
 
-@section[#:tag-prefix "a2-" #:style 'unnumbered]{Testing}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Testing}
 
 You can test your code in several ways:
 
@@ -50,13 +50,13 @@ You can test your code in several ways:
 Note: running @tt{racket <filename.rkt>} will @bold{not} test the
 file; you need to use @tt{raco} or DrRacket.
 
-@section[#:tag-prefix "a2-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Submitting}
 
 Use the included Makefile to run @tt{make submit.zip} (or simply
 @tt{make}) to generate an appropriate @tt{submit.zip} file for
 submitting to Gradescope.
 
-@section[#:tag-prefix "a2-" #:style 'unnumbered]{Grading}
+@section[#:tag-prefix "p2-" #:style 'unnumbered]{Grading}
 
 Your submission will be graded for correctness.  Passing the unit
 tests included in the file is necessary but @bold{not sufficient} to
