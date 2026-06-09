@@ -11,7 +11,7 @@ $(course): scribble zips
 
 
 langs = abscond blackmail con dupe dodger evildoer extort fraud hustle hoax iniquity iniquity-gc jig knock loot mug mountebank neerdowell outlaw
-assigns = racket-basics a86-basics blackmail-plus dupe-plus extort-plus fraud-plus hoax-plus iniquity-plus knock-plus loot-exceptions
+assigns = racket-basics a86-basics blackmail-plus dupe-plus extort-plus fraud-plus hoax-plus iniquity-plus knock-plus loot-exceptions practice-e1
 
 zips:
 	mkdir -p $(course)/code/

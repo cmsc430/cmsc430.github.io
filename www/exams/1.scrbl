@@ -14,12 +14,12 @@ its due date.
 
 @section[#:tag-prefix prefix]{Practice}
 
-There is a practice exam available on ELMS.  You may submit to the
+There is a @secref{Practice Exam 1} available.  You may submit to the
 Practice Exam 1 assignment on Gradescope to get feedback on your
-solution.  However during the real exam, you will not get this
-level of feedback from the autograder.  @bold{Make sure you do not
-submit your practice exam solution for the real exam!  We will
-not allow late submissions if you submit the wrong work.}
+solution.  However during the real exam, you will not get this level
+of feedback from the autograder.  @bold{Make sure you do not submit
+your practice exam solution for the real exam!  We will not allow late
+submissions if you submit the wrong work.}
 
 @section[#:tag-prefix prefix]{Instructions}
 
