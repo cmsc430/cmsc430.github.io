@@ -22,7 +22,7 @@
 (define AVW "AVW")
 (define KEY "KEY")
 
-(define office-hour-location "TBD")
+(define office-hour-location (link "https://discord.gg/Qa2x6akMy" "Discord"))
 
 (define start-date "June 1")
 (define exam1-date "June 12")

@@ -51,9 +51,9 @@ announcement to the class via ELMS.
 @bold{Feedback:} We welcome anonymous feedback on the course and its
 staff using this @link[feedback]{form}.
 
-@bold{Prof. office hours:} @classroom1, 9:30-10:00am, or by appointment.
+@bold{Prof. office hours:} @classroom1, 9:30-10am, or by appointment.
 
-@bold{TA office hours:} @office-hour-location 
+@bold{TA office hours:} Monday & Wednesday, 1-2pm, @office-hour-location 
 
 @;office-hours
 
