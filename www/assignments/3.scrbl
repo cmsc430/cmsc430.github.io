@@ -19,7 +19,7 @@ Extort.
 
 @section[#:tag-prefix "a3-" #:style 'unnumbered]{Extort+}
 
-The Extort+ language extends @secref{a2-dupe-plus} in the follow ways:
+The Extort+ language extends @secref{Extort} in the follow ways:
 
 @itemlist[
 @item{adding @racket[case],}
@@ -52,8 +52,8 @@ expression @racket[_ei] is evaluated and its value is the value of the
 @racket[case] expression.
 
 Note that each clause consists of a parenthesized list of
-@emph{datums}, which in the setting of Dupe means either integer or
-boolean literals.
+@emph{datums}, which in the setting of Extort means integer,
+boolean, and character literals.
 
 As a convenience, @racket[case] expressions can omit the @racket[else]
 clause, but the parser will insert a final @racket[else] clause that
@@ -66,7 +66,7 @@ convenience has been extended to @racket[cond] by the parser.)
 You must extend the interpreter and compiler to implement Extort+.  Use
 the starter code in
 @link["code/extort-plus.zip"]{@tt{extort-plus.zip}}, which is
-based on the @secref{Dupe} language we studied in class.
+based on the @secref{Extort} language we studied in class.
 
 You may use any a86 instructions you'd like.
 
