@@ -1,5 +1,5 @@
 #lang scribble/manual
-@(require scribble/core racket/list)
+@(require scribble/core racket/list racket/format)
 @(require "defns.rkt")
 
 @title[#:style 'unnumbered]{Schedule}
@@ -10,38 +10,42 @@
 @(define (tbaseclink lnk txt) txt)
 
 @(define (day s) @elem[s])
-
+@(define (day/slide n s)
+  (define (slide-url n)
+    (format "slides/cmsc430-2026-summer-~a.pdf"    
+            (~r n #:min-width 2 #:pad-string "0")))
+  @elem{@link[(slide-url n) s]})
 
 @tabular[#:style 'boxed
 #:sep @hspace[1]
 #:row-properties '(bottom-border)
 (list (list @bold{Date} @bold{Topic} @bold{Notes} @bold{Due})
-(list @day{6/1} "Intro to compilers, Racket language"
+(list @day/slide[1]{6/1} "Intro to compilers, Racket language"
 		@itemlist[
 		  @item{@secref["Intro"]}
 		  @item{@secref["OCaml to Racket"]}]
 		@seclink["Practice 1"]{P1})
-(list @day{6/2} "Assembly, first compiler"
+(list @day/slide[2]{6/2} "Assembly, first compiler"
 		@itemlist[
 		  @item{@secref["a86"]}
 		  @item{@secref["Abscond"]}]
 		@seclink["Practice 2"]{P2})
-(list @day{6/3} "Unary primitives, control flow"
+(list @day/slide[3]{6/3} "Unary primitives, control flow"
 		@itemlist[
 		  @item{@secref["Blackmail"]}
 		  @item{@secref["Con"]}]
 		"")
-(list @day{6/4} "Disjoint datatypes, I/O, system calls, ABI"
+(list @day/slide[4]{6/4} "Disjoint datatypes, I/O, system calls, ABI"
 		@itemlist[
 		  @item{@secref["Dupe"]}
 		  @item{@secref["Dodger"]}
 		  @item{@secref["Evildoer"]}]
 		@seclink["Assignment 1"]{A1})
-(list @day{6/5} "Errors, type tag checking"
+(list @day/slide[5]{6/5} "Errors, type tag checking"
 		@secref["Extort"]
 		"")
-(list @day{6/8} "Binding and variables, run-time stack, compile-time environment" @secref["Fraud"] "")
-(list @day{6/9} "Binary operations" @secref["Fraud"] @seclink["Assignment 2"]{A2})
+(list @day/slide[6]{6/8} "Binding and variables, run-time stack, compile-time environment" @secref["Fraud"] "")
+(list @day/slide[7]{6/9} "Binary operations" @secref["Fraud"] @seclink["Assignment 2"]{A2})
 (list @day{6/10} "Inductive data, memory allocation, pointer values" @secref["Hustle"] "")
 (list @day{6/11} "Array data, pointer offsets, mutation" @secref["Hoax"] @seclink["Assignment 3"]{A3})
 (list @day{6/12} @bold{Exam, no lecture} "" @seclink["Exam_1"]{E1})
