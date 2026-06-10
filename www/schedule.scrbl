@@ -46,7 +46,7 @@
 		"")
 (list @day/slide[6]{6/8} "Binding and variables, run-time stack, compile-time environment" @secref["Fraud"] "")
 (list @day/slide[7]{6/9} "Binary operations" @secref["Fraud"] @seclink["Assignment 2"]{A2})
-(list @day{6/10} "Inductive data, memory allocation, pointer values" @secref["Hustle"] "")
+(list @day/slide[8]{6/10} "Inductive data, memory allocation, pointer values" @secref["Hustle"] "")
 (list @day{6/11} "Array data, pointer offsets, mutation" @secref["Hoax"] @seclink["Assignment 3"]{A3})
 (list @day{6/12} @bold{Exam, no lecture} "" @seclink["Exam_1"]{E1})
 (list @day{6/15} "Function definitions and calls" @secref["Iniquity"] @seclink["Assignment 4"]{A4})
