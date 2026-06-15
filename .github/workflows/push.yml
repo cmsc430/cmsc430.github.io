@@ -61,7 +61,7 @@ jobs:
         name: github-pages
         path: www/main
     - name: Upload www as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: site-static
         path: www/main
@@ -81,4 +81,4 @@ jobs:
     steps:
     - name: Deploy to GitHub pages
       id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
