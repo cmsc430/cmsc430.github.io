@@ -50,7 +50,7 @@
 (list @day/slide[9]{6/11} "Inductive data, memory allocation, pointer values" @secref["Hustle"] @seclink["Assignment 3"]{A3})
 (list @day{6/12} @bold{Exam, no lecture} "" @seclink["Exam_1"]{E1})
 (list @day/slide[10]{6/15} "Array data, pointer offsets, mutation" @secref["Hoax"] @seclink["Assignment 4"]{A4})
-(list @day{6/16} "Function definitions and calls" @secref["Iniquity"] "")
+(list @day/slide[11]{6/16} "Function definitions and calls" @secref["Iniquity"] "")
 (list @day{6/17} "Tail calls" @secref["Jig"] "")
 (list @day{6/18} "First-class functions, closures" @secref["Loot"] @seclink["Assignment 5"]{A5})
 (list @day{6/19} @bold{Juneteenth Holiday, no lecture} "" "")
