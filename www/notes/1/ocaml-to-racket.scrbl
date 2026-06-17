@@ -291,7 +291,7 @@ OCaml also has a notation for writing functions:
 This make an anonymous function that consumes two integers and
 produces their sum.
 
-To apply it, we can write it justapoxed with arguments:
+To apply it, we can write it replaced with arguments:
 
 @ocaml-repl{
 # (fun x y -> x + y) 3 4;;
@@ -817,7 +817,7 @@ It is possible to convert between symbols and strings:
 (string->symbol "fred")
 ]
 
-There's also a convient function that produces a symbol that is guaranteed
+There's also a convenient function that produces a symbol that is guaranteed
 to have not been used so far each time you call it:
 
 @ex[
