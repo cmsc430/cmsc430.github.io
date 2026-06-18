@@ -23,8 +23,7 @@ similar to the @seclink["Jig"]{Jig} language we studied in
 class.
 
 You must extend the language with the features described here, plus
-you must bring forward the features from @seclink["Assignment
-6"]{Assignment 6}.
+you must bring forward the features from @seclink["Assignment 6"]{Assignment 6}.
 
 @section[#:tag-prefix "a7-" #:style 'unnumbered #:tag "case-lambda"]{Arity dispatch}
 
