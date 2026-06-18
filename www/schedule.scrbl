@@ -52,7 +52,7 @@
 (list @day/slide[10]{6/15} "Array data, pointer offsets, mutation" @secref["Hoax"] @seclink["Assignment 4"]{A4})
 (list @day/slide[11]{6/16} "Function definitions and calls" @secref["Iniquity"] "")
 (list @day/slide[12]{6/17} "Function definitions and calls" @secref["Iniquity"] "")
-(list @day{6/18} "Tail calls" @secref["Jig"] @seclink["Assignment 5"]{A5})
+(list @day/slide[13]{6/18} "Tail calls" @secref["Jig"] @seclink["Assignment 5"]{A5})
 (list @day{6/19} @bold{Juneteenth Holiday, no lecture} "" "")
 (list @day{6/22} "First-class functions, closures" @secref["Loot"] @seclink["Assignment 6"]{A6})
 (list @day{6/23} "Pattern matching, compilation" @secref["Knock"] "")
