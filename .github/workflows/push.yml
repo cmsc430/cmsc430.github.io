@@ -35,7 +35,7 @@ jobs:
         architecture: 'x64'
         distribution: 'full'
         variant: 'CS'
-        version: '8.18'
+        version: '9.2'
     - name: Install a86, langs, and assignments
       run: |
         git clone --branch "${{ github.ref_name }}" --single-branch https://github.com/cmsc430/a86.git
