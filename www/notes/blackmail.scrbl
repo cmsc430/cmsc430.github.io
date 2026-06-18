@@ -31,7 +31,7 @@
 	       #'(void)))]))
 
 @;{ Have to compile 42.s (at expand time) before listing it }
-@(shell-expand "cat add1-add1-40.rkt | racket -t compile-stdin.rkt -m > add1-add1-40.s")
+@(shell-expand "cat add1-add1-40.rkt | racket -t compiler/compile-stdin.rkt -m > add1-add1-40.s")
 
 @(define this-lang "Blackmail")
 @(define prefix (string-append this-lang "-"))
@@ -318,7 +318,7 @@ we can compile files as follows:
 
 And another for parsing, checking, compiling and executing:
 
-@shellbox["cat add1-add1-40.rkt | racket -t executor/run-stdin.rkt -m"]
+@shellbox["cat add1-add1-40.rkt | racket -t executor/exec-stdin.rkt -m"]
 
 
 @section{Correctness and random testing}

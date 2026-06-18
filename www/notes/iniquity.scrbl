@@ -198,7 +198,7 @@ and @racket[odd?]:
 
 And the utility for interpreting programs in files works as well:
 
-@shellbox["cat example/len.rkt | racket -t interp-stdin.rkt -m"]
+@shellbox["cat example/len.rkt | racket -t interpreter/interp-stdin.rkt -m"]
 
 
 @section[#:tag-prefix "iniquity"]{Conventions of Calling}
