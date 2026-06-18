@@ -416,6 +416,7 @@ code currently does not do:
 
 @#reader scribble/comment-reader
 (ex
+ (eval:alts
  (eg (seq (Push rax)
           (Mov rax (value->bits 7)) ; index = 7
           ;; Start of vector-ref code	  
@@ -423,7 +424,19 @@ code currently does not do:
 	  (assert-natural rax)
 	  (assert-vector r8)
 	  (Sar rax 1) ; convert int to byte offset
-          (Mov rax (Mem r8 rax (- 8 type-vect))))))
+          (Mov rax (Mem r8 rax (- 8 type-vect)))))
+ (eg (seq (Push rax)
+          (Mov rax (value->bits 7)) ; index = 7
+          ;; Start of vector-ref code
+          (Pop r8)
+	  (assert-natural rax)
+	  (assert-vector r8)
+	  (Sar rax 1) ; convert int to byte offset
+          ;; INITIALIZE TO AVOID BAD BITS
+          (Mov r9 0)
+          (Mov (Mem r8 rax (- 8 type-vect)) r9)
+          ;; DONE
+          (Mov rax (Mem r8 rax (- 8 type-vect)))))))
 
 Here we read past the end of the vector by using an index of
 @racket[7] on a vector of length @racket[3].  That should be an error,
@@ -580,6 +593,7 @@ Now if we punt on initialization, making a vector is pretty easy:
 
 @#reader scribble/comment-reader
 (ex
+ (eval:alts
  (eg (seq (Mov rax (value->bits 3)) ; length argument
           (Push rax)
 	  (Mov rax (value->bits #t)) ; init argument
@@ -592,7 +606,25 @@ Now if we punt on initialization, making a vector is pretty easy:
 	  (Add rbx 8)          ; acct for stored length
 	  (Sar r8 1)           ; convert to bytes, acct for elements
 	  (Add rbx r8)))
-	  )
+ (eg (seq (Mov rax (value->bits 3)) ; length argument
+          (Push rax)
+	  (Mov rax (value->bits #t)) ; init argument
+	  ;; Start of make-vector code
+	  (Pop r8)
+	  (assert-natural r8)
+	  (Mov (Mem rbx 0) r8) ; write length
+          ;;;;;; INITIALIZE TO ZERO TO AVOID INVALID BITS
+          (Mov rax 0)
+          (Mov (Mem rbx 8) rax)
+          (Mov (Mem rbx 16) rax)
+          (Mov (Mem rbx 24) rax)
+          ;;;;;; END OF INITIALIZATION
+	  (Mov rax rbx)
+	  (Xor rax type-vect)  ; create tagged pointer
+	  (Add rbx 8)          ; acct for stored length
+	  (Sar r8 1)           ; convert to bytes, acct for elements
+	  (Add rbx r8)))
+	  ))
 
 This code checks the type of the length argument to make sure its
 valid, then writes the length to memory, constructs a tagged pointer
