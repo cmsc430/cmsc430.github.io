@@ -9,21 +9,24 @@ Arity-overloaded functions}
 
 @bold{Due: @assign-deadline[7]}
 
-@bold{Starter code:} @link["code/iniquity-plus.zip"]{@tt{iniquity-plus.zip}}
+@bold{Starter code:} @link["code/jig-plus.zip"]{@tt{jig-plus.zip}}
 
-@(ev '(require iniquity-plus))
+@(ev '(require jig-plus))
 
 The goal of this assignment is to implement arity-overloaded functions.
 
-@section[#:tag-prefix "a7o-" #:style 'unnumbered]{Overview}
+@section[#:tag-prefix "a7-" #:style 'unnumbered]{Overview}
 
 For this assignment, use the starter code in
-@link["code/iniquity-plus.zip"]{@tt{iniquity-plus.zip}}, which is
-similar to the @seclink["Iniquity"]{Iniquity} language we studied in
-class, extended with the variable-arity function definitions from
-@seclink["Assignment 6"]{Assignment 6}.
+@link["code/jig-plus.zip"]{@tt{jig-plus.zip}}, which is
+similar to the @seclink["Jig"]{Jig} language we studied in
+class.
 
-@section[#:tag-prefix "a7o-" #:style 'unnumbered #:tag "case-lambda"]{Arity dispatch}
+You must extend the language with the features described here, plus
+you must bring forward the features from @seclink["Assignment
+6"]{Assignment 6}.
+
+@section[#:tag-prefix "a7-" #:style 'unnumbered #:tag "case-lambda"]{Arity dispatch}
 
 Some languages such as Java, Haskell, and Racket make it possible to
 overload a single function name with multiple definitions where the
@@ -95,7 +98,7 @@ This function takes any number of arguments, but when given three, it
 produces @racket["three!"]; in all other cases it produces the number
 of arguments.
 
-@section[#:tag-prefix "a7o-" #:style 'unnumbered]{Representing overloaded definitions}
+@section[#:tag-prefix "a7-" #:style 'unnumbered]{Representing overloaded definitions}
 
 In this assignment, Iniquity+ adds a third kind of function
 representation:
@@ -128,12 +131,12 @@ Here is an example of how overloaded function definitions are parsed:
        [q "other"])))
 ]
 
-@section[#:tag-prefix "a7o-" #:style 'unnumbered]{Starter code}
+@section[#:tag-prefix "a7-" #:style 'unnumbered]{Starter code}
 
-The compiler code given to you supports plain and rest-argument
-function definitions.  The interpreter code given to you works on the
-full Iniquity+ language, so you do not need to update @racket[interp.rkt]
-and can use the interpreter to guide your implementation of the compiler.
+The compiler code given to you supports plain function definitions.
+The interpreter code given to you works on the full Jig+
+language, so you do not need to update @racket[interp.rkt] and can use
+the interpreter to guide your implementation of the compiler.
 
 @ex[
 (interp
@@ -154,7 +157,7 @@ Thus, you should only need to modify @racket[compile.rkt].
 
 A small number of test cases are given as usual.
 
-@section[#:tag-prefix "a7o-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "a7-" #:style 'unnumbered]{Submitting}
 
-To submit, use @tt{make} from within the @tt{iniquity-plus} directory
+To submit, use @tt{make} from within the @tt{jig-plus} directory
 to create a zip file containing your work and submit it to Gradescope.
