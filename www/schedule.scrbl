@@ -57,7 +57,7 @@
 (list @day{6/22} "No class, A/C outage" @secref["Loot"] @seclink["Assignment 6"]{A6})
 (list @day/slide[14]{6/23} "Lambda" @secref["Loot"] "")
 (list @day/slide[15]{6/24} "Pattern matching, interpretation" @secref["Knock"] "")
-(list @day{6/25} "Pattern matching, compilation" @secref["Knock"] @seclink["Assignment 7"]{A7})
+(list @day/slide[16]{6/25} "Pattern matching, compilation" @secref["Knock"] @seclink["Assignment 7"]{A7})
 (list @day{6/26} @bold{Exam, no lecture} "" @seclink["Exam_2"]{E2})
 (list @day{6/29} "Symbols, static and dynamic interning" @secref["Mug"] @seclink["Assignment 8"]{A8})
 (list @day{6/30} "Compound static data" @secref["Mountebank"]  "")
