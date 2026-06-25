@@ -9,3 +9,4 @@ not contribute toward your grade.
 @include-section{practice/1.scrbl}
 @include-section{practice/2.scrbl}
 @include-section{practice/e1.scrbl}
+@include-section{practice/e2.scrbl}
