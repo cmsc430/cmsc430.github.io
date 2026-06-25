@@ -239,20 +239,16 @@ in what we know so far:
 
 @#reader scribble/comment-reader
 (racketblock
-;; Expr REnv Defns -> Answer
+;; Expr Env Defns -> Value { raises 'err }
 (define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
      (λ ??? '...)]
     [(App e es)
-     (match (interp-e e r ds)
-       ['err 'err]
-       [f
-        (match (interp-e* es r ds)
-          ['err 'err]
-          [vs
-           (apply f vs)])])]))
+     (let ((f (interp-e e r ds))
+           (vs (interp-e* es r ds)))
+       (f vs))]))
 )
 
 
@@ -260,24 +256,21 @@ It's not totally clear what parameters the representation of a
 function should have or what we should in the body of that function.
 However, the code in the interpretation of an application sheds light
 on both.  First, it's clear a function should potentially take any
-number of arguments:
+number of arguments, which we can accomplish by always taking a single
+argument that is a list:
 
 @#reader scribble/comment-reader
 (racketblock
-;; Expr REnv Defns -> Answer
+;; Expr Env Defns -> Answer
 (define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs '...)]
+     (λ (vs) '...)]
     [(App e es)
-     (match (interp-e e r ds)
-       ['err 'err]
-       [f
-        (match (interp-e* es r ds)
-          ['err 'err]
-          [vs
-           (apply f vs)])])]))
+     (let ((f (interp-e e r ds))
+           (vs (interp-e* es r ds)))
+       (f vs))]))
 )
 
 Second, what should happen when a function is applied?  It should
@@ -287,20 +280,16 @@ Translating that to code, we get:
 
 @#reader scribble/comment-reader
 (racketblock
-;; Expr REnv Defns -> Answer
+;; Expr Env Defns -> Answer
 (define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs (interp-e e (zip xs vs) ds))]
+     (λ (vs) (interp-e e (zip xs vs) ds))]
     [(App e es)
-     (match (interp-e e r ds)
-       ['err 'err]
-       [f
-        (match (interp-e* es r ds)
-          ['err 'err]
-          [vs
-           (apply f vs)])])]))
+     (let ((f (interp-e e r ds))
+           (vs (interp-e* es r ds)))
+       (f vs))]))
 )
 
 And now we have simultaneously arrived at our representation of function values:
@@ -308,7 +297,7 @@ And now we have simultaneously arrived at our representation of function values:
 (racketblock
 ;; type Value =
 ;; | ....
-;; | (Value ... -> Answer)
+;; | ([Listof Value] -> Value { raises 'err })
 )
 
 and completed the implementation of the interpreter.
@@ -337,46 +326,38 @@ in the (Racket) function:
 
 @#reader scribble/comment-reader
 (racketblock
-;; Expr REnv Defns -> Answer
+;; Expr Env Defns -> Answer
 (define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs (interp-e e (append (zip xs vs) r)) ds)]
+     (λ (vs) (interp-e e (append (zip xs vs) r)) ds)]
     [(App e es)
-     (match (interp-e e r ds)
-       ['err 'err]
-       [f
-        (match (interp-e* es r ds)
-          ['err 'err]
-          [vs
-           (apply f vs)])])]))
+     (let ((f (interp-e e r ds))
+           (vs (interp-e* es r ds)))
+       (f vs))]))
 )
 
 The last remaining issue is we should do some type and arity-checking:
 
 @#reader scribble/comment-reader
 (racketblock
-;; Expr REnv Defns -> Answer
+;; Expr Env Defns -> Answer
 (define (interp-e e r ds)
   (match e
     ;; ...
     [(Lam _ xs e)
-     (λ vs
+     (λ (vs)
        ; check arity matches
        (if (= (length xs) (length vs))           
            (interp-e e (append (zip xs vs) r) ds)
-           'err))]
+           (raise 'err)))]
     [(App e es)
-     (match (interp-e e r ds)
-       ['err 'err]
-       [f
-        (match (interp-e* es r ds)
-          ['err 'err]
-          [vs
-           (if (procedure? f)
-               (apply f vs)
-               'err)])])]))
+     (let ((f (interp-e e r ds))
+           (vs (interp-e* es r ds)))
+       (if (procedure? f)
+           (apply f vs)
+           (raise 'err)))]))
 )
 
 We have a final issue to deal with.  What should we do about
