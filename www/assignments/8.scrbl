@@ -32,16 +32,16 @@ tasked with:
 The following files have already been updated for you @bold{and should
 not be changed by you}:
 
-@itemlist[ @item{@tt{ast.rkt}}
-           @item{@tt{parse.rkt}}
-	   @item{@tt{interp.rkt}}
-           @item{@tt{interp-prim.rkt}}
-           @item{@tt{compile-op.rkt}}	   
+@itemlist[ @item{@tt{syntax/ast.rkt}}
+           @item{@tt{syntax/parse.rkt}}
+	   @item{@tt{interpreter/interp.rkt}}
+           @item{@tt{interpreter/interp-prim.rkt}}
+           @item{@tt{compiler/compile-op.rkt}}	   
 ]
 
 So you will only need to modify:
 @itemlist[
-@item{@tt{compile.rkt}}
+@item{@tt{compiler/compile.rkt}}
 ]
 to correctly implement the new features. These features are described below.
 

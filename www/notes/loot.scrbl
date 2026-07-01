@@ -453,7 +453,7 @@ Loot functions:
 And then use them from within Racket:
 
 @ex[
-((Y tri) 36)
+((Y (list tri)) (list 36))
 ]
 
 
@@ -462,7 +462,7 @@ We can also ``import'' Racket functions in to Loot:
 
 @ex[
 (interp-e (parse-e '(expt 2 10))
-            (list (list 'expt expt))
+            (list (list 'expt (lambda (vs) (apply expt vs))))
 	    '())
 ]
 

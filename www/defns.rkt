@@ -64,9 +64,8 @@
               "Thursday, June 18, 11:59PM"
               "Monday, June 22, 11:59PM"
               "Thursday, June 25, 11:59PM"
-              "Monday, June 29, 11:59PM"
-              "Thursday, July 2, 11:59PM"
-              "Monday, July 6, 11:59PM")
+              "Monday, July 6, 11:59PM"
+              "Thursday, July 9, 11:59PM")
             (sub1 i)))
 
 (define office-hours

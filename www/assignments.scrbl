@@ -13,8 +13,8 @@ More assignments will be released later in the semester.
 @include-section{assignments/5.scrbl}
 @include-section{assignments/6.scrbl}
 @include-section{assignments/7.scrbl}
-@;include-section{assignments/8.scrbl}
-@;include-section{assignments/9.scrbl}
+@include-section{assignments/8.scrbl}
+@include-section{assignments/9.scrbl}
 @;include-section{assignments/10.scrbl}
 
 
