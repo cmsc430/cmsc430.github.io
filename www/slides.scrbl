@@ -3,7 +3,7 @@
 @title[#:style '(unnumbered)]{Slides}
 
 Slides are updated after every class:
-@link["slides/cmsc430-summer-2026.pdf"]{cmsc430-summer-2026.pdf}
+@link["slides/cmsc430-2026-fall.pdf"]{cmsc430-2026-fall.pdf}
 
 For individual PDF files for each lecture, see the @secref{Schedule}
 and click on a date.
