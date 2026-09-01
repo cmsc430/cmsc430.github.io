@@ -12,11 +12,11 @@
 (define prof1-email "dvanhorn@cs.umd.edu")
 (define prof1-initials "DVH")
 
-(define semester "summer")
+(define semester "fall")
 (define year "2026")
 (define courseno "CMSC 430")
 
-(define lecture-dates "June 1 -- July 10, 2026")
+(define lecture-dates "September 1 -- December 10, 2026")
 
 (define IRB "IRB") 
 (define AVW "AVW")
@@ -24,49 +24,55 @@
 
 (define office-hour-location (link "https://discord.gg/Qa2x6akMy" "Discord"))
 
-(define start-date "June 1")
-(define exam1-date "June 12")
-(define exam2-date "June 26")
-(define exam3-date "July 10")
-(define exam-hours "24")
-(define final-date "July 10")
+(define start-date "September 1")
+(define exam1-date "October 1")
+(define exam2-date "November 5")
+;(define exam3-date "December 10")
+;(define exam-hours "24")
+(define final-date "December 17")
 (define exam-end-time "11:59pm")
-(define elms-url "https://umd.instructure.com/courses/1406982")
+(define final-time "10:30am--12:30pm")
+(define elms-url "https://umd.instructure.com/courses/1416023")
 
-(define online? #t)
+(define online? #f)
 
-(define racket-version "9.2")
+(define racket-version "9.3")
 
 (define staff
-  (list (list "Pierce Darragh" "pdarragh@umd.edu")))
+  (list (list "Pierce Darragh" "pdarragh@umd.edu")
+        (list "Le Chang" "lchang21@umd.edu")
+        (list "Deena Postol" "dpostol@umd.edu")
+        (list "Zhongqi Wang" "zqwang@umd.edu")))
 
-(define lecture-schedule1 "Weekdays, 10:00-11:15am")
+(define lecture-schedule1 "TTh, 2-3:15pm")
 
-(define classroom1
-  (link "https://umd.zoom.us/j/96210969737?pwd=K6Iz8IZNchyWEcV3UERCi6KPkawRDw.1" "Online"))
+(define classroom1 (link "https://25live.collegenet.com/pro/umd#!/home/location/1792/details" "LEF 2205"))
 
 ;(define discord "TBD")
-(define piazza "https://piazza.com/umd/summer2026/cmsc430/home")
-(define gradescope "https://www.gradescope.com/courses/1319905")
+(define piazza "https://piazza.com/umd/fall2026/cmsc430/home")
+(define gradescope "https://www.gradescope.com/courses/1381335")
 
 (define feedback "https://forms.gle/99yTz7HVfopCaDMz9")
 
 (define (practice-deadline i)
-  (list-ref '("Thursday, June 4, 11:59PM"
-              "Friday, June 5, 11:59PM")
+  (list-ref '("Thursday, September 3, 11:59PM"
+              "Thursday, September 10, 11:59PM")
             (sub1 i)))
 
 (define (assign-deadline i)
-  (list-ref '("Thursday, June 4, 11:59PM"
-              "Monday, June 8, 11:59PM"
-              "Thursday, June 11, 11:59PM"
-              "Monday, June 15, 11:59PM"
-              "Thursday, June 18, 11:59PM"
-              "Monday, June 22, 11:59PM"
-              "Thursday, June 25, 11:59PM"
-              "Monday, July 6, 11:59PM"
-              "Thursday, July 9, 11:59PM")
+  (list-ref '("Thursday, September 10, 11:59PM"
+              "Thursday, September 17, 11:59PM"
+              "Thursday, September 24, 11:59PM"
+              "Thursday, October 1, 11:59PM"
+              "Thursday, October 8, 11:59PM"
+              "Thursday, October 22, 11:59PM"
+              "Thursday, October 29, 11:59PM"
+              "Thursday, November 12, 11:59PM"
+              "Thursday, December 3, 11:59PM")
             (sub1 i)))
 
 (define office-hours
+  "TBD")
+
+(define prof-office-hours
   "TBD")

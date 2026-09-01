@@ -150,8 +150,9 @@ of the course:
 The course will consist of @if[online? @elem{synchronous on-line}
 @elem{in-person}] lectures.  Video recordings and slides will be
 posted immediately after each lecture.  There are three exams, several
-assignments, and several quizes and surveys. Exams are take-home and
-completed online over a @|exam-hours|-hour period.
+assignments, and several quizes and surveys. Exams are in-person and
+open-note.
+
 
 
 @section{Tips for Success in this Course}
@@ -357,14 +358,13 @@ considered thoughtful.
 
 @section[#:tag "syllabus-exams"]{Exams}
 
-There will be three @secref{Exams}, which will be @bold{take-home}
-exams.  Exams will be distributed at least @|exam-hours| hours
-before the due date of the exam.
+There will be three @secref{Exams}, which will be @bold{in-person}
+exams.  
 
 @itemlist[
   @item{Exam 1: @bold{@exam1-date}}
   @item{Exam 2: @bold{@exam2-date}}
-  @item{Exam 3: @bold{@exam3-date}}
+  @item{Exam 3: @bold{@final-date}}
 ]
 
 
@@ -448,9 +448,9 @@ dates:
 @itemlist[
   @item{Exam 1: @bold{@exam1-date}}
   @item{Exam 2: @bold{@exam2-date}}
-  @item{Exam 3: @bold{@exam3-date}}]
+  @item{Exam 3: @bold{@final-date}}]
 
-@;{The final exam is scheduled according to the University Registrar.}
+The final exam is scheduled according to the University Registrar.
 
 For medical absences, you must furnish documentation from the health
 care professional who treated you. This documentation must verify

@@ -7,11 +7,12 @@
 
 @(define prefix "exam1-")
 
-@bold{Due: @exam1-date @exam-end-time}
+@bold{@exam1-date}
 
-Exam 1 will be released at least @exam-hours hours prior to
-its due date.
+Exam 1 will be an in-class exam held during regular lecture time in
+@|classroom1|.  More details will be released later in the semester.
 
+@;{
 @section[#:tag-prefix prefix]{Practice}
 
 There is a @secref{Practice Exam 1} available.  You may submit to the
@@ -59,3 +60,4 @@ Passing these tests only means your submission is well-formed.  Your
 actual grade will be computed after the deadline.
 
 You are encouraged to check your own work.
+}

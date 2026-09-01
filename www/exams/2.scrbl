@@ -9,11 +9,12 @@
 
 @(define prefix "exam2-")
 
-@bold{Due: @exam2-date @exam-end-time}
+@bold{Due: @exam2-date}
 
-Exam 2 will be released at least @exam-hours hours prior to
-its due date.
+Exam 2 will be an in-class exam held during regular lecture time in
+@|classroom1|.  More details will be released later in the semester.
 
+@;{
 @section[#:tag-prefix prefix]{Practice}
 
 There is a practice exam available on ELMS.  You may submit to the
@@ -61,3 +62,4 @@ Passing these tests only means your submission is well-formed.  Your
 actual grade will be computed after the deadline.
 
 You are encouraged to check your own work.
+}
