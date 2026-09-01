@@ -63,7 +63,7 @@
   (list-ref '("Thursday, September 10, 11:59PM"
               "Thursday, September 17, 11:59PM"
               "Thursday, September 24, 11:59PM"
-              "Thursday, October 1, 11:59PM"
+              "Thursday, October 8, 11:59PM"
               "Thursday, October 8, 11:59PM"
               "Thursday, October 22, 11:59PM"
               "Thursday, October 29, 11:59PM"

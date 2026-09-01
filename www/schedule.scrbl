@@ -35,7 +35,7 @@
 
 
                (list @day{9/8}
-	             "Unary primitives, constrol flow"
+	             "Unary primitives, control flow"
                      @itemlist[@item{@secref["Blackmail"]}
 			       @item{@secref["Con"]}]
 	             "")
