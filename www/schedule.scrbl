@@ -12,7 +12,9 @@
 @(define (day s) @elem[s])
 @(define (day/slide n s)
   (define (slide-url n)
-    (format "slides/cmsc430-2026-summer-~a.pdf"    
+    (format "slides/cmsc430-~a-~a-~a.pdf"
+            year
+	    semester
             (~r n #:min-width 2 #:pad-string "0")))
   @elem{@link[(slide-url n) s]})
 
@@ -21,13 +23,13 @@
          #:row-properties '(bottom-border)
 	 (list (list @bold{Date} @bold{Topic} @bold{Notes} @bold{Due})
 	 
-               (list @day{9/1}
+               (list @day/slide[1]{9/1}
 	             "Intro to compilers, Racket language"
                      @itemlist[@item{@secref["Intro"]}
                                @item{@secref["OCaml to Racket"]}]
                      @seclink["Practice 1"]{P1})
 
-               (list @day{9/3}
+               (list @day/slide[2]{9/3}
 	             "Assembly, first compiler"
                      @itemlist[@item{@secref["a86"]}
 		               @item{@secref["Abscond"]}]
