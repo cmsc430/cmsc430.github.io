@@ -72,7 +72,16 @@
             (sub1 i)))
 
 (define office-hours
-  "TBD")
+  (tabular
+   #:style 'boxed
+   #:row-properties '(bottom-border ())
+   (list (list (bold "Day") (bold "Time") (bold "TA"))
+         (list "Monday" "12-6pm" "Zhongqi")
+         (list "Tuesday" "12-2pm" "Deena")
+         (list "Wednesday" "9:30am-12:30pm" "Le")
+         (list "" "1-3pm" "Deena")
+         (list "Thursday" "10am-12pm" "Deena")
+         (list "Friday" "9:30am-12:30pm" "Le"))))
 
 (define prof-office-hours
-  "TBD")
+  "By appt.")
