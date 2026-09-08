@@ -36,7 +36,7 @@
 	             @seclink["Practice 2"]{P2})
 
 
-               (list @day{9/8}
+               (list @day/slide[3]{9/8}
 	             "Unary primitives, control flow"
                      @itemlist[@item{@secref["Blackmail"]}
 			       @item{@secref["Con"]}]
