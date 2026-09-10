@@ -42,7 +42,7 @@
 			       @item{@secref["Con"]}]
 	             "")
 
-	       (list @day{9/10}
+	       (list @day/slide[4]{9/10}
 	             "Disjoint datatypes, I/O, system calls, ABI"
                      @itemlist[@item{@secref["Dupe"]}
                                @item{@secref["Dodger"]}
