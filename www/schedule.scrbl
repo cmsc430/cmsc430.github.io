@@ -43,36 +43,37 @@
 	             "")
 
 	       (list @day/slide[4]{9/10}
-	             "Disjoint datatypes, I/O, system calls, ABI"
+	             "Disjoint datatypes"
                      @itemlist[@item{@secref["Dupe"]}
-                               @item{@secref["Dodger"]}
-                               @item{@secref["Evildoer"]}]
+                               @item{@secref["Dodger"]}]
 	             @seclink["Assignment 1"]{A1})
 		     
 	             
-               (list @day{9/15}
-	             "Errors, type tag checking"
-                     @secref["Extort"]
+               (list @day/slide[5]{9/15}
+	             "I/O, system calls, ABI"		     
+                     @secref["Evildoer"]
 		     "")
 
-               (list @day{9/17}
-	             "Binding and variables, run-time stack, compile-time environment"
-		     @secref["Fraud"]
+               (list @day/slide[6]{9/17}
+	             "I/O, system calls, ABI (cont.); Errors, type tag checking"
+		     @itemlist[
+                       @item{@secref["Evildoer"]}
+		       @item{@secref["Extort"]}]
 		     @seclink["Assignment 2"]{A2})
+
+               (list @day/slide[7]{9/22}
+                     "Errors, type tag checking (cont.); Binding and variables, run-time stack, compile-time environment"
+		     @secref["Fraud"]
+		     "")
 		     
-               (list @day{9/22}
+               (list @day/slide[8]{9/24}
 	             "Binary operations"
                      @secref["Fraud"]
-                     "")
-
-               (list @day{9/24}
-	             "Inductive data, memory allocation, pointer values"
-                     @secref["Hustle"]		     
-		     @seclink["Assignment 3"]{A3})
+                     @seclink["Assignment 3"]{A3})
 
                (list @day{9/29}
-	             "Inductive data, memory allocation, pointer values"
-		     @secref["Hustle"]
+	             "Review"
+                     ""
 		     "")
 
                (list @day{10/1}	             
@@ -81,14 +82,14 @@
 		     @seclink["Exam_1"]{E1})
 
                (list @day{10/6}
+	             "Inductive data, memory allocation, pointer values"
+		     @secref["Hustle"]
+		     "")
+
+               (list @day{10/8}
 	       	     "Array data, pointer offsets, mutation"
 		     @secref["Hoax"]
-                     "")
-
-	       (list @day{10/8}
-	             "Strings"
-		     @secref["Hoax"]
-		     @seclink["Assignment 4"]{A4})
+                     @seclink["Assignment 4"]{A4})
 		      
                (list @day{10/13}
                      @elem{No class: Fall Break}
@@ -96,10 +97,10 @@
 		     "")
 
 	       (list @day{10/15}
-                     @elem{slack}
-		     ""
+	             "Strings"
+		     @secref["Hoax"]
 		     "")
-
+		     
                (list @day{10/20}
 	             "Function definitions and calls"
                      @secref["Iniquity"]
