@@ -81,7 +81,7 @@
 		     ""
 		     @seclink["Exam_1"]{E1})
 
-               (list @day{10/6}
+               (list @day/slide[9]{10/6}
 	             "Inductive data, memory allocation, pointer values"
 		     @secref["Hustle"]
 		     "")
@@ -99,7 +99,7 @@
 	       (list @day{10/15}
 	             "Strings"
 		     @secref["Hoax"]
-		     "")
+		     @seclink["Assignment 5"]{A5})
 		     
                (list @day{10/20}
 	             "Function definitions and calls"
