@@ -86,7 +86,7 @@
 		     @secref["Hustle"]
 		     "")
 
-               (list @day{10/8}
+               (list @day/slide[10]{10/8}
 	       	     "Array data, pointer offsets, mutation"
 		     @secref["Hoax"]
                      @seclink["Assignment 4"]{A4})
