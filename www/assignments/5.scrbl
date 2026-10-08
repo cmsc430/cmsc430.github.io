@@ -12,9 +12,6 @@
 
 @bold{Starter code:} @link["code/hoax-plus.zip"]{@tt{hoax-plus.zip}}
 
-@bold{NOTE:} You will need to update the a86 library by running
-@tt{raco pkg update a86} before completing this assignment.
-
 @(ev '(require hoax-plus))
 
 The goal of this assignment is to gain proficiency with our
