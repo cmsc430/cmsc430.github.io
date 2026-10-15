@@ -96,7 +96,7 @@
 		     ""
 		     "")
 
-	       (list @day{10/15}
+	       (list @day/slide[11]{10/15}
 	             "Strings; Function definitions and calls"
 		     @secref["Iniquity"]
 		     "")
