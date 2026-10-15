@@ -295,7 +295,7 @@ list, this way addresses don't change as memory is allocated.
 For example, suppose we have allocated memory to hold four values
 @racket['(97 98 99 100)].  The address of 100 is 0; the address of 99
 is 1; etc.  When a new value is allocated, say, @racket['(96 97 98
-99)], the address of 99 is still 0, and so on.  The newly allocated
+99 100)], the address of 100 is still 0, and so on.  The newly allocated
 value 96 is at address 4.  In this way, memory grows toward higher
 addresses and the next address to allocate is given by the size of the
 heap currently in use.
