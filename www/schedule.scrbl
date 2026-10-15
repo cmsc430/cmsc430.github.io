@@ -97,23 +97,23 @@
 		     "")
 
 	       (list @day{10/15}
-	             "Strings"
-		     @secref["Hoax"]
-		     @seclink["Assignment 5"]{A5})
+	             "Strings; Function definitions and calls"
+		     @secref["Iniquity"]
+		     "")
 		     
                (list @day{10/20}
 	             "Function definitions and calls"
                      @secref["Iniquity"]
-		     "")
+		     @seclink["Assignment 5"]{A5})
                (list @day{10/22}
-	             "Function definitions and calls"
-                     @secref["Iniquity"]
+	             "Tail calls"
+                     @secref["Jig"]
 		     "")
                      
                (list @day{10/27}
 	             "Tail calls"
                      @secref["Jig"]
-		     "")
+		     @seclink["Assignment 6"]{A6})
 	       (list @day{10/29}
 	             "Pattern matching, interpretation"
 		     @secref["Knock"]
@@ -122,7 +122,7 @@
                (list @day{11/3}
 	             "Pattern matching, compilation"
                      @secref["Knock"]
-		     "")
+		     @seclink["Assignment 7"]{A7})
 
                (list @day{11/5}
                      @seclink["Exam_2"]{Exam 2}

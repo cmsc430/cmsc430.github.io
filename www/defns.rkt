@@ -64,9 +64,9 @@
               "Thursday, September 17, 11:59PM"
               "Thursday, September 24, 11:59PM"
               "Thursday, October 8, 11:59PM"
-              "Thursday, October 15, 11:59PM"
-              "Thursday, October 22, 11:59PM"
-              "Thursday, October 29, 11:59PM"
+              "Tuesday, October 20, 11:59PM"
+              "Tuesday, October 27, 11:59PM"
+              "Tuesday, November 3, 11:59PM"
               "Thursday, November 12, 11:59PM"
               "Thursday, December 3, 11:59PM")
             (sub1 i)))

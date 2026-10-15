@@ -15,14 +15,14 @@ Variable-arity functions}
 
 The goal of this assignment is to implement variable arity functions.
 
-@section[#:tag-prefix "a7v-" #:style 'unnumbered]{Overview}
+@section[#:tag-prefix "a6-" #:style 'unnumbered]{Overview}
 
 For this assignment, use the starter code in
 @link["code/iniquity-plus.zip"]{@tt{iniquity-plus.zip}}, which is
 similar to the @seclink["Iniquity"]{Iniquity} language we studied in
 class.
 
-@section[#:tag-prefix "a7v-" #:style 'unnumbered #:tag "rest"]{Rest
+@section[#:tag-prefix "a6-" #:style 'unnumbered #:tag "rest"]{Rest
 arguments}
 
 Many languages including JavaScript, C, C++, Java, Ruby, Go, PHP, and
@@ -100,7 +100,7 @@ constructing a list with with popped elements, and then finally pushes
 this list in order to bind it to the rest parameter.
 
 
-@section[#:tag-prefix "a7v-" #:style 'unnumbered]{Representing the
+@section[#:tag-prefix "a6-" #:style 'unnumbered]{Representing the
 syntax of function definitions}
 
 The @seclink["Iniquity"]{Iniquity} language has a single function
@@ -141,7 +141,7 @@ are encouraged to try out more to get a better sense:
 (parse-define '(define (f x y z . q) q))
 ]
 
-@section[#:tag-prefix "a7v-" #:style 'unnumbered]{Starter code}
+@section[#:tag-prefix "a6-" #:style 'unnumbered]{Starter code}
 
 The compiler code given to you is just an implementation of Iniquity,
 but updated to parse the new forms of function definitions and
@@ -171,7 +171,7 @@ Thus, you should only need to modify @racket[compile.rkt].
 
 A small number of test cases are given as usual.
 
-@section[#:tag-prefix "a7v-" #:style 'unnumbered]{Submitting}
+@section[#:tag-prefix "a6-" #:style 'unnumbered]{Submitting}
 
 To submit, use @tt{make} from within the @tt{iniquity-plus} directory
 to create a zip file containing your work and submit it to Gradescope.
