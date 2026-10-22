@@ -105,7 +105,7 @@
 	             "Function definitions and calls"
                      @secref["Iniquity"]
 		     @seclink["Assignment 5"]{A5})
-               (list @day{10/22}
+               (list @day/slide[13]{10/22}
 	             "Tail calls"
                      @secref["Jig"]
 		     "")
