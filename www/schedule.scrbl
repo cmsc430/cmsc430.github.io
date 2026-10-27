@@ -110,19 +110,19 @@
                      @secref["Jig"]
 		     "")
                      
-               (list @day{10/27}
-	             "Tail calls"
-                     @secref["Jig"]
+               (list @day/slide[14]{10/27}
+	             "Pattern matching, interpretation"
+                     @secref["Knock"]
 		     @seclink["Assignment 6"]{A6})
 	       (list @day{10/29}
-	             "Pattern matching, interpretation"
-		     @secref["Knock"]
+	             "Pattern matching, compilation"
+                     @secref["Knock"]		     		     
 		     "")
 
                (list @day{11/3}
-	             "Pattern matching, compilation"
-                     @secref["Knock"]
-		     @seclink["Assignment 7"]{A7})
+	             "Review"
+		     ""
+	             @seclink["Assignment 7"]{A7})
 
                (list @day{11/5}
                      @seclink["Exam_2"]{Exam 2}
