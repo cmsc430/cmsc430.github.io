@@ -114,7 +114,7 @@
 	             "Pattern matching, interpretation"
                      @secref["Knock"]
 		     @seclink["Assignment 6"]{A6})
-	       (list @day{10/29}
+	       (list @day/slide[15]{10/29}
 	             "Pattern matching, compilation"
                      @secref["Knock"]		     		     
 		     "")
@@ -138,7 +138,7 @@
                (list @day{11/12}
 	             "Lambda"
 		     @secref["Loot"]
-		     "")
+		     @seclink["Assignment 8"]{A8})
 
                (list @day{11/17}
                      "Symbols, static and dynamic interning"
@@ -148,7 +148,7 @@
                (list @day{11/19}
                      "Compound static data"
 		     @secref["Mountebank"]
-		     "")
+		     @seclink["Assignment 9"]{A9})
 
                (list @day{11/24}
                      @elem{Slack}

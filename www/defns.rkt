@@ -68,7 +68,7 @@
               "Tuesday, October 27, 11:59PM"
               "Tuesday, November 3, 11:59PM"
               "Thursday, November 12, 11:59PM"
-              "Thursday, December 3, 11:59PM")
+              "Thursday, November 19, 11:59PM")
             (sub1 i)))
 
 (define office-hours
