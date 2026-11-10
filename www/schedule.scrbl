@@ -130,29 +130,29 @@
 		     @seclink["Exam_2"]{E2})
 		     
 
-               (list @day{11/10}
+               (list @day/slide[16]{11/10}
 	             "Lambda"
 	       	     @secref["Loot"]
                      "")
 
                (list @day{11/12}
-	             "Lambda"
-		     @secref["Loot"]
+	             "No class"
+		     ""
 		     @seclink["Assignment 8"]{A8})
 
                (list @day{11/17}
-                     "Symbols, static and dynamic interning"
-                     @secref["Mug"]
+    	             "Lambda"
+		     @secref["Loot"]
                      "")
 
                (list @day{11/19}
-                     "Compound static data"
-		     @secref["Mountebank"]
+      	            "Symbols, static and dynamic interning"
+                     @secref["Mug"]
 		     @seclink["Assignment 9"]{A9})
 
-               (list @day{11/24}
-                     @elem{Slack}
-		     ""
+               (list @day{11/24}	                            
+                     "Compound static data"
+		     @secref["Mountebank"]
 		     "")
 		     
 	       (list @day{11/26}	             
