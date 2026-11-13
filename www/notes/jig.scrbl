@@ -729,13 +729,15 @@ compiled:
        (compile-e e2 c t?)))
 )
 
-There are two important places where @racket[t?] is seeded to @racket[#t]:
+There is one places where @racket[t?] is seeded to @racket[#t]:
 
 @itemlist[
-@item{The top-level expression is in tail position.}
 @item{The body of every function is in tail position.}
 ]
 
+It might be tempting to seed @racket[t?] to @racket[#t] in the
+compilation of the top-level expression, but it would be incorrect to
+do so.  Try to convince yourself @emph{why} this is the case.
 
 The complete compiler:
 
